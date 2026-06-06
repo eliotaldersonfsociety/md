@@ -10,7 +10,7 @@ const contactInfo = [
   {
     icon: MapPin,
     title: "Dirección",
-    details: ["Cucuta, San Antonio del Tachira, Rubio"]
+    details: ["Cúcuta, San Antonio del Táchira, Rubio"]
   },
   {
     icon: Phone,
@@ -67,35 +67,57 @@ export function ContactSection() {
   }
 
   return (
-    <section id="contacto" className="py-20 bg-muted/30">
+    <section id="contacto" className="py-12 md:py-20 bg-muted/30">
+      {/* CAMBIO: py-12 en móvil, py-20 en desktop */}
       <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-12">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* CAMBIO: gap-8 en móvil, gap-12 en desktop */}
+
           {/* Contact Info */}
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
+            {/* CAMBIO: space-y-6 en móvil */}
             <div>
-              <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+              <span className="inline-block px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-primary/10 text-primary text-xs md:text-sm font-medium mb-3 md:mb-4">
+                {/* CAMBIO: text-xs y padding reducido en móvil */}
                 Contacto
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 text-balance">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 md:mb-4 text-balance">
+                {/* CAMBIO: text-2xl en móvil, escalado progresivo */}
                 ¿Tienes Preguntas?
               </h2>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                {/* CAMBIO: text-sm en móvil */}
                 Estamos aquí para ayudarte. Contáctanos y te responderemos lo antes posible.
                 Ya sea para pedidos, cotizaciones o cualquier consulta.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+              {/* CAMBIO: grid-cols-1 en móvil, gap-3 reducido */}
               {contactInfo.map((info) => (
-                <div key={info.title} className="p-4 rounded-xl bg-card border border-border">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <info.icon className="w-5 h-5 text-primary" />
+                <div key={info.title} className="p-3 md:p-4 rounded-xl bg-card border border-border min-w-0">
+                  {/* CAMBIO: p-3 en móvil, min-w-0 para evitar desbordamiento */}
+                  <div className="flex items-start gap-2.5 md:gap-3">
+                    {/* CAMBIO: gap-2.5 en móvil */}
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      {/* CAMBIO: w-8 h-8 en móvil */}
+                      <info.icon className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                      {/* CAMBIO: icono más pequeño en móvil */}
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-foreground mb-1">{info.title}</h3>
+                    <div className="min-w-0 flex-1">
+                      {/* CAMBIO: flex-1 asegura que ocupe el espacio disponible */}
+                      <h3 className="font-semibold text-foreground text-sm md:text-base mb-1">
+                        {/* CAMBIO: text-sm en móvil */}
+                        {info.title}
+                      </h3>
                       {info.details.map((detail, idx) => (
-                        <p key={idx} className="text-sm text-muted-foreground break-words max-w-full">{detail}</p>
+                        <p 
+                          key={idx} 
+                          className="text-xs md:text-sm text-muted-foreground break-words leading-relaxed"
+                        >
+                          {/* CAMBIO: text-xs en móvil, break-words forzado */}
+                          {detail}
+                        </p>
                       ))}
                     </div>
                   </div>
@@ -105,52 +127,65 @@ export function ContactSection() {
           </div>
 
           {/* Contact Form */}
-          <div className="bg-card rounded-2xl border border-border p-6 md:p-8 shadow-lg">
+          <div className="bg-card rounded-xl md:rounded-2xl border border-border p-4 sm:p-6 md:p-8 shadow-lg">
+            {/* CAMBIO: rounded-xl y p-4 en móvil pequeño */}
             {submitted ? (
-              <div className="bg-[#fef9f0] border border-[#f5d0a9] rounded-2xl p-10 text-center">
-                <div className="w-16 h-16 rounded-full bg-[#fde68a]/30 flex items-center justify-center mx-auto mb-5">
-                  <CheckCircle2 className="w-8 h-8 text-[#d97706]" />
+              <div className="bg-[#fef9f0] border border-[#f5d0a9] rounded-xl md:rounded-2xl p-6 md:p-10 text-center">
+                {/* CAMBIO: padding reducido en móvil */}
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#fde68a]/30 flex items-center justify-center mx-auto mb-4 md:mb-5">
+                  {/* CAMBIO: icono más pequeño en móvil */}
+                  <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8 text-[#d97706]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#1f2937] mb-3">
+                <h3 className="text-lg md:text-xl font-bold text-[#1f2937] mb-2 md:mb-3">
                   Mensaje Enviado
                 </h3>
-                <p className="text-[#6b7280] leading-relaxed">
+                <p className="text-sm md:text-base text-[#6b7280] leading-relaxed">
                   Gracias por contactarnos. Nuestro equipo te responderá pronto.
                 </p>
                 <Button
                   onClick={() => setSubmitted(false)}
                   variant="outline"
-                  className="mt-6 rounded-xl"
+                  className="mt-4 md:mt-6 rounded-xl text-sm"
+                  size="sm"
+                  // CAMBIO: size="sm" y margin reducido en móvil
                 >
                   Enviar otro mensaje
                 </Button>
               </div>
             ) : (
               <>
-                <h3 className="text-xl font-bold text-foreground mb-6">Envíanos un Mensaje</h3>
+                <h3 className="text-lg md:text-xl font-bold text-foreground mb-4 md:mb-6">
+                  {/* CAMBIO: text-lg en móvil */}
+                  Envíanos un Mensaje
+                </h3>
 
                 {submitError && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm mb-4">
+                  <div className="bg-red-50 border border-red-200 rounded-lg md:rounded-xl p-3 md:p-4 text-red-600 text-xs md:text-sm mb-3 md:mb-4">
+                    {/* CAMBIO: padding y texto más pequeño en móvil */}
                     {submitError}
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
+                  {/* CAMBIO: space-y-3 en móvil */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                    {/* CAMBIO: grid-cols-1 en móvil (inputs apilados), gap-3 */}
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
+                      <label htmlFor="name" className="block text-xs md:text-sm font-medium text-foreground mb-1.5 md:mb-2">
+                        {/* CAMBIO: text-xs label en móvil */}
                         Nombre
                       </label>
                       <Input
                         id="name"
                         name="name"
                         placeholder="Tu nombre"
-                        className="rounded-lg"
+                        className="rounded-lg text-sm h-9 md:h-10"
+                        // CAMBIO: altura reducida en móvil
                         required
                       />
                     </div>
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+                      <label htmlFor="email" className="block text-xs md:text-sm font-medium text-foreground mb-1.5 md:mb-2">
                         Correo Electrónico
                       </label>
                       <Input
@@ -158,54 +193,57 @@ export function ContactSection() {
                         name="email"
                         type="email"
                         placeholder="tu@correo.com"
-                        className="rounded-lg"
+                        className="rounded-lg text-sm h-9 md:h-10"
                         required
                       />
                     </div>
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                     <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-2">
+                      <label htmlFor="phone" className="block text-xs md:text-sm font-medium text-foreground mb-1.5 md:mb-2">
                         Teléfono
                       </label>
                       <Input
                         id="phone"
                         name="phone"
                         placeholder="Tu teléfono"
-                        className="rounded-lg"
+                        className="rounded-lg text-sm h-9 md:h-10"
                       />
                     </div>
                     <div>
-                      <label htmlFor="subject" className="block text-sm font-medium text-foreground mb-2">
+                      <label htmlFor="subject" className="block text-xs md:text-sm font-medium text-foreground mb-1.5 md:mb-2">
                         Asunto
                       </label>
                       <Input
                         id="subject"
                         name="subject"
                         placeholder="¿En qué podemos ayudarte?"
-                        className="rounded-lg"
+                        className="rounded-lg text-sm h-9 md:h-10"
                         required
                       />
                     </div>
                   </div>
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-foreground mb-2">
+                    <label htmlFor="message" className="block text-xs md:text-sm font-medium text-foreground mb-1.5 md:mb-2">
                       Mensaje
                     </label>
                     <textarea
                       id="message"
                       name="message"
-                      rows={4}
+                      rows={3}
+                      // CAMBIO: rows={3} en móvil (era 4)
                       placeholder="Escribe tu mensaje aquí..."
-                      className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                      className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                       required
                     />
                   </div>
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    size="lg"
-                    className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    size="default"
+                    // CAMBIO: size="default" en móvil, "lg" solo en desktop si quieres
+                    className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm md:text-base h-10 md:h-11"
+                    // CAMBIO: altura y texto reducidos en móvil
                   >
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
