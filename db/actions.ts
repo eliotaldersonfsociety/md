@@ -706,28 +706,6 @@ export async function submitContactForm(data: {
   subject: string
   message: string
 }) {
-  try {
-    await initTables()
-  } catch (initError) {
-    console.error("Database init error:", initError)
-  }
-  
-  try {
-    await turso.execute({
-      sql: `INSERT INTO contacts (name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?)`,
-      args: [
-        data.name,
-        data.email,
-        data.phone || null,
-        data.subject,
-        data.message
-      ]
-    })
-  } catch (dbError) {
-    console.error("Database save error:", dbError)
-  }
-  
-  // Send email via Resend
   const resendApiKey = process.env.RESEND_API_KEY
   if (resendApiKey) {
     try {
@@ -739,7 +717,7 @@ export async function submitContactForm(data: {
           <h2>Nuevo mensaje de contacto</h2>
           <p><strong>Nombre:</strong> ${data.name}</p>
           <p><strong>Email:</strong> ${data.email}</p>
-          <p><strong>Teléfono:</strong> ${data.phone}</p>
+          <p><strong>Teléfono:</strong> ${data.phone || 'No especificado'}</p>
           <p><strong>Asunto:</strong> ${data.subject}</p>
           <p><strong>Mensaje:</strong> ${data.message}</p>
         `
@@ -755,10 +733,11 @@ export async function submitContactForm(data: {
       })
     } catch (emailError) {
       console.error("Email send error:", emailError)
+      throw emailError
     }
   }
   
-   return { success: true }
+return { success: true }
 }
 
 export async function getProductStock(productId: number): Promise<number> {
