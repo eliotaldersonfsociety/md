@@ -273,7 +273,7 @@ export function Header() {
                      </div>
                    </div>
                   <Link 
-                    href="/desarrollo-corporativos" 
+                    href="/empresas" 
                     className="text-sm font-medium text-white hover:text-white/80 transition-colors py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
