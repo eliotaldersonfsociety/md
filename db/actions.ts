@@ -707,37 +707,48 @@ export async function submitContactForm(data: {
   message: string
 }) {
   const resendApiKey = process.env.RESEND_API_KEY
-  if (resendApiKey) {
-    try {
-      const emailData = {
-        from: "Mundo Disney <noreply@mundodisney.com>",
-        to: ["fabricadepeluchesmundodisney@gmail.com"],
-        subject: `Nuevo contacto: ${data.subject}`,
-        html: `
-          <h2>Nuevo mensaje de contacto</h2>
-          <p><strong>Nombre:</strong> ${data.name}</p>
-          <p><strong>Email:</strong> ${data.email}</p>
-          <p><strong>Teléfono:</strong> ${data.phone || 'No especificado'}</p>
-          <p><strong>Asunto:</strong> ${data.subject}</p>
-          <p><strong>Mensaje:</strong> ${data.message}</p>
-        `
-      }
-      
-      await fetch("https://api.resend.com/v1/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(emailData)
-      })
-    } catch (emailError) {
-      console.error("Email send error:", emailError)
-      throw emailError
-    }
+  
+  if (!resendApiKey) {
+    throw new Error("RESEND_API_KEY no configurada en el servidor")
   }
   
-return { success: true }
+  try {
+    const emailData = {
+      from: "Mundo Disney <noreply@mundodisney.com>",
+      to: ["fabricadepeluchesmundodisney@gmail.com"],
+      subject: `Nuevo contacto: ${data.subject}`,
+      html: `
+        <h2>Nuevo mensaje de contacto</h2>
+        <p><strong>Nombre:</strong> ${data.name}</p>
+        <p><strong>Email:</strong> ${data.email}</p>
+        <p><strong>Teléfono:</strong> ${data.phone || 'No especificado'}</p>
+        <p><strong>Asunto:</strong> ${data.subject}</p>
+        <p><strong>Mensaje:</strong> ${data.message}</p>
+      `
+    }
+    
+    const response = await fetch("https://api.resend.com/v1/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(emailData)
+    })
+    
+    const result = await response.json()
+    
+    if (!response.ok) {
+      console.error("Resend API error:", result)
+      throw new Error(result.message || "Error al enviar el email")
+    }
+    
+    return { success: true, data: result }
+    
+  } catch (emailError) {
+    console.error("Email send error:", emailError)
+    throw emailError // Esto permite que el frontend sepa que falló
+  }
 }
 
 export async function getProductStock(productId: number): Promise<number> {
