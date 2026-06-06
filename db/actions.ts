@@ -5,13 +5,21 @@ import { Buffer } from "buffer"
 import { cookies } from "next/headers"
 import { turso } from "@/db"
 
-const ADMIN_PASSWORD = "mundodisney2024"
 const SESSION_COOKIE = "admin_session"
 
 async function isAdminAuthenticated(): Promise<boolean> {
   const cookieStore = (await cookies()) as any
   const session = cookieStore.get?.(SESSION_COOKIE) || cookieStore.getAll?.()?.find((c: any) => c.name === SESSION_COOKIE)
-  return session?.value === ADMIN_PASSWORD
+  if (!session?.value) return false
+  try {
+    const result = await turso.execute({
+      sql: `SELECT id FROM admin_users WHERE id = ? AND active = 1`,
+      args: [session.value]
+    })
+    return (result as any).rows.length > 0
+  } catch {
+    return false
+  }
 }
 
 async function requireAdmin(): Promise<boolean> {
@@ -140,6 +148,16 @@ async function initTables() {
       variant_label TEXT,
       FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
       FOREIGN KEY (product_id) REFERENCES products(id)
+    )`
+  })
+
+  await turso.execute({
+    sql: `CREATE TABLE IF NOT EXISTS admin_users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      salt TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`
   })
 
@@ -338,6 +356,14 @@ async function initTables() {
   try {
     await turso.execute({
       sql: `ALTER TABLE products ADD COLUMN is_active BOOLEAN DEFAULT 1`
+    })
+  } catch (e) {
+    // Column already exists
+  }
+
+  try {
+    await turso.execute({
+      sql: `ALTER TABLE admin_users ADD COLUMN active INTEGER DEFAULT 1`
     })
   } catch (e) {
     // Column already exists
@@ -1765,12 +1791,33 @@ export async function toggleProductActive(productId: number, active: boolean): P
 
 // =============== SERVER ACTIONS (reemplazan API routes) ===============
 
-export async function adminLogin(password: string): Promise<{ success: boolean }> {
-  if (password !== ADMIN_PASSWORD) {
-    return { success: false }
+export async function adminLogin(password: string, username?: string): Promise<{ success: boolean; error?: string }> {
+  if (!username || !password) {
+    return { success: false, error: "Usuario y contraseña requeridos" }
   }
+
+  await initTables()
+
+  const result = await turso.execute({
+    sql: `SELECT id, password_hash, salt FROM admin_users WHERE username = ?`,
+    args: [username]
+  })
+
+  const rows = result as any
+  const user = rows?.rows?.[0]
+
+  if (!user) {
+    return { success: false, error: "Usuario no encontrado" }
+  }
+
+  const crypto = require("crypto")
+  const storedHash = crypto.scryptSync(password, user.salt, 64).toString("hex")
+  if (storedHash !== user.password_hash) {
+    return { success: false, error: "Contraseña incorrecta" }
+  }
+
   const cookieStore = (await cookies()) as any
-  cookieStore.set(SESSION_COOKIE, ADMIN_PASSWORD, {
+  cookieStore.set(SESSION_COOKIE, String(user.id), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -1780,13 +1827,36 @@ export async function adminLogin(password: string): Promise<{ success: boolean }
   return { success: true }
 }
 
+export async function createAdminUser(username: string, password: string): Promise<{ success: boolean; error?: string }> {
+  if (!username || !password) {
+    return { success: false, error: "Usuario y contraseña requeridos" }
+  }
+
+  await initTables()
+  const salt = randomBytes(16).toString("hex")
+  const passwordHash = Buffer.from(require("crypto").scryptSync(password, salt, 64)).toString("hex")
+
+  try {
+    await turso.execute({
+      sql: `INSERT INTO admin_users (username, password_hash, salt) VALUES (?, ?, ?)`,
+      args: [username, passwordHash, salt]
+    })
+    return { success: true }
+  } catch (e: any) {
+    if (e.message?.includes("UNIQUE constraint failed")) {
+      return { success: false, error: "El usuario ya existe" }
+    }
+    return { success: false, error: "Error al crear usuario" }
+  }
+}
+
 export async function adminLogout() {
   const cookieStore = (await cookies()) as any
   cookieStore.delete(SESSION_COOKIE)
 }
 
 export async function adminGetProducts() {
-  requireAdmin()
+  await requireAdmin()
   try {
     const products = await getProductsWithVariantsFromDB()
     const enriched = products.map((p: any) => ({
@@ -1811,7 +1881,7 @@ export async function adminUpdateProduct(data: {
   badge?: string
   badgeColor?: string
 }) {
-  requireAdmin()
+  await requireAdmin()
   try {
     await updateProductPrice(data.id, data.price, data.wholesalePrice, data.originalPrice)
     await updateProductStock(data.id, data.stock)
@@ -1824,7 +1894,7 @@ export async function adminUpdateProduct(data: {
 }
 
 export async function adminToggleProductActive(productId: number, active: boolean) {
-  requireAdmin()
+  await requireAdmin()
   try {
     await toggleProductActive(productId, active)
     return { success: true }
@@ -1835,7 +1905,7 @@ export async function adminToggleProductActive(productId: number, active: boolea
 }
 
 export async function adminDeleteProduct(productId: number) {
-  requireAdmin()
+  await requireAdmin()
   try {
     await deleteProduct(productId)
     return { success: true }
@@ -1846,7 +1916,7 @@ export async function adminDeleteProduct(productId: number) {
 }
 
 export async function adminGetOrders() {
-  requireAdmin()
+  await requireAdmin()
   try {
     const orders = await getAllOrders()
     return { orders }
@@ -1857,7 +1927,7 @@ export async function adminGetOrders() {
 }
 
 export async function adminUpdateOrderStatus(orderId: number, status: string) {
-  requireAdmin()
+  await requireAdmin()
   try {
     await updateOrderStatus(orderId, status)
     return { success: true }
@@ -1883,7 +1953,7 @@ export async function adminUpdateVariant(data: {
   of_badge?: string
   of_badge_color?: string
 }) {
-  requireAdmin()
+  await requireAdmin()
   try {
     if (data.active !== undefined) {
       await toggleVariantActive(data.id, data.active)
@@ -1924,7 +1994,7 @@ export async function adminSetVariantOferta(variantId: number, data: {
   badge?: string
   badgeColor?: string
 }) {
-  requireAdmin()
+  await requireAdmin()
   try {
     await setVariantOferta(variantId, data)
     return { success: true }
@@ -1939,7 +2009,7 @@ export async function updateVariant(variantId: number, data: {
   wholesalePrice?: number
   stock?: number
 }) {
-  requireAdmin()
+  await requireAdmin()
   try {
     if (data.price !== undefined || data.wholesalePrice !== undefined) {
       await updateVariantPrice(variantId, data.price ?? 0, data.wholesalePrice ?? 0)

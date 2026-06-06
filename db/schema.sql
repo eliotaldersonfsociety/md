@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS products (
   description TEXT,
   price REAL NOT NULL,
   wholesale_price REAL NOT NULL,
+  original_price REAL,
   image TEXT,
   category_id INTEGER,
   is_new BOOLEAN DEFAULT FALSE,
@@ -23,6 +24,17 @@ CREATE TABLE IF NOT EXISTS products (
   min_wholesale INTEGER DEFAULT 12,
   rating_sum INTEGER DEFAULT 0,
   rating_count INTEGER DEFAULT 0,
+  stock INTEGER DEFAULT 0,
+  badge TEXT,
+  badge_color TEXT,
+  is_active BOOLEAN DEFAULT 1,
+  of_price REAL,
+  of_wholesale_price REAL,
+  of_original_price REAL,
+  of_stock INTEGER DEFAULT 0,
+  of_badge TEXT,
+  of_badge_color TEXT,
+  of_active BOOLEAN DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (category_id) REFERENCES categories(id)
 );
@@ -87,6 +99,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   product_price REAL NOT NULL,
   quantity INTEGER NOT NULL,
   total REAL NOT NULL,
+  variant_label TEXT,
   FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
   FOREIGN KEY (product_id) REFERENCES products(id)
 );
@@ -105,7 +118,28 @@ CREATE TABLE IF NOT EXISTS product_variants (
   price REAL NOT NULL,
   wholesale_price REAL NOT NULL,
   stock INTEGER NOT NULL DEFAULT 0,
+  variant_type TEXT DEFAULT 'general',
+  badge TEXT,
+  badge_color TEXT,
+  is_active BOOLEAN DEFAULT 1,
+  of_price REAL,
+  of_wholesale_price REAL,
+  of_original_price REAL,
+  of_stock INTEGER DEFAULT 0,
+  of_badge TEXT,
+  of_badge_color TEXT,
+  of_active BOOLEAN DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
   UNIQUE(product_id, label)
+);
+
+-- Tabla de administradores
+CREATE TABLE IF NOT EXISTS admin_users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  salt TEXT NOT NULL,
+  active INTEGER DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

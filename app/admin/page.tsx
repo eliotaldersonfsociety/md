@@ -26,9 +26,7 @@ import {
   adminSetVariantOferta,
 } from "@/db/actions"
 
-const ADMIN_PASSWORD = "mundodisney2024"
-
-  interface Product {
+interface Product {
   id: number
   name: string
   price: number
@@ -109,7 +107,9 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
    const [editedVariantOfertas, setEditedVariantOfertas] = useState<Record<number, { price?: number; originalPrice?: number; active?: boolean }>>({})
    const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [usernameInput, setUsernameInput] = useState("")
   const [passwordInput, setPasswordInput] = useState("")
+  const [loginLoading, setLoginLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("products")
 
   const categories = ["all", ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))]
@@ -125,14 +125,23 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
   }, [])
 
   const handleLogin = async () => {
-    if (passwordInput === ADMIN_PASSWORD) {
-      await adminLogin(passwordInput)
-      setIsAuthenticated(true)
-      toast.success("Acceso concedido")
-    } else {
-      toast.error("Contrasena incorrecta")
+    setLoginLoading(true)
+    try {
+      const result: any = await adminLogin(passwordInput, usernameInput)
+      if (result.success) {
+        setIsAuthenticated(true)
+        toast.success("Acceso concedido")
+      } else {
+        toast.error(result.error || "Error de acceso")
+      }
+    } catch (error) {
+      toast.error("Error de autenticación")
+      console.error(error)
+    } finally {
+      setLoginLoading(false)
     }
     setPasswordInput("")
+    setUsernameInput("")
   }
 
   const handleLogout = async () => {
@@ -348,13 +357,23 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
           <CardContent>
             <div className="space-y-4">
               <Input
+                type="text"
+                placeholder="Usuario"
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+                autoComplete="username"
+              />
+              <Input
                 type="password"
-                placeholder="Contrasena de acceso"
+                placeholder="Contraseña"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                autoComplete="current-password"
               />
-              <Button onClick={handleLogin} className="w-full">Ingresar</Button>
+              <Button onClick={handleLogin} className="w-full" disabled={loginLoading}>
+                {loginLoading ? "Ingresando..." : "Ingresar"}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -374,6 +393,9 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
             <Button onClick={() => { fetchProducts(); fetchOrders(); }} variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />
               Actualizar
+            </Button>
+            <Button onClick={handleLogout} variant="ghost" size="sm">
+              Cerrar sesión
             </Button>
           </div>
         </div>
