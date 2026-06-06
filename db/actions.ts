@@ -368,6 +368,22 @@ async function initTables() {
   } catch (e) {
     // Column already exists
   }
+
+  try {
+    await turso.execute({
+      sql: `CREATE TABLE IF NOT EXISTS contacts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT,
+        subject TEXT NOT NULL,
+        message TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`
+    })
+  } catch (e) {
+    // Table already exists
+  }
 }
 
 export async function rateProduct(productId: number, rating: number, comment?: string, username?: string, avatar?: string) {
@@ -694,19 +710,17 @@ export async function submitContactForm(data: {
     await initTables()
   } catch (initError) {
     console.error("Database init error:", initError)
-    // Continue to save form data even if DB init fails
   }
   
   try {
-    // Save to database
     await turso.execute({
-      sql: `INSERT INTO reviews (product_id, rating, comment, username, avatar, created_at) 
-            VALUES (0, 0, ?, ?, ?, ?)`,
+      sql: `INSERT INTO contacts (name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?)`,
       args: [
-        `Contacto: ${data.name} - ${data.email} - ${data.phone}\nAsunto: ${data.subject}\nMensaje: ${data.message}`,
         data.name,
-        null,
-        new Date(Date.now()).toISOString()
+        data.email,
+        data.phone || null,
+        data.subject,
+        data.message
       ]
     })
   } catch (dbError) {
