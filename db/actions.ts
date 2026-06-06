@@ -713,27 +713,18 @@ export async function submitContactForm(data: {
   }
   
   try {
-    const emailData = {
-      from: "Mundo Disney <noreply@mundodisney.com>",
-      to: ["fabricadepeluchesmundodisney@gmail.com"],
-      subject: `Nuevo contacto: ${data.subject}`,
-      html: `
-        <h2>Nuevo mensaje de contacto</h2>
-        <p><strong>Nombre:</strong> ${data.name}</p>
-        <p><strong>Email:</strong> ${data.email}</p>
-        <p><strong>Teléfono:</strong> ${data.phone || 'No especificado'}</p>
-        <p><strong>Asunto:</strong> ${data.subject}</p>
-        <p><strong>Mensaje:</strong> ${data.message}</p>
-      `
-    }
-    
     const response = await fetch("https://api.resend.com/v1/emails", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
+        "Authorization": "Bearer " + resendApiKey,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(emailData)
+      body: JSON.stringify({
+        from: "Mundo Disney <noreply@mundodisney.com>",
+        to: ["fabricadepeluchesmundodisney@gmail.com"],
+        subject: "Nuevo contacto: " + data.subject,
+        html: "<h2>Nuevo mensaje de contacto</h2><p><strong>Nombre:</strong> " + data.name + "</p><p><strong>Email:</strong> " + data.email + "</p><p><strong>Telefono:</strong> " + (data.phone || "No especificado") + "</p><p><strong>Asunto:</strong> " + data.subject + "</p><p><strong>Mensaje:</strong> " + data.message + "</p>"
+      })
     })
     
     const result = await response.json()
@@ -743,11 +734,10 @@ export async function submitContactForm(data: {
       throw new Error(result.message || "Error al enviar el email")
     }
     
-    return { success: true, data: result }
-    
+    return { success: true }
   } catch (emailError) {
     console.error("Email send error:", emailError)
-    throw emailError // Esto permite que el frontend sepa que falló
+    throw emailError
   }
 }
 
