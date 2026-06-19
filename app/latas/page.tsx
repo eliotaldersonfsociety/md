@@ -17,7 +17,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 45,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 25000, wholesalePrice: 18000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 18000 }
     ]
   },
   {
@@ -34,7 +34,7 @@ const products = [
     badgeColor: "bg-orange-500",
     stock: 38,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 25000, wholesalePrice: 18000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 18000 }
     ]
   },
   {
@@ -50,7 +50,7 @@ const products = [
     badgeColor: "bg-primary",
     stock: 52,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 25000, wholesalePrice: 18000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 18000 }
     ]
   },
   {
@@ -64,7 +64,7 @@ const products = [
     features: FEATURES,
     stock: 28,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 25000, wholesalePrice: 18000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 18000 }
     ]
   },
   {
@@ -81,7 +81,7 @@ const products = [
     badgeColor: "bg-orange-500",
     stock: 34,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 26000, wholesalePrice: 18000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 18000 }
     ]
   },
   {
@@ -97,7 +97,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 40,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 23000, wholesalePrice: 16000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 16000 }
     ]
   },
   {
@@ -113,7 +113,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 36,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 23000, wholesalePrice: 16000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 16000 }
     ]
   },
   {
@@ -129,7 +129,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 42,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 23000, wholesalePrice: 16000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 16000 }
     ]
   },
   {
@@ -145,7 +145,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 48,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 23000, wholesalePrice: 16000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 16000 }
     ]
   },
   {
@@ -161,7 +161,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 32,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 25000, wholesalePrice: 18000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 18000 }
     ]
   },
   {
@@ -177,7 +177,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 38,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 25000, wholesalePrice: 18000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 18000 }
     ]
   },
   {
@@ -193,7 +193,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 26,
     variants: [
-      { id: "med", label: "Mediano - 30cm", price: 25000, wholesalePrice: 18000 }
+      { id: "med", label: "Mediano - 30cm", price: 30000, wholesalePrice: 18000 }
     ]
   },
 ]
