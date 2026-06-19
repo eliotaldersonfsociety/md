@@ -387,6 +387,7 @@ export default async function CervicalesPage() {
         category="cervicales"
         variantLabel="Tipo"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   } catch {
@@ -409,6 +410,7 @@ export default async function CervicalesPage() {
         category="cervicales"
         variantLabel="Tipo"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   }
