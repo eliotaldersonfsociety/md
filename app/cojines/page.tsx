@@ -364,6 +364,7 @@ export default async function CojinesPage() {
         category="cojines"
         variantLabel="Tamaño"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   } catch {
@@ -386,6 +387,7 @@ export default async function CojinesPage() {
         category="cojines"
         variantLabel="Tamaño"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   }
