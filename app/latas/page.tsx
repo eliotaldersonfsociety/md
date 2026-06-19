@@ -255,6 +255,7 @@ export default async function LatasPage() {
         category="latas"
         variantLabel="Tamaño"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   } catch {
@@ -277,6 +278,7 @@ export default async function LatasPage() {
         category="latas"
         variantLabel="Tamaño"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   }
