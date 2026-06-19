@@ -16,9 +16,9 @@ const products = [
     badgeColor: "bg-green-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -33,9 +33,9 @@ const products = [
     badgeColor: "bg-primary",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -50,9 +50,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -67,9 +67,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -84,9 +84,9 @@ const products = [
     badgeColor: "bg-green-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -102,9 +102,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -120,9 +120,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -138,9 +138,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -156,9 +156,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -174,9 +174,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -192,9 +192,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -210,9 +210,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -228,9 +228,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -246,9 +246,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -264,9 +264,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -300,9 +300,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -318,9 +318,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -336,9 +336,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -354,9 +354,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -372,9 +372,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
   {
@@ -390,9 +390,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 50000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 98000, stock: 15 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 120000, stock: 5 },
     ]
   },
 ]
