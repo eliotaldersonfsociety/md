@@ -46,6 +46,7 @@ function CheckoutContent() {
   const [orderComplete, setOrderComplete] = useState(false)
   const [orderNumber, setOrderNumber] = useState<string | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<"daviplata" | "nequi" | "bancolombia">("daviplata")
+  const [paymentReferenceMethod, setPaymentReferenceMethod] = useState<"daviplata" | "nequi" | "bancolombia" | "paypal" | "binance" | "zelle">("daviplata")
   
   const [formData, setFormData] = useState({
     email: "",
@@ -105,7 +106,7 @@ function CheckoutContent() {
       department: formData.department,
       postalCode: formData.postalCode,
       paymentMethod,
-      paymentReference: formData.paymentReference,
+      paymentReference: `${paymentReferenceMethod}: ${formData.paymentReference}`,
       paymentScreenshot: formData.paymentScreenshot,
       subtotal: displayTotal,
       shippingCost: 0,
@@ -575,8 +576,27 @@ function CheckoutContent() {
 
                      <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Referencia de pago (# de transaccion)
+                        Metodo con el que vas a pagar
                       </label>
+                      <select
+                        name="paymentReferenceMethod"
+                        value={paymentReferenceMethod}
+                        onChange={(e) => setPaymentReferenceMethod(e.target.value as "daviplata" | "nequi" | "bancolombia" | "paypal" | "binance" | "zelle")}
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                      >
+                        <option value="daviplata">Daviplata</option>
+                        <option value="nequi">Nequi</option>
+                        <option value="bancolombia">Bancolombia</option>
+                        <option value="paypal">PayPal</option>
+                        <option value="binance">Binance</option>
+                        <option value="zelle">Zelle</option>
+                      </select>
+                    </div>
+
+                     <div>
+                       <label className="block text-sm font-medium text-foreground mb-2">
+                         Referencia de pago (# de transaccion)
+                       </label>
                       <Input
                         name="paymentReference"
                         value={formData.paymentReference}
