@@ -51,6 +51,7 @@ interface CategoryPageProps {
   category: string
   variantLabel?: string
   stockPerVariant?: boolean
+  showLoadMore?: boolean
 }
 
 import Image from "next/image"
@@ -145,7 +146,7 @@ export function ProductImages({ product, variantType, purchaseMode }: { product:
   )
 }
 
-export default function CategoryPage({ title, description, products, category, variantLabel = "Tamaño", stockPerVariant }: CategoryPageProps) {
+export default function CategoryPage({ title, description, products, category, variantLabel = "Tamaño", stockPerVariant, showLoadMore = true }: CategoryPageProps) {
   const { addToCart, addToWholesale, purchaseMode, setPurchaseMode } = useCart()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("Todos")
@@ -465,7 +466,7 @@ export default function CategoryPage({ title, description, products, category, v
               })}
             </div>
           )}
-          {filteredProducts.length > 0 && (
+          {showLoadMore && filteredProducts.length > 0 && (
             <div className="text-center mt-12">
               <Button variant="outline" size="lg" className="gap-2">Cargar más productos</Button>
             </div>

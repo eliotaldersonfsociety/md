@@ -82,6 +82,7 @@ export default async function LlaverosPage() {
         category="llaveros"
         variantLabel="Presentación"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   } catch {
@@ -104,6 +105,7 @@ export default async function LlaverosPage() {
         category="llaveros"
         variantLabel="Presentación"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   }
