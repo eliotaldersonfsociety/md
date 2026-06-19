@@ -18,10 +18,7 @@ import { createOrderAction, uploadScreenshotAction } from "@/db/actions"
 const paymentData: Record<string, { label: string; value: string }> = {
   daviplata: { label: "Numero de celular", value: "3006144416" },
   nequi: { label: "Numero de celular", value: "3219412929" },
-  paypal: { label: "Correo electronico", value: "fabricadepeluchesmundodisney@gmail.com" },
-  binance: { label: "ID de Binance", value: "555555" },
   bancolombia: { label: "Numero de cuenta de ahorros", value: "9756325225" },
-  zelle: { label: "Correo electronico", value: "info@gmail.com" },
 }
 
 function CheckoutContent() {
@@ -48,7 +45,7 @@ function CheckoutContent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [orderNumber, setOrderNumber] = useState<string | null>(null)
-  const [paymentMethod, setPaymentMethod] = useState<"daviplata" | "paypal" | "nequi" | "bancolombia" | "binance" | "zelle">("daviplata")
+  const [paymentMethod, setPaymentMethod] = useState<"daviplata" | "nequi" | "bancolombia">("daviplata")
   
   const [formData, setFormData] = useState({
     email: "",
@@ -448,17 +445,6 @@ function CheckoutContent() {
                      </button>
                      <button
                        type="button"
-                       onClick={() => setPaymentMethod("paypal")}
-                       className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center ${
-                         paymentMethod === "paypal" 
-                           ? 'border-[#0070ba] bg-[#0070ba]/5' 
-                           : 'border-border bg-card hover:border-muted-foreground/50'
-                       }`}
-                     >
-                       <Image src="/images/banderas/paypal.svg" alt="PayPal" width={32} height={32} className="h-8 w-8" />
-                     </button>
-                     <button
-                       type="button"
                        onClick={() => setPaymentMethod("nequi")}
                        className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center ${
                          paymentMethod === "nequi" 
@@ -479,29 +465,11 @@ function CheckoutContent() {
                      >
                        <Image src="/images/banderas/bancolombia.svg" alt="Bancolombia" width={32} height={32} className="h-8 w-8" />
                      </button>
-                     <button
-                       type="button"
-                       onClick={() => setPaymentMethod("binance")}
-                       className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center ${
-                         paymentMethod === "binance" 
-                           ? 'border-[#f3ba2d] bg-[#f3ba2d]/5' 
-                           : 'border-border bg-card hover:border-muted-foreground/50'
-                       }`}
-                     >
-                       <Image src="/images/banderas/binance.svg" alt="Binance" width={32} height={32} className="h-8 w-8" />
-                     </button>
-                     <button
-                       type="button"
-                       onClick={() => setPaymentMethod("zelle")}
-                       className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center ${
-                         paymentMethod === "zelle" 
-                           ? 'border-[#001871] bg-[#001871]/5' 
-                           : 'border-border bg-card hover:border-muted-foreground/50'
-                       }`}
-                     >
-                       <Image src="/images/banderas/zelle.svg" alt="Zelle" width={32} height={32} className="h-8 w-8" />
-                     </button>
-                    </div>
+                   </div>
+
+                   <p className="text-[11px] text-muted-foreground -mt-1 mb-4">
+                     Tambien aceptamos PayPal, Binance y Zelle. Escríbenos por WhatsApp para coordinar estos pagos.
+                   </p>
 
 {/* Payment Methods - All show reference field */}
                    <div className="grid gap-3">
@@ -668,20 +636,14 @@ function CheckoutContent() {
                     </div>
                     
                   <div className={`p-3 rounded-xl border-2 border-dashed ${
-                        paymentMethod === "paypal" ? 'bg-[#0070ba]/10 border-[#0070ba]/30' :
                         paymentMethod === "nequi" ? 'bg-[#00c4cc]/10 border-[#00c4cc]/30' :
                         paymentMethod === "bancolombia" ? 'bg-[#003366]/10 border-[#003366]/30' :
-                        paymentMethod === "binance" ? 'bg-[#f3ba2d]/10 border-[#f3ba2d]/30' :
-                        paymentMethod === "daviplata" ? 'bg-[#ff0000]/10 border-[#ff0000]/30' :
-                        'bg-[#001871]/10 border-[#001871]/30'
+                        'bg-[#ff0000]/10 border-[#ff0000]/30'
                       }`}>
                       <p className="text-[11px] text-muted-foreground mb-1.5">
-                        {paymentMethod === "paypal" && "Envia el pago a: pagos@peluchesmundo.com"}
                         {paymentMethod === "nequi" && "Transfiere a Nequi:"}
                         {paymentMethod === "bancolombia" && "Transfiere a Bancolombia: Cuenta de ahorros"}
-                        {paymentMethod === "binance" && "Pago en Binance Pay:"}
                         {paymentMethod === "daviplata" && "Transfiere a Daviplata:"}
-                        {paymentMethod === "zelle" && "Pago por Zelle: pagos@peluchesmundo.com"}
                       </p>
                       <div className="flex items-center justify-between gap-2">
                         <div>
@@ -734,20 +696,14 @@ function CheckoutContent() {
                       disabled={isSubmitting}
                       className={`flex-1 rounded-full h-10 text-sm ${
                         paymentMethod === "daviplata" ? 'bg-[#ff0000] hover:bg-[#ff0000]/90' :
-                        paymentMethod === "paypal" ? 'bg-[#0070ba] hover:bg-[#0070ba]/90' :
                         paymentMethod === "nequi" ? 'bg-[#00c4cc] hover:bg-[#00c4cc]/90' :
-                        paymentMethod === "bancolombia" ? 'bg-[#003366] hover:bg-[#003366]/90' :
-                        paymentMethod === "binance" ? 'bg-[#f3ba2d] hover:bg-[#f3ba2d]/90' :
-                        'bg-[#001871] hover:bg-[#001871]/90'
+                        'bg-[#003366] hover:bg-[#003366]/90'
                       } text-white`}
                     >
                       {isSubmitting ? "Procesando..." : 
                         paymentMethod === "daviplata" ? `Pagar ${formatPrice(total)} (${formatUSD(total)})` :
-                        paymentMethod === "paypal" ? `Pagar ${formatPrice(total)} (${formatUSD(total)})` :
                         paymentMethod === "nequi" ? `Confirmar ${formatPrice(total)} (${formatUSD(total)})` :
-                        paymentMethod === "bancolombia" ? `Transferir ${formatPrice(total)} (${formatUSD(total)})` :
-                        paymentMethod === "binance" ? `Pagar ${formatPrice(total)} (${formatUSD(total)})` :
-                        `Pagar ${formatPrice(total)} (${formatUSD(total)})`
+                        `Transferir ${formatPrice(total)} (${formatUSD(total)})`
                       }
                     </Button>
                   </div>
