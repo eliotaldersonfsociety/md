@@ -17,7 +17,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 48,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -33,7 +33,7 @@ const products = [
     badgeColor: "bg-primary",
     stock: 55,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -49,7 +49,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 50,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -65,7 +65,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 45,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -81,7 +81,7 @@ const products = [
     badgeColor: "bg-primary",
     stock: 60,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -97,7 +97,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 40,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -113,7 +113,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 35,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -129,7 +129,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 48,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -145,7 +145,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 38,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -161,7 +161,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 42,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -177,7 +177,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 44,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -193,7 +193,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 52,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -209,7 +209,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 36,
     variants: [
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -225,8 +225,8 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 46,
     variants: [
-      { id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 },
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "sin", label: "Sin Antifaz", price: 25000, wholesalePrice: 15000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
   {
@@ -243,7 +243,7 @@ const products = [
     badgeColor: "bg-orange-500",
     stock: 45,
     variants: [
-      { id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 },
+      { id: "sin", label: "Sin Antifaz", price: 25000, wholesalePrice: 15000 },
     ]
   },
   {
@@ -259,7 +259,7 @@ const products = [
     badgeColor: "bg-primary",
     stock: 55,
     variants: [
-      { id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 },
+      { id: "sin", label: "Sin Antifaz", price: 25000, wholesalePrice: 15000 },
     ]
   },
   {
@@ -276,7 +276,7 @@ const products = [
     badgeColor: "bg-green-500",
     stock: 32,
     variants: [
-      { id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 },
+      { id: "sin", label: "Sin Antifaz", price: 25000, wholesalePrice: 15000 },
     ]
   },
   {
@@ -293,7 +293,7 @@ const products = [
     badgeColor: "bg-orange-500",
     stock: 38,
     variants: [
-      { id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 },
+      { id: "sin", label: "Sin Antifaz", price: 25000, wholesalePrice: 15000 },
     ]
   },
   {
@@ -310,7 +310,7 @@ const products = [
     badgeColor: "bg-orange-500",
     stock: 28,
     variants: [
-      { id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 },
+      { id: "sin", label: "Sin Antifaz", price: 25000, wholesalePrice: 15000 },
     ]
   },
   {
@@ -324,8 +324,8 @@ const products = [
     features: FEATURES,
     stock: 40,
     variants: [
-      { id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 },
-      { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 },
+      { id: "sin", label: "Sin Antifaz", price: 25000, wholesalePrice: 15000 },
+      { id: "con", label: "Con Antifaz", price: 30000, wholesalePrice: 18000 },
     ]
   },
 ]
