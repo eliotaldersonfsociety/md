@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/context/cart-context"
 import { allProducts } from "@/lib/products-data"
-import { Product as ProductType, ProductVariant } from "@/components/category-page"
+import { Product as ProductType, ProductVariant, ProductImages } from "@/components/category-page"
 import { RatingSection } from "@/components/rating-section"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { WhatsAppButton } from "@/components/whatsapp-button"
+import { useUSDPrice } from "@/lib/exchange-rate"
 
 const categories = ["Todos", "llaveros", "peluches", "cojines", "latas", "cervicales", "ropa"]
 
@@ -87,26 +88,49 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
         stock: v.stock ?? 0,
       }))
 
+    const staticVariants = staticP?.variants
+      ? new Map(staticP.variants.map((v: any) => [v.label, v]))
+      : null
+    const staticAdultVariants = staticP?.adultVariants
+      ? new Map(staticP.adultVariants.map((v: any) => [v.label, v]))
+      : null
+    const staticChildVariants = staticP?.childVariants
+      ? new Map(staticP.childVariants.map((v: any) => [v.label, v]))
+      : null
+
+    const applyStaticPrices = (variantList: any[], staticMap: Map<string, any> | null) => {
+      if (!staticMap) return variantList
+      return variantList.map(v => {
+        const sv = staticMap.get(v.label)
+        if (!sv) return v
+        return {
+          ...v,
+          price: sv.price ?? v.price,
+          wholesalePrice: sv.wholesalePrice ?? v.wholesalePrice,
+        }
+      })
+    }
+
     return {
       id: p.id,
       name: p.name,
-      price: p.price,
+      price: staticP?.price ?? p.price,
+      wholesalePrice: staticP?.wholesalePrice ?? p.wholesale_price ?? p.price,
       originalPrice: p.original_price,
-      image: p.image,
+      image: staticP?.image ?? p.image,
       images: staticP?.images,
       badge: p.badge,
       badgeColor: p.badge_color,
-      variants: variants.length > 0 ? variants : undefined,
+      variants: variants.length > 0 ? applyStaticPrices(variants, staticVariants) : undefined,
       rating: p.rating,
       reviews: p.reviews ?? p.rating_count ?? 0,
       category: p.category,
-      adultVariants: adultVariants.length > 0 ? adultVariants : undefined,
-      childVariants: childVariants.length > 0 ? childVariants : undefined,
+      adultVariants: adultVariants.length > 0 ? applyStaticPrices(adultVariants, staticAdultVariants) : undefined,
+      childVariants: childVariants.length > 0 ? applyStaticPrices(childVariants, staticChildVariants) : undefined,
       adultImages: p.adult_images,
       childImages: p.child_images,
       features: staticP?.features || FEATURES_FALLBACK,
       stock: p.stock,
-      wholesalePrice: p.wholesale_price ?? p.price,
       isNew: !!p.is_new,
       isSale: !!p.is_sale,
       minWholesale: p.min_wholesale ?? 12,
@@ -116,6 +140,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
 
 export default function TiendaClient({ initialProducts }: { initialProducts: any[] }) {
   const { addToCart, addToWholesale, purchaseMode, setPurchaseMode } = useCart()
+  const { formatUSD } = useUSDPrice()
   const products = useMemo(() => mergeProducts(initialProducts), [initialProducts])
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -504,20 +529,7 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                   >
                     {/* Image Container */}
                     <div className="relative aspect-square overflow-hidden bg-gray-50">
-                      {(() => {
-                        const currentType = variantTypes[product.id] || null
-                        const displayImage = currentType === "child"
-                          ? (product.childImages?.[0] || product.image)
-                          : (product.adultImages?.[0] || product.images?.[0] || product.image)
-                        return (
-                          <Image
-                            src={displayImage}
-                            alt={product.name}
-                            fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        )
-                      })()}
+                      <ProductImages product={product} variantType={variantTypes[product.id] || null} purchaseMode={purchaseMode} />
 
                       {/* Badges */}
                       <div className="absolute top-3 left-3 flex flex-col gap-2">
@@ -552,7 +564,7 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                       </button>
 
                       {/* Quick Add */}
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <Button
                           className={`w-full text-xs md:text-sm transition-all ${
                             addedProducts[product.id]
@@ -596,11 +608,15 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                       {/* Features */}
                       {product.features && (
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {product.features.map((feature, idx) => (
-                            <span key={idx} className="text-xs bg-muted/50 text-muted-foreground px-2 py-0.5 rounded">
+                          {product.features && (
+                        <div className="flex flex-col gap-2">
+                          {product.features.filter(feature => purchaseMode === "retail" || feature !== "Arreglo GRATIS").map((feature, idx) => (
+                            <span key={idx} className={`text-xs px-2 py-0.5 rounded ${feature === "Arreglo GRATIS" ? "bg-green-100 text-green-700 font-bold" : "bg-muted/50 text-muted-foreground"}`}>
                               {feature}
                             </span>
                           ))}
+                        </div>
+                      )}
                         </div>
                       )}
 
@@ -703,16 +719,17 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                             </div>
                           )}
 
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className={`text-xl font-bold ${purchaseMode === "wholesale" ? "text-green-600" : "text-primary"}`}>
-                          {formatPrice(currentPrice)}
-                        </span>
-                        {purchaseMode === "wholesale" && (
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                            Mayorista
-                          </span>
-                        )}
-                      </div>
+<div className="flex items-center gap-2 mb-3">
+                         <span className={`text-xl font-bold ${purchaseMode === "wholesale" ? "text-green-600" : "text-primary"}`}>
+                           {formatPrice(currentPrice)}
+                         </span>
+                         <span className="text-sm text-muted-foreground">{formatUSD(currentPrice)}</span>
+                         {purchaseMode === "wholesale" && (
+                           <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                             Mayorista
+                           </span>
+                         )}
+                       </div>
 
                       {/* Quantity selector for wholesale */}
                       {purchaseMode === "wholesale" && (
@@ -722,7 +739,7 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                             variant="outline"
                             className="h-7 w-7"
                             onClick={() => updateQuantity(product.id, -6)}
-                            disabled={getQuantity(product.id) <= 12}
+                            disabled={getQuantity(product.id) <= 3}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>

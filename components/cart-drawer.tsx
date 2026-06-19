@@ -5,7 +5,8 @@ import Link from "next/link"
 import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/cart-context"
-import { formatPrice } from "@/lib/utils"
+import { useExchangeRate } from "@/lib/exchange-rate"
+import { formatPrice, formatUSDPrice } from "@/lib/utils"
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -14,6 +15,7 @@ interface CartDrawerProps {
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const { items, removeFromCart, updateQuantity, getCartTotal, getCartCount } = useCart()
+  const { rate: exchangeRate } = useExchangeRate()
 
   if (!isOpen) return null
 
@@ -90,6 +92,11 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     <p className="text-sm font-bold text-[#e91e8c]">
                       {formatPrice(item.price)}
                     </p>
+                    {exchangeRate > 0 && (
+                      <p className="text-[10px] text-muted-foreground">
+                        {formatUSDPrice(item.price, exchangeRate)}
+                      </p>
+                    )}
                   </div>
 
                   {/* Quantity & Remove */}
@@ -131,13 +138,18 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           )}
         </div>
 
-        {/* Footer */}
+         {/* Footer */}
         {items.length > 0 && (
           <div className="border-t border-border p-4 bg-muted/30">
             {/* Subtotal */}
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-muted-foreground">Subtotal</span>
-              <span className="text-sm font-medium">{formatPrice(getCartTotal())}</span>
+              <div className="text-right">
+                <span className="text-sm font-medium">{formatPrice(getCartTotal())}</span>
+                {exchangeRate > 0 && (
+                  <span className="block text-xs text-muted-foreground">{formatUSDPrice(getCartTotal(), exchangeRate)} USD</span>
+                )}
+              </div>
             </div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm text-muted-foreground">Envio</span>
@@ -145,7 +157,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </div>
             <div className="flex items-center justify-between mb-4 pt-2 border-t border-border">
               <span className="text-base font-semibold">Total</span>
-              <span className="text-lg font-bold text-[#e91e8c]">{formatPrice(getCartTotal())}</span>
+              <div className="text-right">
+                <span className="text-lg font-bold text-[#e91e8c]">{formatPrice(getCartTotal())}</span>
+                {exchangeRate > 0 && (
+                  <span className="block text-xs text-muted-foreground">{formatUSDPrice(getCartTotal(), exchangeRate)} USD</span>
+                )}
+              </div>
             </div>
 
             {/* Checkout Button */}

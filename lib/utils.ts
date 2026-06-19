@@ -12,3 +12,12 @@ export function formatPrice(price: number) {
     minimumFractionDigits: 0,
   }).format(price)
 }
+
+export function formatUSDPrice(priceCOP: number, rate: number = 0.00025) {
+  const priceUSD = priceCOP * rate
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  }).format(priceUSD)
+}

@@ -5,11 +5,11 @@ const products = [
   {
     id: 501,
     name: "Llavero Surtidos",
-    price: 20000,
+    price: 30000,
     image: "/images/llaveros/1.webp",
     rating: 4.4,
     reviews: 42,
-    features: ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado"],
+    features: ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado", "Arreglo GRATIS"],
     images: [
       "/images/llaveros/1.webp",
       "/images/llaveros/2.webp",
@@ -18,8 +18,8 @@ const products = [
     badgeColor: "bg-primary",
     stock: 100,
     variants: [
-      { id: "v20", label: "Paquete 20 unidades", price: 20000, wholesalePrice: 20000, stock: 50 },
-      { id: "v40", label: "Paquete 40 unidades", price: 40000, wholesalePrice: 40000, stock: 50 },
+      { id: "v20", label: "Paquete 20 unidades", price: 30000, wholesalePrice: 20000, stock: 50 },
+      { id: "v40", label: "Paquete 40 unidades", price: 60000, wholesalePrice: 40000, stock: 50 },
     ]
   },
    

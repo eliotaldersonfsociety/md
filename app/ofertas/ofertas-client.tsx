@@ -14,6 +14,7 @@ import { RatingSection } from "@/components/rating-section"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { WhatsAppButton } from "@/components/whatsapp-button"
+import { useUSDPrice } from "@/lib/exchange-rate"
 
 const categories = ["Todos", "cojines", "peluches", "latas", "cervicales"]
 
@@ -171,6 +172,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
 
 export default function OfertasClient({ initialProducts }: { initialProducts: any[] }) {
   const { addToCart, addToWholesale, purchaseMode, setPurchaseMode } = useCart()
+  const { formatUSD } = useUSDPrice()
   const products = useMemo(() => mergeProducts(initialProducts), [initialProducts])
   const allProductsForDisplay = useMemo(() => products, [products])
 
@@ -776,7 +778,7 @@ onClick={() => {
                       </button>
 
                       {/* Quick Add */}
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <Button
                           className={`w-full text-xs md:text-sm transition-all ${
                             addedProducts[product.id]
@@ -822,7 +824,7 @@ size="sm"
                       {product.features && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {product.features.map((feature, idx) => (
-                            <span key={idx} className="text-xs bg-muted/50 text-muted-foreground px-2 py-0.5 rounded">
+                            <span key={idx} className={`text-xs px-2 py-0.5 rounded ${feature === "Arreglo GRATIS" ? "bg-green-100 text-green-700 font-bold" : "bg-muted/50 text-muted-foreground"}`}>
                               {feature}
                             </span>
                           ))}
@@ -932,39 +934,42 @@ size="sm"
 
                        <div className="flex items-center gap-2 mb-3">
                          {editMode ? (
-                           <>
-                             <input
-                               type="number"
-                               placeholder="Precio"
-                               defaultValue={editedPrices[product.id] || product.price}
-                               onChange={(e) => {
-                                 const value = parseFloat(e.target.value) || 0
-                                 setEditedPrices(prev => ({ ...prev, [product.id]: value }))
-                               }}
-                               className="w-32 text-right border rounded px-2 py-1"
-                                
-                             />
-                             <input
-                               type="number"
-                               placeholder="Precio Mayorista"
-                               defaultValue={editedWholesalePrices[product.id] || product.wholesalePrice || Math.round((editedPrices[product.id] || product.price) * 0.7)}
-                               onChange={(e) => {
-                                 const value = parseFloat(e.target.value) || 0
-                                 setEditedWholesalePrices(prev => ({ ...prev, [product.id]: value }))
-                               }}
-                               className="w-32 text-right border rounded px-2 py-1 ml-2"
-                             />
-                           </>
-                         ) : (
-                           <span className={`text-xl font-bold ${purchaseMode === "wholesale" ? "text-green-600" : "text-primary"}`}>
-                             {formatPrice(currentPrice)}
-                           </span>
-                         )}
-                         {purchaseMode === "wholesale" && (
-                           <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                             Mayorista
-                           </span>
-                         )}
+<>
+                              <input
+                                type="number"
+                                placeholder="Precio"
+                                defaultValue={editedPrices[product.id] || product.price}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value) || 0
+                                  setEditedPrices(prev => ({ ...prev, [product.id]: value }))
+                                }}
+                                className="w-32 text-right border rounded px-2 py-1"
+                                 
+                              />
+                              <input
+                                type="number"
+                                placeholder="Precio Mayorista"
+                                defaultValue={editedWholesalePrices[product.id] || product.wholesalePrice || Math.round((editedPrices[product.id] || product.price) * 0.7)}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value) || 0
+                                  setEditedWholesalePrices(prev => ({ ...prev, [product.id]: value }))
+                                }}
+                                className="w-32 text-right border rounded px-2 py-1 ml-2"
+                              />
+                            </>
+                           ) : (
+                             <>
+                               <span className={`text-xl font-bold ${purchaseMode === "wholesale" ? "text-green-600" : "text-primary"}`}>
+                                 {formatPrice(currentPrice)}
+                               </span>
+                               <span className="text-sm text-muted-foreground">{formatUSD(currentPrice)}</span>
+                             </>
+                           )}
+                          {purchaseMode === "wholesale" && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                              Mayorista
+                            </span>
+                          )}
                        </div>
 
                       {/* Quantity selector for wholesale */}
@@ -975,7 +980,7 @@ size="sm"
                             variant="outline"
                             className="h-7 w-7"
                             onClick={() => updateQuantity(product.id, -6)}
-                            disabled={getQuantity(product.id) <= 12}
+                            disabled={getQuantity(product.id) <= 3}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>

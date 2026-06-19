@@ -1,14 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ShoppingCart, Check, Package, Star, Minus, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/cart-context"
-import { useState } from "react"
 import { formatPrice } from "@/lib/utils"
 import { allProducts } from "@/lib/products-data"
 import { RatingSection } from "@/components/rating-section"
+import { useUSDPrice } from "@/lib/exchange-rate"
 
 const categoryProducts = allProducts.reduce((acc, product) => {
   if (!acc.find(p => p.category === product.category)) {
@@ -19,6 +20,7 @@ const categoryProducts = allProducts.reduce((acc, product) => {
 
 function ProductCard({ product }: { product: typeof allProducts[0] }) {
   const { purchaseMode, addToCart, addToWholesale } = useCart()
+  const { formatUSD } = useUSDPrice()
   const [added, setAdded] = useState(false)
   const [quantity, setQuantity] = useState(3)
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(() => {
@@ -98,10 +100,8 @@ return (
          
         {product.features && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {product.features.map((feature, idx) => (
-              <span key={idx} className="text-xs bg-muted/50 text-muted-foreground px-2 py-0.5 rounded">
-                {feature}
-              </span>
+            {product.features.filter(feature => purchaseMode === "retail" || feature !== "Arreglo GRATIS").map((feature, idx) => (
+              <span key={idx} className={`text-xs px-2 py-0.5 rounded ${feature === "Arreglo GRATIS" ? "bg-green-100 text-green-700 font-bold" : "bg-muted/50 text-muted-foreground"}`}>{feature}</span>
             ))}
           </div>
         )}
@@ -228,22 +228,25 @@ return (
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-2 mt-4 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-xl font-bold ${isWholesale ? "text-green-600" : "text-primary"}`}>
-              {formatPrice(displayPrice)}
-            </span>
-            {showDiscount && !isWholesale && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground line-through">
-                  {formatPrice(product.originalPrice!)}
-                </span>
-                <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded font-medium">
-                  -{discountPercent}%
-                </span>
-              </div>
-            )}
-          </div>
+         <div className="flex items-center justify-between gap-2 mt-4 flex-wrap">
+           <div className="flex items-center gap-2 flex-wrap">
+             <span className={`text-xl font-bold ${isWholesale ? "text-green-600" : "text-primary"}`}>
+               {formatPrice(displayPrice)}
+             </span>
+             <span className="text-xs text-muted-foreground">
+               {formatUSD(displayPrice)}
+             </span>
+             {showDiscount && !isWholesale && (
+               <div className="flex items-center gap-2">
+                 <span className="text-sm text-muted-foreground line-through">
+                   {formatPrice(product.originalPrice!)}
+                 </span>
+                 <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded font-medium">
+                   -{discountPercent}%
+                 </span>
+               </div>
+             )}
+           </div>
           {isWholesale && (
             <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
               Mayorista
@@ -269,6 +272,7 @@ return (
 
 export function ProductsSection({ products }: { products?: typeof allProducts[0][] }) {
   const displayProducts = products || categoryProducts
+  const { purchaseMode, setPurchaseMode } = useCart()
   return (
     <section id="productos" className="py-20 bg-background">
       <div className="container mx-auto px-4">
@@ -282,6 +286,31 @@ export function ProductsSection({ products }: { products?: typeof allProducts[0]
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Un producto representativo de cada categoria
           </p>
+        </div>
+
+        <div className="flex items-center justify-center mb-10">
+          <div className="inline-flex items-center bg-muted/50 rounded-full p-1 border border-border">
+            <button
+              onClick={() => setPurchaseMode("retail")}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+                purchaseMode === "retail"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Al Detal
+            </button>
+            <button
+              onClick={() => setPurchaseMode("wholesale")}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+                purchaseMode === "wholesale"
+                  ? "bg-green-600 text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Al Mayor
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">

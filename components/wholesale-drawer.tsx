@@ -183,12 +183,12 @@ export function WholesaleDrawer({ isOpen, onClose }: WholesaleDrawerProps) {
 
               {/* Actions */}
               <div className="space-y-2">
-                <a
-                  href={`https://wa.me/573001234567?text=${generateWhatsAppMessage()}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full"
-                >
+                 <a
+                   href={`https://wa.me/573213438063?text=${generateWhatsAppMessage()}`}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className="w-full"
+                 >
                   <Button className="w-full rounded-full bg-green-600 hover:bg-green-700 text-white">
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Enviar Pedido por WhatsApp

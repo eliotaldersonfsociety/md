@@ -5,19 +5,30 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Truck, Shield, Minus, Plus, Trash2, CheckCircle2, Package, Building2, FileText, Wallet, Banknote, Smartphone, Upload, X } from "lucide-react"
+import { Truck, Shield, Minus, Plus, Trash2, CheckCircle2, Package, Upload, X, Check, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useCart } from "@/context/cart-context"
+import { useUSDPrice } from "@/lib/exchange-rate"
 import { formatPrice } from "@/lib/utils"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { createOrderAction, uploadScreenshotAction } from "@/db/actions"
 
+const paymentData: Record<string, { label: string; value: string }> = {
+  daviplata: { label: "Numero de celular", value: "3006144416" },
+  nequi: { label: "Numero de celular", value: "3219412929" },
+  paypal: { label: "Correo electronico", value: "fabricadepeluchesmundodisney@gmail.com" },
+  binance: { label: "ID de Binance", value: "555555" },
+  bancolombia: { label: "Numero de cuenta de ahorros", value: "9756325225" },
+  zelle: { label: "Correo electronico", value: "info@gmail.com" },
+}
+
 function CheckoutContent() {
   const searchParams = useSearchParams()
   const isWholesaleMode = searchParams.get('mode') === 'wholesale'
-  
+  const [copied, setCopied] = useState(false)
+
   const { 
     items, 
     removeFromCart, 
@@ -31,6 +42,7 @@ function CheckoutContent() {
     getTotalUnits,
     clearWholesale
   } = useCart()
+  const { formatUSD } = useUSDPrice()
   
   const [step, setStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -55,14 +67,16 @@ function CheckoutContent() {
     paymentScreenshot: ""
   })
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [showColombiaCarriers, setShowColombiaCarriers] = useState(true)
+  const [showVenezuelaCarriers, setShowVenezuelaCarriers] = useState(false)
 
   // Determinar que items mostrar
   const displayItems = isWholesaleMode ? wholesaleItems : items
   const displayTotal = isWholesaleMode ? getWholesaleTotal() : getCartTotal()
   const displayClear = isWholesaleMode ? clearWholesale : clearCart
   
-  const shippingCost = isWholesaleMode ? 0 : (displayTotal >= 150000 ? 0 : 12000)
-  const total = displayTotal + shippingCost
+  const shippingCost = 0
+  const total = displayTotal
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
@@ -97,7 +111,7 @@ function CheckoutContent() {
       paymentReference: formData.paymentReference,
       paymentScreenshot: formData.paymentScreenshot,
       subtotal: displayTotal,
-      shippingCost,
+      shippingCost: 0,
       total,
       notes: formData.notes,
       items: displayItems.map((item) => {
@@ -185,31 +199,32 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 flex flex-col">
       <Header />
-      
-      <div className="container mx-auto px-4 py-8">
+
+      <div className="flex-1">
+        <div className="container mx-auto px-4 py-6">
         {/* Wholesale Banner */}
         {isWholesaleMode && (
-          <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-8 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-              <Package className="w-6 h-6 text-green-600" />
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-3 mb-5 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+              <Package className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-green-800">Solicitud de Cotizacion Mayorista</h3>
-              <p className="text-sm text-green-700">
+              <h3 className="text-sm font-semibold text-green-800">Solicitud de Cotizacion Mayorista</h3>
+              <p className="text-xs text-green-700">
                 Completa tus datos y un asesor confirmara disponibilidad y precio final en 24 horas.
               </p>
             </div>
           </div>
         )}
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-4">
           {/* Left Column - Form */}
           <div className="order-2 lg:order-1">
             <form onSubmit={handleSubmit}>
               {/* Progress Steps */}
-              <div className="flex items-center gap-2 mb-8">
+              <div className="flex items-center gap-2 mb-6">
                 {(isWholesaleMode ? [1, 2] : [1, 2, 3]).map((s, idx, arr) => (
                   <div key={s} className="flex items-center">
                     <div 
@@ -230,15 +245,15 @@ function CheckoutContent() {
 
               {/* Step 1: Contact / Business Info */}
               {step === 1 && (
-                <div className="bg-card rounded-2xl p-6 border border-border">
-                  <h2 className="text-xl font-bold text-foreground mb-6">
+                <div className="bg-card rounded-2xl p-4 border border-border">
+                  <h2 className="text-base font-semibold text-foreground mb-4">
                     {isWholesaleMode ? 'Informacion del Negocio' : 'Informacion de Contacto'}
                   </h2>
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2.5">
                     {isWholesaleMode && (
                       <>
                         <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
+                          <label className="block text-xs font-medium text-foreground mb-1.5">
                             Nombre del Negocio / Empresa
                           </label>
                           <Input
@@ -247,11 +262,11 @@ function CheckoutContent() {
                             onChange={handleInputChange}
                             placeholder="Mi Tienda de Peluches"
                             required
-                            className="rounded-xl"
+                            className="rounded-xl h-9 text-sm"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
+                          <label className="block text-xs font-medium text-foreground mb-1.5">
                             NIT / Cedula (opcional)
                           </label>
                           <Input
@@ -259,13 +274,13 @@ function CheckoutContent() {
                             value={formData.nit}
                             onChange={handleInputChange}
                             placeholder="900.123.456-7"
-                            className="rounded-xl"
+                            className="rounded-xl h-9 text-sm"
                           />
                         </div>
                       </>
                     )}
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label className="block text-xs font-medium text-foreground mb-1.5">
                         Correo electronico
                       </label>
                       <Input
@@ -275,11 +290,11 @@ function CheckoutContent() {
                         onChange={handleInputChange}
                         placeholder="tu@email.com"
                         required
-                        className="rounded-xl"
+                        className="rounded-xl h-9 text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label className="block text-xs font-medium text-foreground mb-1.5">
                         Telefono / WhatsApp
                       </label>
                       <Input
@@ -289,238 +304,308 @@ function CheckoutContent() {
                         onChange={handleInputChange}
                         placeholder="+57 300 123 4567"
                         required
-                        className="rounded-xl"
+                        className="rounded-xl h-9 text-sm"
                       />
                     </div>
                   </div>
                   <Button 
                     type="button"
                     onClick={() => setStep(2)}
-                    className={`w-full mt-6 ${isWholesaleMode ? 'bg-green-600 hover:bg-green-700' : 'bg-[#00bcd4] hover:bg-[#00acc1]'} text-white rounded-full`}
+                    className={`w-full mt-4 h-9 text-sm ${isWholesaleMode ? 'bg-green-600 hover:bg-green-700' : 'bg-[#00bcd4] hover:bg-[#00acc1]'} text-white rounded-full`}
                   >
                     {isWholesaleMode ? 'Continuar' : 'Continuar al Envio'}
                   </Button>
                 </div>
               )}
 
-              {/* Step 2: Shipping (both modes) */}
-              {step === 2 && (
-                <div className="bg-card rounded-2xl p-6 border border-border">
-                  <h2 className="text-xl font-bold text-foreground mb-6">
-                    {isWholesaleMode ? 'Direccion de Entrega y Notas' : 'Direccion de Envio'}
-                  </h2>
-                  <div className="grid gap-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">Nombre</label>
-                        <Input
-                          name="firstName"
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                          placeholder="Juan"
-                          required
-                          className="rounded-xl"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">Apellido</label>
-                        <Input
-                          name="lastName"
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          placeholder="Perez"
-                          required
-                          className="rounded-xl"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Direccion</label>
-                      <Input
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        placeholder="Calle 123 #45-67"
-                        required
-                        className="rounded-xl"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Apartamento, oficina, etc. (opcional)</label>
-                      <Input
-                        name="apartment"
-                        value={formData.apartment}
-                        onChange={handleInputChange}
-                        placeholder="Apto 101 / Local 5"
-                        className="rounded-xl"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">Ciudad</label>
-                        <Input
-                          name="city"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          placeholder="Bogota"
-                          required
-                          className="rounded-xl"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">Departamento</label>
-                        <Input
-                          name="department"
-                          value={formData.department}
-                          onChange={handleInputChange}
-                          placeholder="Cundinamarca"
-                          required
-                          className="rounded-xl"
-                        />
-                      </div>
-                    </div>
+{/* Step 2: Shipping (both modes) */}
+               {step === 2 && (
+                 <div className="bg-card rounded-2xl p-4 border border-border">
+                   <h2 className="text-base font-semibold text-foreground mb-4">
+                     {isWholesaleMode ? 'Direccion de Entrega y Notas' : 'Direccion de Envio (Gratis en Cucuta o San Cristobal Rubio San Antonio)'}
+                   </h2>
+
+                   <div className="flex flex-col gap-2">
+                     <div>
+                       <label className="block text-xs font-medium text-foreground mb-1.5">Apellido</label>
+                       <Input
+                         name="lastName"
+                         value={formData.lastName}
+                         onChange={handleInputChange}
+                         placeholder="Perez"
+                         required
+                         className="rounded-xl h-9 text-sm"
+                       />
+                     </div>
+                     <div>
+                       <label className="block text-xs font-medium text-foreground mb-1.5">Direccion</label>
+                       <Input
+                         name="address"
+                         value={formData.address}
+                         onChange={handleInputChange}
+                         placeholder="Calle 123 #45-67"
+                         required
+                         className="rounded-xl h-9 text-sm"
+                       />
+                     </div>
+                     <div>
+                       <label className="block text-xs font-medium text-foreground mb-1.5">Apartamento, oficina, etc. (opcional)</label>
+                       <Input
+                         name="apartment"
+                         value={formData.apartment}
+                         onChange={handleInputChange}
+                         placeholder="Apto 101 / Local 5"
+                         className="rounded-xl h-9 text-sm"
+                       />
+                     </div>
+                     <div className="grid grid-cols-2 gap-3">
+                       <div>
+                         <label className="block text-xs font-medium text-foreground mb-1.5">Ciudad</label>
+                         <Input
+                           name="city"
+                           value={formData.city}
+                           onChange={handleInputChange}
+                           placeholder="Bogota"
+                           required
+                           className="rounded-xl h-9 text-sm"
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-xs font-medium text-foreground mb-1.5">Departamento</label>
+                         <Input
+                           name="department"
+                           value={formData.department}
+                           onChange={handleInputChange}
+                           placeholder="Cundinamarca"
+                           required
+                           className="rounded-xl h-9 text-sm"
+                         />
+                       </div>
+                     </div>
                     
-                    {isWholesaleMode && (
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Notas adicionales (opcional)
-                        </label>
-                        <textarea
-                          name="notes"
-                          value={formData.notes}
-                          onChange={handleInputChange}
-                          placeholder="Informacion adicional sobre tu pedido, preferencias de empaque, frecuencia de compra, etc."
-                          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm min-h-[100px] focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex gap-3 mt-6">
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      onClick={() => setStep(1)}
-                      className="flex-1 rounded-full"
-                    >
-                      Atras
-                    </Button>
-                    {isWholesaleMode ? (
-                      <Button 
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-full"
-                      >
-                        {isSubmitting ? "Enviando..." : "Solicitar Cotizacion"}
-                      </Button>
-                    ) : (
-                      <Button 
-                        type="button"
-                        onClick={() => setStep(3)}
-                        className="flex-1 bg-[#00bcd4] hover:bg-[#00acc1] text-white rounded-full"
-                      >
-                        Continuar al Pago
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
+                     {isWholesaleMode && (
+                       <div>
+                         <label className="block text-xs font-medium text-foreground mb-1.5">
+                           Notas adicionales (opcional)
+                         </label>
+                         <textarea
+                           name="notes"
+                           value={formData.notes}
+                           onChange={handleInputChange}
+                           placeholder="Informacion adicional sobre tu pedido, preferencias de empaque, frecuencia de compra, etc."
+                           className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm min-h-[80px] focus:outline-none focus:ring-2 focus:ring-ring"
+                         />
+                       </div>
+                     )}
+                   </div>
+                   <div className="flex gap-2 mt-4">
+                     <Button 
+                       type="button"
+                       variant="outline"
+                       onClick={() => setStep(1)}
+                       className="flex-1 rounded-full h-9 text-sm"
+                     >
+                       Atras
+                     </Button>
+                     {isWholesaleMode ? (
+                       <Button 
+                         type="submit"
+                         disabled={isSubmitting}
+                         className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-full h-9 text-sm"
+                       >
+                         {isSubmitting ? "Enviando..." : "Solicitar Cotizacion"}
+                       </Button>
+                     ) : (
+                       <Button 
+                         type="button"
+                         onClick={() => setStep(3)}
+                         className="flex-1 bg-[#00bcd4] hover:bg-[#00acc1] text-white rounded-full h-9 text-sm"
+                       >
+                         Continuar al Pago
+                       </Button>
+                     )}
+                   </div>
+                 </div>
+               )}
 
               {/* Step 3: Payment (retail only) */}
               {step === 3 && !isWholesaleMode && (
-                <div className="bg-card rounded-2xl p-6 border border-border">
-                  <h2 className="text-xl font-bold text-foreground mb-6">Metodo de Pago</h2>
+                <div className="bg-card rounded-2xl p-4 border border-border">
+                  <h2 className="text-base font-semibold text-foreground mb-4">Metodo de Pago</h2>
                   
-                  {/* Payment Methods */}
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("daviplata")}
-                      className={`p-3 rounded-xl border-2 transition-all ${
-                        paymentMethod === "daviplata" 
-                          ? 'border-[#ff0000] bg-[#ff0000]/5' 
-                          : 'border-border bg-card hover:border-muted-foreground/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Smartphone className={`h-5 w-5 ${paymentMethod === "daviplata" ? 'text-[#ff0000]' : 'text-muted-foreground'}`} />
-                        <span className={`text-sm font-medium ${paymentMethod === "daviplata" ? 'text-[#ff0000]' : 'text-muted-foreground'}`}>Daviplata</span>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("paypal")}
-                      className={`p-3 rounded-xl border-2 transition-all ${
-                        paymentMethod === "paypal" 
-                          ? 'border-[#0070ba] bg-[#0070ba]/5' 
-                          : 'border-border bg-card hover:border-muted-foreground/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Wallet className={`h-5 w-5 ${paymentMethod === "paypal" ? 'text-[#0070ba]' : 'text-muted-foreground'}`} />
-                        <span className={`text-sm font-medium ${paymentMethod === "paypal" ? 'text-[#0070ba]' : 'text-muted-foreground'}`}>PayPal</span>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("nequi")}
-                      className={`p-3 rounded-xl border-2 transition-all ${
-                        paymentMethod === "nequi" 
-                          ? 'border-[#00c4cc] bg-[#00c4cc]/5' 
-                          : 'border-border bg-card hover:border-muted-foreground/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Banknote className={`h-5 w-5 ${paymentMethod === "nequi" ? 'text-[#00c4cc]' : 'text-muted-foreground'}`} />
-                        <span className={`text-sm font-medium ${paymentMethod === "nequi" ? 'text-[#00c4cc]' : 'text-muted-foreground'}`}>Nequi</span>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("bancolombia")}
-                      className={`p-3 rounded-xl border-2 transition-all ${
-                        paymentMethod === "bancolombia" 
-                          ? 'border-[#003366] bg-[#003366]/5' 
-                          : 'border-border bg-card hover:border-muted-foreground/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Building2 className={`h-5 w-5 ${paymentMethod === "bancolombia" ? 'text-[#003366]' : 'text-muted-foreground'}`} />
-                        <span className={`text-sm font-medium ${paymentMethod === "bancolombia" ? 'text-[#003366]' : 'text-muted-foreground'}`}>Bancolombia</span>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("binance")}
-                      className={`p-3 rounded-xl border-2 transition-all ${
-                        paymentMethod === "binance" 
-                          ? 'border-[#f3ba2d] bg-[#f3ba2d]/5' 
-                          : 'border-border bg-card hover:border-muted-foreground/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Wallet className={`h-5 w-5 ${paymentMethod === "binance" ? 'text-[#f3ba2d]' : 'text-muted-foreground'}`} />
-                        <span className={`text-sm font-medium ${paymentMethod === "binance" ? 'text-[#f3ba2d]' : 'text-muted-foreground'}`}>Binance</span>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("zelle")}
-                      className={`p-3 rounded-xl border-2 transition-all ${
-                        paymentMethod === "zelle" 
-                          ? 'border-[#001871] bg-[#001871]/5' 
-                          : 'border-border bg-card hover:border-muted-foreground/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <FileText className={`h-5 w-5 ${paymentMethod === "zelle" ? 'text-[#001871]' : 'text-muted-foreground'}`} />
-                        <span className={`text-sm font-medium ${paymentMethod === "zelle" ? 'text-[#001871]' : 'text-muted-foreground'}`}>Zelle</span>
-                      </div>
-                    </button>
-                  </div>
+                   {/* Payment Methods */}
+                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3 mb-4">
+                     <button
+                       type="button"
+                       onClick={() => setPaymentMethod("daviplata")}
+                       className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center ${
+                         paymentMethod === "daviplata" 
+                           ? 'border-[#ff0000] bg-[#ff0000]/5' 
+                           : 'border-border bg-card hover:border-muted-foreground/50'
+                       }`}
+                     >
+                       <Image src="/images/banderas/daviplata.svg" alt="Daviplata" width={32} height={32} className="h-8 w-8" />
+                     </button>
+                     <button
+                       type="button"
+                       onClick={() => setPaymentMethod("paypal")}
+                       className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center ${
+                         paymentMethod === "paypal" 
+                           ? 'border-[#0070ba] bg-[#0070ba]/5' 
+                           : 'border-border bg-card hover:border-muted-foreground/50'
+                       }`}
+                     >
+                       <Image src="/images/banderas/paypal.svg" alt="PayPal" width={32} height={32} className="h-8 w-8" />
+                     </button>
+                     <button
+                       type="button"
+                       onClick={() => setPaymentMethod("nequi")}
+                       className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center ${
+                         paymentMethod === "nequi" 
+                           ? 'border-[#00c4cc] bg-[#00c4cc]/5' 
+                           : 'border-border bg-card hover:border-muted-foreground/50'
+                       }`}
+                     >
+                       <Image src="/images/banderas/nequi.svg" alt="Nequi" width={32} height={32} className="h-8 w-8" />
+                     </button>
+                     <button
+                       type="button"
+                       onClick={() => setPaymentMethod("bancolombia")}
+                       className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center ${
+                         paymentMethod === "bancolombia" 
+                           ? 'border-[#003366] bg-[#003366]/5' 
+                           : 'border-border bg-card hover:border-muted-foreground/50'
+                       }`}
+                     >
+                       <Image src="/images/banderas/bancolombia.svg" alt="Bancolombia" width={32} height={32} className="h-8 w-8" />
+                     </button>
+                     <button
+                       type="button"
+                       onClick={() => setPaymentMethod("binance")}
+                       className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center ${
+                         paymentMethod === "binance" 
+                           ? 'border-[#f3ba2d] bg-[#f3ba2d]/5' 
+                           : 'border-border bg-card hover:border-muted-foreground/50'
+                       }`}
+                     >
+                       <Image src="/images/banderas/binance.svg" alt="Binance" width={32} height={32} className="h-8 w-8" />
+                     </button>
+                     <button
+                       type="button"
+                       onClick={() => setPaymentMethod("zelle")}
+                       className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center ${
+                         paymentMethod === "zelle" 
+                           ? 'border-[#001871] bg-[#001871]/5' 
+                           : 'border-border bg-card hover:border-muted-foreground/50'
+                       }`}
+                     >
+                       <Image src="/images/banderas/zelle.svg" alt="Zelle" width={32} height={32} className="h-8 w-8" />
+                     </button>
+                    </div>
 
-                  {/* Payment Methods - All show reference field */}
-                  <div className="grid gap-4">
-                    <div>
+{/* Payment Methods - All show reference field */}
+                   <div className="grid gap-3">
+                    
+                    {/* Transportadoras - Step 3 */}
+                    <div className="mb-5">
+                      <p className="text-xs font-medium text-foreground mb-2">
+                        Envio gratis a partir de $500.000 pesos
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mb-2">Consulta por donde hacemos envios:</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setShowColombiaCarriers(!showColombiaCarriers)}
+                            className="flex items-center justify-between gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase mb-1.5 hover:text-foreground transition-colors w-full"
+                          >
+                            <span className="flex items-center gap-1.5">
+                              Colombia
+                              <Image src="/images/banderas/1.webp" alt="Colombia" width={16} height={12} className="inline-block rounded-sm" />
+                            </span>
+                            <ChevronDown className={`h-3 w-3 transition-transform ${showColombiaCarriers ? 'rotate-180' : ''}`} />
+                          </button>
+                          {showColombiaCarriers && (
+                            <div className="flex flex-col gap-2">
+                              <a
+                                href="https://interrapidisimo.com/cotiza-tu-envio/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-2 p-2 rounded-lg border border-border bg-white hover:border-primary/50 transition-colors"
+                              >
+                                <div className="relative h-8 w-16 flex-shrink-0">
+                                  <Image src="/images/banderas/interrapisimo.png" alt="Interrapidisimo" fill className="object-contain" />
+                                </div>
+                                <span className="text-xs font-medium text-foreground">Interrapidisimo</span>
+                              </a>
+                              <a
+                                href="https://www.servientrega.com/cotizar-envio"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-2 p-2 rounded-lg border border-border bg-white hover:border-primary/50 transition-colors"
+                              >
+                                <div className="relative h-8 w-16 flex-shrink-0">
+                                  <Image src="/images/banderas/servientrega.jpg" alt="Servientrega" fill className="object-contain" />
+                                </div>
+                                <span className="text-xs font-medium text-foreground">Servientrega</span>
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setShowVenezuelaCarriers(!showVenezuelaCarriers)}
+                            className="flex items-center justify-between gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase mb-1.5 hover:text-foreground transition-colors w-full"
+                          >
+                            <span className="flex items-center gap-1.5">
+                              Venezuela
+                              <Image src="/images/banderas/2.webp" alt="Venezuela" width={16} height={12} className="inline-block rounded-sm" />
+                            </span>
+                            <ChevronDown className={`h-3 w-3 transition-transform ${showVenezuelaCarriers ? 'rotate-180' : ''}`} />
+                          </button>
+                          {showVenezuelaCarriers && (
+                            <div className="flex flex-col gap-2">
+                              <a
+                                href="https://mrwve.com/calcula-envio"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-2 p-2 rounded-lg border border-border bg-white hover:border-primary/50 transition-colors"
+                              >
+                                <div className="relative h-8 w-16 flex-shrink-0">
+                                  <Image src="/images/banderas/mrw.svg" alt="MRW" fill className="object-contain" />
+                                </div>
+                                <span className="text-xs font-medium text-foreground">MRW</span>
+                              </a>
+                              <a
+                                href="https://zoom.red/consulta-de-precios/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-2 p-2 rounded-lg border border-border bg-white hover:border-primary/50 transition-colors"
+                              >
+                                <div className="relative h-8 w-16 flex-shrink-0">
+                                  <Image src="/images/banderas/zoom.jpg" alt="Zoom" fill className="object-contain" />
+                                </div>
+                                <span className="text-xs font-medium text-foreground">Zoom</span>
+                              </a>
+                              <a
+                                href="https://www.tealca.com/calculo-de-tarifas/"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-2 p-2 rounded-lg border border-border bg-white hover:border-primary/50 transition-colors"
+                              >
+                                <div className="relative h-8 w-16 flex-shrink-0">
+                                  <Image src="/images/banderas/tealca.png" alt="Tealca" fill className="object-contain" />
+                                </div>
+                                <span className="text-xs font-medium text-foreground">Tealca</span>
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
                         Referencia de pago (# de transaccion)
                       </label>
@@ -582,38 +667,72 @@ function CheckoutContent() {
                       </div>
                     </div>
                     
-                    <div className={`p-4 rounded-xl ${
-                        paymentMethod === "paypal" ? 'bg-[#0070ba]/10 border border-[#0070ba]/20' :
-                        paymentMethod === "nequi" ? 'bg-[#00c4cc]/10 border border-[#00c4cc]/20' :
-                        paymentMethod === "bancolombia" ? 'bg-[#003366]/10 border border-[#003366]/20' :
-                        paymentMethod === "binance" ? 'bg-[#f3ba2d]/10 border border-[#f3ba2d]/20' :
-                        paymentMethod === "daviplata" ? 'bg-[#ff0000]/10 border border-[#ff0000]/20' :
-                        'bg-[#001871]/10 border border-[#001871]/20'
+                  <div className={`p-3 rounded-xl border-2 border-dashed ${
+                        paymentMethod === "paypal" ? 'bg-[#0070ba]/10 border-[#0070ba]/30' :
+                        paymentMethod === "nequi" ? 'bg-[#00c4cc]/10 border-[#00c4cc]/30' :
+                        paymentMethod === "bancolombia" ? 'bg-[#003366]/10 border-[#003366]/30' :
+                        paymentMethod === "binance" ? 'bg-[#f3ba2d]/10 border-[#f3ba2d]/30' :
+                        paymentMethod === "daviplata" ? 'bg-[#ff0000]/10 border-[#ff0000]/30' :
+                        'bg-[#001871]/10 border-[#001871]/30'
                       }`}>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[11px] text-muted-foreground mb-1.5">
                         {paymentMethod === "paypal" && "Envia el pago a: pagos@peluchesmundo.com"}
-                        {paymentMethod === "nequi" && "Transfiere a Nequi: 300 123 4567"}
-                        {paymentMethod === "bancolombia" && "Transfiere a Bancolombia: Cuenta de ahorros 123456789"}
-                        {paymentMethod === "binance" && "Pago en Binance Pay: ID 12345678"}
-                        {paymentMethod === "daviplata" && "Transfiere a Daviplata: 300 123 4567"}
+                        {paymentMethod === "nequi" && "Transfiere a Nequi:"}
+                        {paymentMethod === "bancolombia" && "Transfiere a Bancolombia: Cuenta de ahorros"}
+                        {paymentMethod === "binance" && "Pago en Binance Pay:"}
+                        {paymentMethod === "daviplata" && "Transfiere a Daviplata:"}
                         {paymentMethod === "zelle" && "Pago por Zelle: pagos@peluchesmundo.com"}
                       </p>
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-xs font-semibold text-foreground">
+                            {paymentData[paymentMethod].label}
+                          </p>
+                          <p className="text-sm font-bold text-foreground mt-0.5">
+                            {paymentData[paymentMethod].value}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(paymentData[paymentMethod].value)
+                            setCopied(true)
+                            setTimeout(() => setCopied(false), 2000)
+                          }}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-border text-xs font-medium hover:bg-muted transition-colors"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="h-3.5 w-3.5 text-green-600" />
+                              <span className="text-green-600">Copiado</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <rect x="9" y="9" width="13" height="13" rx="2" />
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                              </svg>
+                              <span>Copiar</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex gap-3 mt-6">
+                  <div className="flex gap-2.5 mt-5">
                     <Button 
                       type="button"
                       variant="outline"
                       onClick={() => setStep(2)}
-                      className="flex-1 rounded-full"
+                      className="flex-1 rounded-full h-10 text-sm"
                     >
                       Atras
                     </Button>
                     <Button 
                       type="submit"
                       disabled={isSubmitting}
-                      className={`flex-1 rounded-full ${
+                      className={`flex-1 rounded-full h-10 text-sm ${
                         paymentMethod === "daviplata" ? 'bg-[#ff0000] hover:bg-[#ff0000]/90' :
                         paymentMethod === "paypal" ? 'bg-[#0070ba] hover:bg-[#0070ba]/90' :
                         paymentMethod === "nequi" ? 'bg-[#00c4cc] hover:bg-[#00c4cc]/90' :
@@ -623,12 +742,12 @@ function CheckoutContent() {
                       } text-white`}
                     >
                       {isSubmitting ? "Procesando..." : 
-                        paymentMethod === "daviplata" ? `Pagar con Daviplata ${formatPrice(total)}` :
-                        paymentMethod === "paypal" ? `Pagar con PayPal ${formatPrice(total)}` :
-                        paymentMethod === "nequi" ? `Confirmar pago Nequi ${formatPrice(total)}` :
-                        paymentMethod === "bancolombia" ? `Confirmar transferencia ${formatPrice(total)}` :
-                        paymentMethod === "binance" ? `Pagar con Binance ${formatPrice(total)}` :
-                        `Pagar con Zelle ${formatPrice(total)}`
+                        paymentMethod === "daviplata" ? `Pagar ${formatPrice(total)} (${formatUSD(total)})` :
+                        paymentMethod === "paypal" ? `Pagar ${formatPrice(total)} (${formatUSD(total)})` :
+                        paymentMethod === "nequi" ? `Confirmar ${formatPrice(total)} (${formatUSD(total)})` :
+                        paymentMethod === "bancolombia" ? `Transferir ${formatPrice(total)} (${formatUSD(total)})` :
+                        paymentMethod === "binance" ? `Pagar ${formatPrice(total)} (${formatUSD(total)})` :
+                        `Pagar ${formatPrice(total)} (${formatUSD(total)})`
                       }
                     </Button>
                   </div>
@@ -636,13 +755,13 @@ function CheckoutContent() {
               )}
 
               {/* Trust Badges */}
-              <div className="flex items-center justify-center gap-6 mt-8 text-muted-foreground">
-                <div className="flex items-center gap-2 text-sm">
-                  <Shield className="h-4 w-4" />
+              <div className="flex items-center justify-center gap-4 mt-6 text-muted-foreground">
+                <div className="flex items-center gap-1.5 text-xs">
+                  <Shield className="h-3.5 w-3.5" />
                   <span>{isWholesaleMode ? 'Datos Seguros' : 'SSL Seguro'}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Truck className="h-4 w-4" />
+                <div className="flex items-center gap-1.5 text-xs">
+                  <Truck className="h-3.5 w-3.5" />
                   <span>{isWholesaleMode ? 'Envios Nacionales' : 'Envio Rastreable'}</span>
                 </div>
               </div>
@@ -651,9 +770,9 @@ function CheckoutContent() {
 
           {/* Right Column - Order Summary */}
           <div className="order-1 lg:order-2">
-            <div className={`bg-card rounded-2xl p-6 border ${isWholesaleMode ? 'border-green-200' : 'border-border'} sticky top-8`}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-foreground">
+            <div className={`bg-card rounded-2xl p-4 border ${isWholesaleMode ? 'border-green-200' : 'border-border'}`}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-bold text-foreground">
                   {isWholesaleMode ? 'Lista de Pedido' : 'Resumen del Pedido'}
                 </h2>
                 {isWholesaleMode && (
@@ -664,10 +783,10 @@ function CheckoutContent() {
               </div>
               
               {/* Cart Items */}
-              <div className="flex flex-col gap-4 mb-6 max-h-80 overflow-y-auto">
+               <div className="flex flex-col gap-2.5 mb-5 max-h-60 overflow-y-auto">
                 {displayItems.map((item) => (
-                  <div key={item.id} className={`flex gap-4 p-3 ${isWholesaleMode ? 'bg-green-50' : 'bg-muted/30'} rounded-xl`}>
-                    <div className="relative h-16 w-16 rounded-lg overflow-hidden flex-shrink-0">
+                  <div key={item.id} className={`flex gap-2 p-2 ${isWholesaleMode ? 'bg-green-50' : 'bg-muted/30'} rounded-xl`}>
+                    <div className="relative h-10 w-10 rounded-md overflow-hidden flex-shrink-0">
                       <Image
                         src={item.image}
                         alt={item.name}
@@ -679,17 +798,20 @@ function CheckoutContent() {
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-foreground text-sm truncate">{item.name}</h4>
-                      <p className={`text-sm font-bold ${isWholesaleMode ? 'text-green-600' : 'text-[#e91e8c]'}`}>
+                      <h4 className="font-medium text-foreground text-xs leading-tight line-clamp-2">{item.name}</h4>
+                      <p className={`text-xs font-bold mt-0.5 ${isWholesaleMode ? 'text-green-600' : 'text-[#e91e8c]'}`}>
                         {formatPrice((isWholesaleMode ? item.wholesalePrice : item.price) * item.quantity)}
                       </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formatUSD((isWholesaleMode ? item.wholesalePrice : item.price) * item.quantity)}
+                      </p>
                       {isWholesaleMode && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[10px] text-muted-foreground">
                           {formatPrice(item.wholesalePrice)} x {item.quantity} uds
                         </p>
                       )}
                     </div>
-                    <div className="flex flex-col items-end justify-between">
+                    <div className="flex flex-col items-end justify-between flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -737,53 +859,34 @@ function CheckoutContent() {
                 </div>
               )}
 
-              {/* Totals */}
-              <div className="border-t border-border pt-4">
+               {/* Totals */}
+              <div className="border-t border-border pt-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">Subtotal</span>
-                  <span className="text-sm font-medium">{formatPrice(displayTotal)}</span>
-                </div>
-                {isWholesaleMode ? (
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Total unidades</span>
-                    <span className="text-sm font-medium">{getTotalUnits()} uds</span>
+                  <div className="text-right">
+                    <span className="text-sm font-medium">{formatPrice(displayTotal)}</span>
+                    <span className="block text-xs text-muted-foreground">{formatUSD(displayTotal)}</span>
                   </div>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-muted-foreground">Envio</span>
-                      <span className={`text-sm ${shippingCost === 0 ? 'text-green-600 font-medium' : ''}`}>
-                        {shippingCost === 0 ? 'GRATIS' : formatPrice(shippingCost)}
-                      </span>
-                    </div>
-                    {shippingCost > 0 && (
-                      <p className="text-xs text-muted-foreground mb-2">
-                        Envio gratis en compras mayores a {formatPrice(150000)}
-                      </p>
-                    )}
-                  </>
-                )}
-<div className="flex items-center justify-between pt-3 border-t border-border">
-                   <span className="text-lg font-bold">{isWholesaleMode ? 'Total Estimado' : 'Total'}</span>
-                   <span className={`text-xl font-bold ${isWholesaleMode ? 'text-green-600' : 'text-[#e91e8c]'}`}>
-                     {formatPrice(total)}
-                   </span>
-                 </div>
-                 {isWholesaleMode && (
-                   <p className="text-xs text-muted-foreground mt-2">
-                     * El precio final sera confirmado por nuestro equipo segun disponibilidad
-                   </p>
-                 )}
-               </div>
-             </div>
-           </div>
-         </div>
-       </div>
-       
-       <Footer />
-     </div>
-   )
-}
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-border">
+                  <span className="text-lg font-bold">Total</span>
+                  <div className="text-right">
+                    <span className="text-xl font-bold text-[#e91e8c]">
+                      {formatPrice(total)}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">{formatUSD(total)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <Footer />
+    </div>
+    )
+  }
 
 export default function CheckoutPage() {
   return (

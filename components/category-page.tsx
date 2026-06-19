@@ -66,36 +66,61 @@ import { RatingSection } from "@/components/rating-section"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { WhatsAppButton } from "@/components/whatsapp-button"
+import { useUSDPrice } from "@/lib/exchange-rate"
 
-function ProductImages({ product, variantType }: { product: Product; variantType: "adult" | "child" | null }) {
+export function ProductImages({ product, variantType, purchaseMode }: { product: Product; variantType: "adult" | "child" | null; purchaseMode: "retail" | "wholesale" }) {
   const getImages = () => {
+    if (purchaseMode === "wholesale") {
+      if (variantType === "child" && product.childImages && product.childImages.length > 0) {
+        return [product.childImages[0]]
+      }
+      if (variantType === "adult" && product.adultImages && product.adultImages.length > 0) {
+        return [product.adultImages[0]]
+      }
+      return [product.image]
+    }
     if (variantType === "child" && product.childImages && product.childImages.length > 0) {
-      return product.childImages.slice(0, 4)
+      return product.childImages.slice(0, 2)
     }
     if (variantType === "adult" && product.adultImages && product.adultImages.length > 0) {
-      return product.adultImages.slice(0, 4)
+      return product.adultImages.slice(0, 2)
     }
-    return product.images && product.images.length > 0 ? product.images.slice(0, 4) : [product.image]
+    return product.images && product.images.length > 0 ? product.images.slice(0, 2) : [product.image]
   }
 
   const images = getImages()
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [isPaused, setIsPaused] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    if (images.length <= 1 || isPaused) return
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768 || window.matchMedia("(hover: none)").matches)
+    }
+
+    checkIsMobile()
+    window.addEventListener("resize", checkIsMobile)
+    return () => window.removeEventListener("resize", checkIsMobile)
+  }, [])
+
+  const shouldAutoRotate = images.length > 1 && (isMobile || isHovered)
+
+  useEffect(() => {
+    if (!shouldAutoRotate) return
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length)
-    }, 2000)
+    }, 3000)
+
     return () => clearInterval(interval)
-  }, [images.length, isPaused])
+  }, [images.length, shouldAutoRotate])
 
   const goToImage = (index: number) => setCurrentIndex(index)
   const goPrev = (e: React.MouseEvent) => { e.stopPropagation(); setCurrentIndex((prev) => (prev - 1 + images.length) % images.length) }
   const goNext = (e: React.MouseEvent) => { e.stopPropagation(); setCurrentIndex((prev) => (prev + 1) % images.length) }
 
   return (
-    <div className="relative w-full h-full group" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
+    <div className="relative w-full h-full group" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
       {images.map((imgSrc, index) => (
         <Image key={index} src={imgSrc} alt={`${product.name} - vista ${index + 1}`} fill className={`object-contain transition-all duration-500 ease-in-out ${index === currentIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.02]'}`} />
       ))}
@@ -134,6 +159,7 @@ export default function CategoryPage({ title, description, products, category, v
   const [addedProducts, setAddedProducts] = useState<Record<number, boolean>>({})
   const [quantities, setQuantities] = useState<Record<number, number>>({})
   const [selectedVariants, setSelectedVariants] = useState<Record<number, string>>({})
+  const { formatUSD } = useUSDPrice()
   const [variantTypes, setVariantTypes] = useState<Record<number, "adult" | "child">>(() => {
     const initial: Record<number, "adult" | "child"> = {}
     products.forEach(p => {
@@ -354,8 +380,8 @@ export default function CategoryPage({ title, description, products, category, v
 
                 return (
                   <div key={product.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border">
-                    <div className="relative aspect-square overflow-hidden bg-gray-50">
-                      <ProductImages product={product} variantType={variantTypes[product.id] || null} />
+                     <div className="relative aspect-square overflow-hidden bg-gray-50">
+                       <ProductImages product={product} variantType={variantTypes[product.id] || null} purchaseMode={purchaseMode} />
                       <div className="absolute top-3 left-3 flex flex-col gap-2">
                         {product.badge && <span className={cn("text-white text-xs font-bold px-3 py-1 rounded-full", product.badgeColor || "bg-accent")}>{product.badge.toUpperCase()}</span>}
                         {product.originalPrice && <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</span>}
@@ -363,7 +389,7 @@ export default function CategoryPage({ title, description, products, category, v
                       <button onClick={() => toggleFavorite(product.id)} className={cn("absolute top-3 right-3 p-2 rounded-full transition-all", favorites.includes(product.id) ? "bg-primary text-white" : "bg-white/80 hover:bg-white text-gray-600")}>
                         <Heart className={cn("h-5 w-5", favorites.includes(product.id) && "fill-current")} />
                       </button>
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <Button className={`w-full text-xs md:text-sm transition-all ${addedProducts[product.id] ? 'bg-green-500 hover:bg-green-600' : purchaseMode === "wholesale" ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'}`} size="sm" onClick={() => handleAddToCart(product)}>
                           {addedProducts[product.id] ? <><Check className="h-4 w-4 mr-1" /> Agregado</> : <><ShoppingCart className="h-4 w-4 mr-1" /> {purchaseMode === "wholesale" ? "Agregar al pedido" : "Agregar"}</>}
                         </Button>
@@ -373,7 +399,7 @@ export default function CategoryPage({ title, description, products, category, v
                       <span className="text-xs text-primary font-medium uppercase tracking-wide">{product.category}</span>
                       <h3 className="font-semibold text-lg mt-1 group-hover:text-primary transition-colors">{product.name}</h3>
                       <div className="mt-2"><RatingSection productId={product.id} /></div>
-                      {product.features && <div className="flex flex-wrap gap-1 mt-2">{product.features.map((feature, idx) => <span key={idx} className="text-xs bg-muted/50 text-muted-foreground px-2 py-0.5 rounded">{feature}</span>)}</div>}
+                      {product.features && <div className="flex flex-wrap gap-1 mt-2">{product.features.filter(feature => purchaseMode === "retail" || feature !== "Arreglo GRATIS").map((feature, idx) => <span key={idx} className={`text-xs px-2 py-0.5 rounded ${feature === "Arreglo GRATIS" ? "bg-green-100 text-green-700 font-bold" : "bg-muted/50 text-muted-foreground"}`}>{feature}</span>)}</div>}
                       
                       {/* CORRECCIÓN: Renderizar el stock de la variante activa dinámicamente */}
                       {(selectedVariant?.stock !== undefined || product.stock !== undefined) && (
@@ -418,11 +444,12 @@ export default function CategoryPage({ title, description, products, category, v
                           )}
                       <div className="flex items-center gap-2 mb-3">
                         <span className={`text-xl font-bold ${purchaseMode === "wholesale" ? "text-green-600" : "text-primary"}`}>{formatPrice(currentPrice)}</span>
+                        <span className="text-sm text-muted-foreground ml-2">{formatUSD(currentPrice)}</span>
                         {purchaseMode === "wholesale" && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Mayorista</span>}
                       </div>
                       {purchaseMode === "wholesale" && (
                         <div className="flex items-center justify-center gap-2 mb-3">
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(product.id, -6)} disabled={getQuantity(product.id) <= 12}><Minus className="h-3 w-3" /></Button>
+                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(product.id, -6)} disabled={getQuantity(product.id) <= 3}><Minus className="h-3 w-3" /></Button>
                           <span className="w-12 text-center font-medium text-sm">{getQuantity(product.id)} uds</span>
                           <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(product.id, 6)}><Plus className="h-3 w-3" /></Button>
                         </div>

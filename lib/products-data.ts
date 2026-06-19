@@ -1,12 +1,12 @@
 ﻿import { Product } from "@/components/category-page"
 
-const FEATURES = ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado"]
+const FEATURES = ["Suavidad", "Relleno antialergico", "Durabilidad", "Facil lavado", "Arreglo GRATIS"]
 
 export const allProducts: Product[] = [
   // Llaveros
-  { id: 501, name: "Llavero Surtidos", price: 20000, image: "/images/llaveros/1.webp", images: ["/images/llaveros/1.webp", "/images/llaveros/2.webp"], rating: 4.4, reviews: 42, features: FEATURES, category: "llaveros", stock: 100, variants: [{ id: "v20", label: "Paquete 20 unidades", price: 20000, wholesalePrice: 20000 }, { id: "v40", label: "Paquete 40 unidades", price: 40000, wholesalePrice: 40000 }] },
+  { id: 501, name: "Llavero Surtidos", price: 30000, image: "/images/llaveros/1.webp", images: ["/images/llaveros/1.webp", "/images/llaveros/2.webp"], rating: 4.4, reviews: 42, features: FEATURES, category: "llaveros", stock: 100, variants: [{ id: "v20", label: "Paquete 20 unidades", price: 30000, wholesalePrice: 20000 }, { id: "v40", label: "Paquete 40 unidades", price: 60000, wholesalePrice: 40000 }] },
   // Peluches
-  { id: 101, name: "Peluche Milo Gato", price: 45000, originalPrice: 55000, image: "/images/peluches/1.webp", rating: 4.8, reviews: 128, features: FEATURES, category: "peluches", variants: [{ id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000 }, { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000 }, { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000 }], stock: 15 },
+  { id: 101, name: "Peluche Milo Gato", price: 45000, originalPrice: 75000, image: "/images/peluches/1.webp", rating: 4.8, reviews: 128, features: FEATURES, category: "peluches", variants: [{ id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000 }, { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000 }, { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000 }], stock: 15 },
   { id: 102, name: "Peluche Mimi Gata", price: 60000, originalPrice: 72000, image: "/images/peluches/2.webp", rating: 4.7, reviews: 95, features: FEATURES, category: "peluches", variants: [{ id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000 }, { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000 }, { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000 }], stock: 25 },
   { id: 103, name: "Peluche Bubu Mono", price: 68000, originalPrice: 85000, image: "/images/peluches/3.webp", rating: 4.6, reviews: 82, features: FEATURES, category: "peluches", variants: [{ id: "v2", label: "#2 - 40cm", price: 48000, wholesalePrice: 30000 }, { id: "v3", label: "#3 - 60cm", price: 68000, wholesalePrice: 45000 }, { id: "v4", label: "#4 - 90cm", price: 88000, wholesalePrice: 58000 }], stock: 18 },
   { id: 104, name: "Peluche Lala Mona", price: 55000, image: "/images/peluches/4.webp", rating: 4.5, reviews: 67, features: FEATURES, category: "peluches", variants: [{ id: "v2", label: "#2 - 40cm", price: 40000, wholesalePrice: 25000 }, { id: "v3", label: "#3 - 60cm", price: 55000, wholesalePrice: 35000 }, { id: "v4", label: "#4 - 90cm", price: 75000, wholesalePrice: 50000 }], stock: 22 },
@@ -59,7 +59,7 @@ export const allProducts: Product[] = [
    { id: 311, name: "Lata Futbol Barcelona", price: 18000, rating: 4.5, reviews: 52, features: FEATURES, image: "/images/lata/11.webp", category: "latas", variants: [{ id: "med", label: "Mediano - 30cm", price: 18000, wholesalePrice: 13000 }], stock: 38 },
    { id: 312, name: "Lata Futbol Barcelona", price: 18000, rating: 4.3, reviews: 39, features: FEATURES, image: "/images/lata/12.webp", category: "latas", variants: [{ id: "med", label: "Mediano - 30cm", price: 18000, wholesalePrice: 13000 }], stock: 26 },
 // Cervicales
-   { id: 401, name: "Cervical Futbol Brasil", price: 15000, originalPrice: 20000, rating: 4.5, reviews: 76, features: FEATURES, image: "/images/cervicales/1.webp", category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }], stock: 45 },
+   { id: 401, name: "Cervical Futbol Brasil", price: 15000, originalPrice: 30000, rating: 4.5, reviews: 76, features: FEATURES, image: "/images/cervicales/1.webp", category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }], stock: 45 },
    { id: 402, name: "Cervical Futbol Colombia", price: 15000, rating: 4.4, reviews: 59, features: FEATURES, image: "/images/cervicales/2.webp", category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }], stock: 55 },
    { id: 403, name: "Cervical Futbol Argentina", price: 15000, originalPrice: 15000, rating: 4.3, reviews: 45, features: FEATURES, image: "/images/cervicales/3.webp", category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }], stock: 32 },
    { id: 404, name: "Cervical Futbol Real Madrid", price: 15000, rating: 4.6, reviews: 73, features: FEATURES, image: "/images/cervicales/4.webp", category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }, { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 40 },
@@ -67,46 +67,46 @@ export const allProducts: Product[] = [
    { id: 406, name: "Cervical Te Quiero", price: 18000, rating: 4.6, reviews: 72, features: FEATURES, image: "/images/cervicales/6.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 50 },
    { id: 407, name: "Cervical Feliz Dia Mama", price: 18000, rating: 4.5, reviews: 84, features: FEATURES, image: "/images/cervicales/7.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 45 },
    { id: 408, name: "Cervical TQM", price: 18000, rating: 4.7, reviews: 91, features: FEATURES, image: "/images/cervicales/8.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 60 },
-   { id: 409, name: "Cervical Eres Especial", price: 18000, rating: 4.5, reviews: 68, features: FEATURES, image: "/images/cervicales/9.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 40 },
-   { id: 410, name: "Cervical Eres Especial", price: 18000, rating: 4.4, reviews: 52, features: FEATURES, image: "/images/cervicales/10.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 35 },
-   { id: 411, name: "Cervical Lo Lograstes", price: 18000, rating: 4.6, reviews: 71, features: FEATURES, image: "/images/cervicales/11.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 48 },
-   { id: 412, name: "Cervical Felicitaciones", price: 18000, rating: 4.5, reviews: 63, features: FEATURES, image: "/images/cervicales/12.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 38 },
-   { id: 413, name: "Cervical Feliz Dia", price: 18000, rating: 4.4, reviews: 48, features: FEATURES, image: "/images/cervicales/13.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 42 },
-   { id: 414, name: "Cervical Bienvenido a la Familia", price: 18000, rating: 4.5, reviews: 55, features: FEATURES, image: "/images/cervicales/14.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 44 },
-   { id: 415, name: "Cervical Me Gustas", price: 18000, rating: 4.6, reviews: 67, features: FEATURES, image: "/images/cervicales/15.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 52 },
-   { id: 416, name: "Cervical Feliz Cumple AOs", price: 18000, rating: 4.4, reviews: 42, features: FEATURES, image: "/images/cervicales/16.webp", category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 36 },
-   { id: 417, name: "Cervical Te Amo", price: 18000, rating: 4.7, reviews: 88, features: FEATURES, image: "/images/cervicales/17.webp", category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }, { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 46 },
-   { id: 418, name: "Cervical Futbol Barcelona", price: 15000, originalPrice: 58000, rating: 4.4, reviews: 51, features: FEATURES, image: "/images/cervicales/18.webp", category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }], stock: 28 },
-   { id: 419, name: "Cervical Eres Tu", price: 18000, rating: 4.5, reviews: 65, features: FEATURES, image: "/images/cervicales/20.webp", category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }, { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 48 },
-   { id: 420, name: "Cervical Mi Felicidad", price: 18000, rating: 4.7, reviews: 82, features: FEATURES, image: "/images/cojines/19.webp", category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }, { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 55 },
+   { id: 409, name: "Cervical Eres Especial", price: 18000, rating: 4.5, reviews: 68, features: FEATURES, image: "/images/cervicales/9.webp", images: ["/images/cervicales/9.webp", "/images/cervicales/10.webp"], category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 40 },
+   { id: 410, name: "Cervical Eres Especial", price: 18000, rating: 4.4, reviews: 52, features: FEATURES, image: "/images/cervicales/10.webp", images: ["/images/cervicales/10.webp", "/images/cervicales/11.webp"], category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 35 },
+   { id: 411, name: "Cervical Lo Lograstes", price: 18000, rating: 4.6, reviews: 71, features: FEATURES, image: "/images/cervicales/11.webp", images: ["/images/cervicales/11.webp", "/images/cervicales/12.webp"], category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 48 },
+   { id: 412, name: "Cervical Felicitaciones", price: 18000, rating: 4.5, reviews: 63, features: FEATURES, image: "/images/cervicales/12.webp", images: ["/images/cervicales/12.webp", "/images/cervicales/13.webp"], category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 38 },
+   { id: 413, name: "Cervical Feliz Dia", price: 18000, rating: 4.4, reviews: 48, features: FEATURES, image: "/images/cervicales/13.webp", images: ["/images/cervicales/13.webp", "/images/cervicales/14.webp"], category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 42 },
+   { id: 414, name: "Cervical Bienvenido a la Familia", price: 18000, rating: 4.5, reviews: 55, features: FEATURES, image: "/images/cervicales/14.webp", images: ["/images/cervicales/14.webp", "/images/cervicales/15.webp"], category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 44 },
+   { id: 415, name: "Cervical Me Gustas", price: 18000, rating: 4.6, reviews: 67, features: FEATURES, image: "/images/cervicales/15.webp", images: ["/images/cervicales/15.webp", "/images/cervicales/16.webp"], category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 52 },
+   { id: 416, name: "Cervical Feliz Cumple AOs", price: 18000, rating: 4.4, reviews: 42, features: FEATURES, image: "/images/cervicales/16.webp", images: ["/images/cervicales/16.webp", "/images/cervicales/17.webp"], category: "cervicales", variants: [{ id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 36 },
+   { id: 417, name: "Cervical Te Amo", price: 18000, rating: 4.7, reviews: 88, features: FEATURES, image: "/images/cervicales/17.webp", images: ["/images/cervicales/17.webp", "/images/cervicales/18.webp"], category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }, { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 46 },
+   { id: 418, name: "Cervical Futbol Barcelona", price: 15000, originalPrice: 58000, rating: 4.4, reviews: 51, features: FEATURES, image: "/images/cervicales/18.webp", images: ["/images/cervicales/18.webp", "/images/cervicales/19.jpeg"], category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }], stock: 28 },
+   { id: 419, name: "Cervical Eres Tu", price: 18000, rating: 4.5, reviews: 65, features: FEATURES, image: "/images/cervicales/20.webp", images: ["/images/cervicales/20.webp", "/images/cervicales/1.webp"], category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }, { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 48 },
+    { id: 420, name: "Cervical Mi Felicidad", price: 18000, rating: 4.7, reviews: 82, features: FEATURES, image: "/images/cervicales/19.jpeg", images: ["/images/cervicales/19.jpeg", "/images/cervicales/20.webp"], category: "cervicales", variants: [{ id: "sin", label: "Sin Antifaz", price: 20000, wholesalePrice: 15000 }, { id: "con", label: "Con Antifaz", price: 25000, wholesalePrice: 18000 }], stock: 55 },
 // Ropa
-   { 
-     id: 701, 
-     name: "Hoodie Dragona", 
-     price: 45000, 
-     originalPrice: 55000, 
-     image: "/images/ropa/1.webp",
+    { 
+      id: 701, 
+      name: "Hoodie Dragona", 
+      price: 99000, 
+      originalPrice: 55000, 
+      image: "/images/ropa/1.webp",
      rating: 4.7,
      reviews: 85,
      features: FEATURES,
      adultImages: ["/images/ropa/1.webp", "/images/ropa/2.webp", "/images/ropa/3.webp", "/images/ropa/4.webp", "/images/ropa/5.webp"],
      childImages: ["/images/ropa/6.webp", "/images/ropa/7.webp", "/images/ropa/4.webp", "/images/ropa/5.webp"],
      category: "ropa", 
-     adultVariants: [
-       { id: "a-s", label: "S", price: 50000, wholesalePrice: 40000 },
-       { id: "a-m", label: "M", price: 60000, wholesalePrice: 48000 },
-       { id: "a-l", label: "L", price: 70000, wholesalePrice: 56000 },
-       { id: "a-xl", label: "XL", price: 80000, wholesalePrice: 64000 },
-     ],
-     childVariants: [
-       { id: "n-4", label: "4", price: 35000, wholesalePrice: 28000 },
-       { id: "n-6", label: "6", price: 38000, wholesalePrice: 30400 },
-       { id: "n-8", label: "8", price: 41000, wholesalePrice: 32800 },
-       { id: "n-10", label: "10", price: 44000, wholesalePrice: 35200 },
-       { id: "n-12", label: "12", price: 47000, wholesalePrice: 37600 },
-     ],
-     badge: "Nuevo",
-     badgeColor: "bg-green-500",
-     stock: 35
-   }
-]
+      adultVariants: [
+        { id: "a-s", label: "S", price: 99000, wholesalePrice: 80000 },
+        { id: "a-m", label: "M", price: 99000, wholesalePrice: 80000 },
+        { id: "a-l", label: "L", price: 99000, wholesalePrice: 80000 },
+        { id: "a-xl", label: "XL", price: 99000, wholesalePrice: 80000 },
+      ],
+      childVariants: [
+        { id: "n-4", label: "4", price: 99000, wholesalePrice: 80000 },
+        { id: "n-6", label: "6", price: 99000, wholesalePrice: 80000 },
+        { id: "n-8", label: "8", price: 99000, wholesalePrice: 80000 },
+        { id: "n-10", label: "10", price: 99000, wholesalePrice: 80000 },
+        { id: "n-12", label: "12", price: 99000, wholesalePrice: 80000 },
+      ],
+      badge: "Nuevo",
+      badgeColor: "bg-green-500",
+      stock: 35
+    }
+  ]

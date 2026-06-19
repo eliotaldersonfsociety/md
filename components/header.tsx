@@ -52,9 +52,10 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isWholesaleOpen, setIsWholesaleOpen] = useState(false)
-  const { getCartCount, getWholesaleCount, purchaseMode } = useCart()
-  const cartCount = getCartCount()
-  const wholesaleCount = getWholesaleCount()
+  const cartContext = useCart()
+  const cartCount = cartContext?.getCartCount() ?? 0
+  const wholesaleCount = cartContext?.getWholesaleCount() ?? 0
+  const purchaseMode = cartContext?.purchaseMode ?? "retail"
 
   return (
     <>

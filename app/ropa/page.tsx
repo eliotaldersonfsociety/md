@@ -1,13 +1,14 @@
 import CategoryPage from "@/components/category-page"
 import { getProductsWithStock, getVariantsByProductId } from "@/db/actions"
 
-const FEATURES = ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado"]
+const FEATURES = ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado", "Arreglo GRATIS"]
 
 const products = [
   {
     id: 701,
     name: "Hoodie Dragona",
     price: 99000,
+    wholesalePrice: 80000,
     originalPrice: 55000,
     image: "/images/ropa/1.webp",
     rating: 4.7,

@@ -15,8 +15,8 @@ const slides = [
     titleEnd: "de Vida",
     description: "Creamos peluches de la mas alta calidad con amor y dedicacion. Perfectos para regalar momentos inboxadiables.",
     image: "/images/portada/3.webp",
-    primaryButton: { text: "Ver Productos", href: "#productos" },
-    secondaryButton: { text: "Venta al Por Mayor", href: "#mayoreo" },
+    primaryButton: { text: "Ver Productos", href: "/tienda" },
+    secondaryButton: { text: "Venta al Por Mayor", href: "/tienda" },
     stats: [
       { value: "+500", label: "Productos" },
       { value: "+10K", label: "Clientes Felices" },
@@ -31,8 +31,8 @@ const slides = [
     titleEnd: "en Peluches",
     description: "Aprovecha nuestras ofertas exclusivas en toda la coleccion. Tiempo limitado.",
     image: "/images/portada/4.webp",
-    primaryButton: { text: "Ver Ofertas", href: "#productos" },
-    secondaryButton: { text: "Conocer Mas", href: "#nosotros" },
+    primaryButton: { text: "Ver Ofertas", href: "/ofertas" },
+    secondaryButton: { text: "Conocer Mas", href: "/nosotros" },
     stats: [
       { value: "40%", label: "Descuento Max" },
       { value: "+100", label: "Productos en Oferta" },
@@ -47,8 +47,8 @@ const slides = [
     titleEnd: "Hoy",
     description: "Somos fabricantes directos. Obtiene los mejores precios al por mayor.",
     image: "/images/portada/2.webp",
-    primaryButton: { text: "Cotizar Mayoreo", href: "#mayoreo" },
-    secondaryButton: { text: "Llamar Ahora", href: "tel:+573001234567" },
+    primaryButton: { text: "Cotizar Mayoreo", href: "/contacto" },
+    secondaryButton: { text: "Llamar Ahora", href: "tel:+573213438063" },
     stats: [
       { value: "-50%", label: "Precios Mayoreo" },
       { value: "+200", label: "Distribuidores" },
@@ -63,7 +63,7 @@ const slides = [
     titleEnd: "para Toda Ocasion",
     description: "Cumpleanos, aniversarios, dia de la madre. Nuestros peluches crean sonrisas.",
     image: "/images/portada/1.webp",
-    primaryButton: { text: "Comprar Ahora", href: "#productos" },
+    primaryButton: { text: "Comprar Ahora", href: "/tienda" },
     secondaryButton: { text: "Ver Catalogo", href: "#categorias" },
     stats: [
       { value: "100%", label: "Satisfaccion" },
@@ -79,8 +79,8 @@ const slides = [
     titleEnd: "con Amor",
     description: "El regalo perfecto para la llegada del bebe. Peluches suaves y seguros para el nuevo miembro de la familia.",
     image: "/images/portada/6.webp",
-    primaryButton: { text: "Ver Coleccion", href: "#productos" },
-    secondaryButton: { text: "Personalizar Regalo", href: "#contacto" },
+    primaryButton: { text: "Ver Coleccion", href: "/cervicales" },
+    secondaryButton: { text: "Personalizar Regalo", href: "/contacto" },
     stats: [
       { value: "100%", label: "Seguros" },
       { value: "+30", label: "Modelos Bebe" },
@@ -95,8 +95,8 @@ const slides = [
     titleEnd: "Perfecto",
     description: "El cervical con antifaz ideal para accompanies a los ninos en sus aventuras. Ligero, suave y perfecto para llevar a todas partes.",
     image: "/images/portada/5.webp",
-    primaryButton: { text: "Ver Modelos", href: "#productos" },
-    secondaryButton: { text: "Comprar Ahora", href: "#productos" },
+    primaryButton: { text: "Ver Modelos", href: "/cervicales" },
+    secondaryButton: { text: "Comprar Ahora", href: "/cervicales" },
     stats: [
       { value: "Portatil", label: "Facil de Llevar" },
       { value: "+40", label: "Modelos" },
@@ -111,8 +111,8 @@ const slides = [
     titleEnd: "con Orgullo",
     description: "Celebra cada partido con los peluches de tu equipo favorito. La mejor energia para pasar en familia.",
     image: "/images/portada/7.webp",
-    primaryButton: { text: "Ver Equipos", href: "#categorias" },
-    secondaryButton: { text: "Comprar Ahora", href: "#productos" },
+    primaryButton: { text: "Ver Equipos", href: "/latas" },
+    secondaryButton: { text: "Comprar Ahora", href: "/latas" },
     stats: [
       { value: "+20", label: "Equipos" },
       { value: "Oficial", label: "Licencias" },
@@ -127,8 +127,8 @@ const slides = [
     titleEnd: "Unica",
     description: "El regalo perfecto para festejar la graduation del nino o nina. Un recuerdo especial que durara para siempre.",
     image: "/images/portada/8.webp",
-    primaryButton: { text: "Ver Regalos", href: "#productos" },
-    secondaryButton: { text: "Personalizar", href: "#contacto" },
+    primaryButton: { text: "Ver Regalos", href: "Tienda" },
+    secondaryButton: { text: "Personalizar", href: "/contacto" },
     stats: [
       { value: "Unico", label: "Personalizable" },
       { value: "+25", label: "Modelos" },
@@ -143,14 +143,14 @@ export function HeroSection() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length)
-    }, 6000)
+    }, 3000)
     return () => clearInterval(interval)
   }, [])
 
   const slide = slides[currentSlide]
 
   return (
-    <section id="inicio" className="relative min-h-[50vh]">
+    <section id="inicio" className="relative min-h-[80vh]">
       <div className="absolute inset-0">
         <Image
           src={slide.image}
@@ -165,20 +165,23 @@ export function HeroSection() {
       </div>
       
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-pink-500/20 blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-48 h-48 rounded-full bg-purple-500/20 blur-3xl" />
+        <div className="absolute top-20 left-10 w-48 h-48 rounded-full bg-pink-500/20 blur-3xl" />
+        <div className="absolute bottom-20 right-20 w-64 h-64 rounded-full bg-purple-500/20 blur-3xl" />
 
 
       </div>
       
-      <div className="container mx-auto px-4 py-12 md:py-20 relative z-10 h-full flex items-center">
-        <div className="max-w-2xl">
-          
-          <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight text-balance mb-4 md:mb-6">
-            {slide.title} <span className="text-pink-400">{slide.highlight}</span> {slide.titleEnd}
-          </h1>
-          
-          <p className="text-sm md:text-lg text-white/80 max-w-xl leading-relaxed mb-6 md:mb-8">
+<div className="container mx-auto px-4 py-20 md:py-32 relative z-10 h-full flex items-center">
+         <div className="max-w-2xl">
+<span className="inline-block mb-3 md:mb-4 bg-white/20 backdrop-blur-sm text-white text-xs md:text-sm font-medium px-3 py-1 rounded-full border border-white/30">
+              {slide.badge}
+            </span>
+           
+           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight text-balance mb-4 md:mb-6">
+             {slide.title} <span className="text-pink-400">{slide.highlight}</span> {slide.titleEnd}
+           </h1>
+           
+           <p className="text-base md:text-xl text-white/90 max-w-xl leading-relaxed mb-6 md:mb-8">
             {slide.description}
           </p>
           
@@ -196,14 +199,14 @@ export function HeroSection() {
             </Button>
           </div>
           
-          <div className="grid grid-cols-3 gap-4">
-            {slide.stats.map((stat, index) => (
-              <div key={index} className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                <p className="text-sm md:text-lg font-bold text-white">{stat.value}</p>
-                <p className="text-xs md:text-sm text-white/70">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+<div className="grid grid-cols-3 gap-6 mb-10 md:mb-16">
+             {slide.stats.map((stat, index) => (
+               <div key={index} className="bg-white/15 backdrop-blur-sm rounded-2xl p-5 border border-white/20 flex flex-col items-center justify-center text-center">
+                 <p className="text-base md:text-xl font-bold text-white">{stat.value}</p>
+                 <p className="text-xs md:text-sm text-white/80">{stat.label}</p>
+               </div>
+             ))}
+           </div>
         </div>
       </div>
     </section>
