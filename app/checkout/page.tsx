@@ -92,14 +92,17 @@ function CheckoutContent() {
     e.preventDefault()
     setIsSubmitting(true)
     
+    const fullName = formData.lastName.trim()
+    const nameParts = fullName.split(/\s+/)
+
     const orderData = {
       mode: (isWholesaleMode ? "wholesale" : "retail") as "retail" | "wholesale",
       email: formData.email,
       phone: formData.phone,
       businessName: formData.businessName,
       nit: formData.nit,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
+      firstName: nameParts[0] || formData.lastName,
+      lastName: nameParts.slice(1).join(" ") || null,
       address: formData.address,
       apartment: formData.apartment,
       city: formData.city,
@@ -325,12 +328,12 @@ function CheckoutContent() {
 
                    <div className="flex flex-col gap-2">
                      <div>
-                       <label className="block text-xs font-medium text-foreground mb-1.5">Apellido</label>
+                       <label className="block text-xs font-medium text-foreground mb-1.5">Nombre y apellido</label>
                        <Input
                          name="lastName"
                          value={formData.lastName}
                          onChange={handleInputChange}
-                         placeholder="Perez"
+                         placeholder="Juan Perez"
                          required
                          className="rounded-xl h-9 text-sm"
                        />
