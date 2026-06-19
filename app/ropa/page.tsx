@@ -93,6 +93,7 @@ export default async function RopaPage() {
         category="ropa"
         variantLabel="Tamaño"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   } catch {
@@ -104,6 +105,7 @@ export default async function RopaPage() {
         category="ropa"
         variantLabel="Tamaño"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   }
