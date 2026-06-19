@@ -27,9 +27,11 @@ const getNameFromId = (id: number) => LATIN_NAMES[id % LATIN_NAMES.length]
 interface RatingSectionProps {
   productId: number
   showWriteReview?: boolean
+  defaultRating?: number
+  defaultReviews?: number
 }
 
-export function RatingSection({ productId, showWriteReview = true }: RatingSectionProps) {
+export function RatingSection({ productId, showWriteReview = true, defaultRating = 0, defaultReviews = 0 }: RatingSectionProps) {
   const { ratings, reviews } = useRatings()
   const [avg, setAvg] = useState(0)
   const [count, setCount] = useState(0)
@@ -46,8 +48,8 @@ export function RatingSection({ productId, showWriteReview = true }: RatingSecti
   }, [])
 
   const productRating = ratings[productId]
-  const displayAvg = productRating ? productRating.avg : avg
-  const displayCount = productRating ? productRating.count : count
+  const displayAvg = productRating ? productRating.avg : (defaultRating || avg)
+  const displayCount = productRating ? productRating.count : defaultReviews
   const productReviews = reviews[productId] || []
 
   const resetForm = () => {

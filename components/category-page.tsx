@@ -398,7 +398,7 @@ export default function CategoryPage({ title, description, products, category, v
                     <div className="p-4">
                       <span className="text-xs text-primary font-medium uppercase tracking-wide">{product.category}</span>
                       <h3 className="font-semibold text-lg mt-1 group-hover:text-primary transition-colors">{product.name}</h3>
-                      <div className="mt-2"><RatingSection productId={product.id} /></div>
+                      <div className="mt-2"><RatingSection productId={product.id} defaultRating={product.rating} defaultReviews={product.reviews} /></div>
                       {product.features && <div className="flex flex-wrap gap-1 mt-2">{product.features.filter(feature => purchaseMode === "retail" || feature !== "Arreglo GRATIS").map((feature, idx) => <span key={idx} className={`text-xs px-2 py-0.5 rounded ${feature === "Arreglo GRATIS" ? "bg-green-100 text-green-700 font-bold" : "bg-muted/50 text-muted-foreground"}`}>{feature}</span>)}</div>}
                       
                       {/* CORRECCIÓN: Renderizar el stock de la variante activa dinámicamente */}
