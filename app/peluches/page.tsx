@@ -454,6 +454,7 @@ export default async function PeluchesPage() {
         category="peluches"
         variantLabel="Tamaño"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   } catch {
@@ -465,6 +466,7 @@ export default async function PeluchesPage() {
         category="peluches"
         variantLabel="Tamaño"
         stockPerVariant
+        showLoadMore={false}
       />
     )
   }
