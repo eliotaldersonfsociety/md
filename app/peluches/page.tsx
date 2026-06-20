@@ -282,9 +282,9 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 50000, wholesalePrice: 20000 },
-      { id: "v3", label: "#3 - 60cm", price: 100000, wholesalePrice: 26000 },
-      { id: "v4", label: "#4 - 100cm", price: 150000, wholesalePrice: 40000 },
+      { id: "v2", label: "#2 - 40cm", price: 70000, wholesalePrice: 20000 },
+      { id: "v3", label: "#3 - 60cm", price: 130000, wholesalePrice: 26000 },
+      { id: "v4", label: "#4 - 100cm", price: 160000, wholesalePrice: 40000 },
     ]
   },
   {
