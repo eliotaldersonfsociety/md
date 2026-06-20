@@ -36,6 +36,10 @@ function formatPrice(price: number) {
   }).format(price)
 }
 
+function normalizeVariantLabel(label: string) {
+  return label === "#4 - 90cm" ? "#4 - 100cm" : label
+}
+
 function mergeProducts(dbProducts: any[]): ProductType[] {
   const staticMap = new Map(allProducts.map(p => [p.id, p]))
 
@@ -52,7 +56,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
       })
       .map((v: any) => ({
         id: String(v.id ?? v.label),
-        label: v.label,
+        label: normalizeVariantLabel(v.label),
         price: v.price ?? p.price,
         wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
         stock: v.stock ?? 0,
@@ -67,7 +71,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
       })
       .map((v: any) => ({
         id: String(v.id ?? v.label),
-        label: v.label,
+        label: normalizeVariantLabel(v.label),
         price: v.price ?? p.price,
         wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
         stock: v.stock ?? 0,
@@ -82,7 +86,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
       })
       .map((v: any) => ({
         id: String(v.id ?? v.label),
-        label: v.label,
+        label: normalizeVariantLabel(v.label),
         price: v.price ?? p.price,
         wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
         stock: v.stock ?? 0,
