@@ -37,7 +37,10 @@ function formatPrice(price: number) {
 }
 
 function normalizeVariantLabel(label: string) {
-  return label === "#4 - 90cm" ? "#4 - 100cm" : label
+  return label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace("#4 - 90cm", "#4 - 100cm")
 }
 
 function mergeProducts(dbProducts: any[]): ProductType[] {
