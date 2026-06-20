@@ -38,9 +38,37 @@ function formatPrice(price: number) {
 
 function normalizeVariantLabel(label: string) {
   return label
+    .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace("#4 - 90cm", "#4 - 100cm")
+}
+
+function applyCategoryPrices(category: string, variant: any) {
+  const label = normalizeVariantLabel(variant.label)
+  let price = variant.price
+
+  if (category === "peluches") {
+    if (label.startsWith("#2 -")) price = 70000
+    if (label.startsWith("#3 -")) price = 130000
+    if (label.startsWith("#4 -")) price = 160000
+  }
+
+  if (category === "cojines") {
+    if (label.includes("Pequeno")) price = 15000
+    if (label.includes("Grande")) price = 25000
+  }
+
+  if (category === "latas") {
+    price = 30000
+  }
+
+  if (category === "cervicales") {
+    if (label.includes("Con Antifaz")) price = 30000
+    if (label.includes("Sin Antifaz")) price = 25000
+  }
+
+  return { ...variant, price }
 }
 
 function mergeProducts(dbProducts: any[]): ProductType[] {
@@ -57,7 +85,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
         seenLabels.add(v.label)
         return true
       })
-      .map((v: any) => ({
+      .map((v: any) => applyCategoryPrices(p.category, {
         id: String(v.id ?? v.label),
         label: normalizeVariantLabel(v.label),
         price: v.price ?? p.price,
@@ -72,7 +100,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
         seenLabels.add(v.label)
         return true
       })
-      .map((v: any) => ({
+      .map((v: any) => applyCategoryPrices(p.category, {
         id: String(v.id ?? v.label),
         label: normalizeVariantLabel(v.label),
         price: v.price ?? p.price,
@@ -87,7 +115,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
         seenLabels.add(v.label)
         return true
       })
-      .map((v: any) => ({
+      .map((v: any) => applyCategoryPrices(p.category, {
         id: String(v.id ?? v.label),
         label: normalizeVariantLabel(v.label),
         price: v.price ?? p.price,
