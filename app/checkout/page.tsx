@@ -118,7 +118,7 @@ function CheckoutContent() {
       items: displayItems.map((item) => {
         const variantLabel = (item as any).variantLabel || extractVariantLabel(item.name)
         return {
-          productId: item.id,
+          productId: (item as any).productId || item.id,
           productName: item.name,
           variantLabel,
           productPrice: isWholesaleMode ? item.wholesalePrice : item.price,
@@ -130,11 +130,17 @@ function CheckoutContent() {
 
     try {
       const result = await createOrderAction(orderData)
+      if ("error" in result) {
+        window.alert(result.error)
+        setIsSubmitting(false)
+        return
+      }
       setOrderNumber(result.orderNumber)
       setOrderComplete(true)
       displayClear()
     } catch (error) {
       console.error("Error:", error)
+      window.alert("No se pudo procesar el pedido. Intentalo de nuevo.")
     } finally {
       setIsSubmitting(false)
     }
@@ -640,7 +646,7 @@ function CheckoutContent() {
                         {selectedImage && (
                           <div className="relative rounded-xl overflow-hidden border border-border">
 <img 
-                               src={selectedImage || null} 
+                               src={selectedImage || undefined} 
                                alt="Captura" 
                                className="w-full h-32 object-cover"
                              />

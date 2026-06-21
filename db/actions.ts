@@ -624,8 +624,30 @@ export async function createOrderAction(data: {
     quantity: number
     variantLabel?: string
   }>
-}) {
+}): Promise<{ orderId: number; orderNumber: string } | { error: string }> {
   await initTables()
+
+  if (!data.items.length) {
+    return { error: "No hay productos en el pedido" }
+  }
+
+  const insufficientStock: string[] = []
+
+  for (const item of data.items) {
+    const variantLabel = item.variantLabel && item.variantLabel.trim() !== "" ? item.variantLabel : null
+    const stock = variantLabel
+      ? await getVariantStock(item.productId, variantLabel)
+      : await getProductStock(item.productId)
+
+    if (stock < item.quantity) {
+      insufficientStock.push(item.productName)
+    }
+  }
+
+  if (insufficientStock.length > 0) {
+    return { error: `Stock insuficiente para: ${insufficientStock.join(", ")}` }
+  }
+
   const orderNumber = `${data.mode === "wholesale" ? "COT" : "PEL"}-${randomBytes(6).toString("hex").toUpperCase()}`
 
   const result = await turso.execute({
@@ -662,21 +684,18 @@ export async function createOrderAction(data: {
    const orderId = Number((result as any).lastInsertRowid)
 
    // Process order items and reduce stock
-   for (const item of data.items) {
-     const variantLabel = item.variantLabel && item.variantLabel.trim() !== "" ? item.variantLabel : null
-     
-     let sufficientStock = false
-     if (variantLabel) {
-       sufficientStock = await reduceVariantStock(item.productId, variantLabel, item.quantity)
-     } else {
-       sufficientStock = await reduceProductStock(item.productId, item.quantity)
-     }
-     
-     if (!sufficientStock) {
-       throw new Error(`Insufficient stock for product ${item.productName}`)
-     }
-     
-     await turso.execute({
+    for (const item of data.items) {
+      const variantLabel = item.variantLabel && item.variantLabel.trim() !== "" ? item.variantLabel : null
+      
+      const sufficientStock = variantLabel
+        ? await reduceVariantStock(item.productId, variantLabel, item.quantity)
+        : await reduceProductStock(item.productId, item.quantity)
+      
+      if (!sufficientStock) {
+        throw new Error(`Insufficient stock for product ${item.productName}`)
+      }
+      
+      await turso.execute({
        sql: `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity, total, variant_label)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
        args: [

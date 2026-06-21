@@ -260,6 +260,7 @@ export default function CategoryPage({ title, description, products, category, v
        const finalQty = maxStock !== Infinity ? Math.min(qty, maxStock) : qty
        addToWholesale({
          id: variant ? generateVariantId(product.id, variant.id) : product.id,
+         productId: product.id,
          name: `${product.name}${variantLabel}`,
          price: price,
          wholesalePrice: price,
@@ -269,6 +270,7 @@ export default function CategoryPage({ title, description, products, category, v
      } else {
        addToCart({
          id: variant ? generateVariantId(product.id, variant.id) : product.id,
+         productId: product.id,
          name: `${product.name}${variantLabel}`,
          price: price,
          wholesalePrice: price,

@@ -749,7 +749,7 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
 <TableCell>
                            <div className="flex items-center gap-3">
                              <div className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
-                               <img src={product.image || null} alt={product.name} className="w-full h-full object-cover" />
+                               <img src={product.image || undefined} alt={product.name} className="w-full h-full object-cover" />
                              </div>
                              <span className="font-medium truncate max-w-[200px]">{product.name}</span>
                            </div>
@@ -860,7 +860,7 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
 <TableCell>
                              <div className="flex items-center gap-3 pl-4">
                                <div className="w-10 h-10 rounded-md overflow-hidden bg-muted/50 flex-shrink-0">
-                                 <img src={product.image || null} alt={`${product.name} - ${variant.label}`} className="w-full h-full object-cover" />
+                                 <img src={product.image || undefined} alt={`${product.name} - ${variant.label}`} className="w-full h-full object-cover" />
                                </div>
                                <span className="font-medium truncate max-w-[200px] text-muted-foreground">
                                  {variant.label} {variantType === 'adult' && '(Adulto)'} 

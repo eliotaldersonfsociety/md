@@ -11,6 +11,7 @@ export interface ProductVariant {
 
 export interface Product {
   id: number
+  productId?: number
   name: string
   price: number
   wholesalePrice: number

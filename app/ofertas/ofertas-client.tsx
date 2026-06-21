@@ -361,6 +361,7 @@ const filteredProducts = useMemo(() => {
       const finalQty = maxStock !== Infinity ? Math.min(qty, maxStock) : qty
       addToWholesale({
         id: variant ? parseInt(`${product.id}${variant.id.replace(/\D/g, '')}`) : product.id,
+        productId: product.id,
         name: `${product.name}${variantLabel}`,
         price: price,
         wholesalePrice: price,
@@ -370,6 +371,7 @@ const filteredProducts = useMemo(() => {
     } else {
       addToCart({
         id: variant ? parseInt(`${product.id}${variant.id.replace(/\D/g, '')}`) : product.id,
+        productId: product.id,
         name: `${product.name}${variantLabel}`,
         price: price,
         wholesalePrice: price,

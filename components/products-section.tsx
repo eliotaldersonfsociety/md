@@ -51,6 +51,7 @@ function ProductCard({ product }: { product: typeof allProducts[0] }) {
 
     const variantProduct = {
       ...product,
+      productId: product.id,
       id: variant ? (parseInt(variant.id.replace(/\D/g, '') || '0') ? parseInt(variant.id.replace(/\D/g, '') || '0') + baseId : baseId) : baseId,
       name: `${product.name}${variantLabel ? ` - ${variantLabel}` : ''}`,
       price: finalPrice,
