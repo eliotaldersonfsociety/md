@@ -17,6 +17,7 @@ export interface Product {
   originalPrice?: number
   image: string
   category: string
+  source?: string
   isNew?: boolean
   isSale?: boolean
   isBestSeller?: boolean

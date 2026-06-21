@@ -1,7 +1,7 @@
-import { getOfertas } from "@/db/actions"
+import { getOfertasPageData } from "@/db/actions"
 import OfertasClient from "./ofertas-client"
 
 export default async function OfertasPage() {
-  const ofertas = await getOfertas()
-  return <OfertasClient initialProducts={ofertas} />
+  const { products, maxDiscount } = await getOfertasPageData()
+  return <OfertasClient initialProducts={products} maxDiscount={maxDiscount} />
 }

@@ -92,18 +92,18 @@ export function WholesaleDrawer({ isOpen, onClose }: WholesaleDrawerProps) {
               </div>
             ) : (
               <div className="space-y-4">
-                {wholesaleItems.map((item) => (
-                  <div 
-                    key={item.id}
-                    className="flex gap-4 p-3 bg-muted/50 rounded-xl"
-                  >
-                    <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                      />
+{wholesaleItems.map((item) => (
+                   <div 
+                     key={item.id}
+                     className="flex gap-4 p-3 bg-muted/50 rounded-xl"
+                   >
+                     <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+                       <Image
+                         src={item.image || "/images/logo.webp"}
+                         alt={item.name}
+                         fill
+                         className="object-cover"
+                       />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-foreground truncate">

@@ -38,7 +38,7 @@ function formatPrice(price: number) {
 
 function getStockTag(product: ProductType, selectedVariant: ProductVariant | null) {
   const variant = selectedVariant
-  const offerStock = variant?.ofStock
+  const offerStock = variant?.ofStock ?? (product.ofActive === 1 ? product.ofStock : undefined)
 
   if (offerStock !== undefined && offerStock !== null && offerStock <= 0) {
     return <div className="text-xs text-red-600 mt-2 font-medium">Agotado en oferta</div>
@@ -64,6 +64,9 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
 
   return dbProducts.map(p => {
     const staticP = staticMap.get(p.id)
+    const productOriginalPrice = p.of_original_price ?? p.original_price ?? p.originalPrice
+    const productOfActive = p.of_active ?? p.ofActive ?? 0
+    const hasProductOffer = productOfActive === 1 || p.is_sale || p.original_price || p.originalPrice || p.badge || p.of_price || productOriginalPrice || p.of_badge
 
     const seenLabels = new Set<string>()
     const variants = (p.variants || [])
@@ -77,22 +80,22 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
          id: String(v.id ?? v.label),
          label: v.label,
          price: v.price ?? p.price,
-         wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
+         wholesalePrice: (v.wholesalePrice ?? v.wholesale_price) ?? p.wholesale_price ?? p.wholesalePrice ?? p.price,
          stock: v.stock ?? 0,
          badge: v.badge,
-         badgeColor: v.badge_color,
-         originalPrice: v.original_price,
-         ofActive: v.of_active ?? 0,
-         ofPrice: v.of_price,
-         ofWholesalePrice: v.of_wholesale_price,
-         ofOriginalPrice: v.of_original_price,
-         ofBadge: v.of_badge,
-         ofBadgeColor: v.of_badge_color,
-         ofStock: v.of_stock,
+         badgeColor: v.badgeColor ?? v.badge_color,
+         originalPrice: v.originalPrice ?? v.original_price,
+         ofActive: v.ofActive ?? v.of_active ?? 0,
+         ofPrice: v.ofPrice ?? v.of_price,
+         ofWholesalePrice: v.ofWholesalePrice ?? v.of_wholesale_price,
+         ofOriginalPrice: v.ofOriginalPrice ?? v.of_original_price,
+         ofBadge: v.ofBadge ?? v.of_badge,
+         ofBadgeColor: v.ofBadgeColor ?? v.of_badge_color,
+         ofStock: v.ofStock ?? v.of_stock,
        }))
 
     seenLabels.clear()
-    const adultVariants = (p.adult_variants || [])
+    const adultVariants = (p.adult_variants || p.adultVariants || [])
       .filter((v: any) => {
         if (seenLabels.has(v.label)) return false
         seenLabels.add(v.label)
@@ -103,22 +106,22 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
         id: String(v.id ?? v.label),
         label: v.label,
         price: v.price ?? p.price,
-        wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
+        wholesalePrice: (v.wholesalePrice ?? v.wholesale_price) ?? p.wholesale_price ?? p.wholesalePrice ?? p.price,
         stock: v.stock ?? 0,
         badge: v.badge,
-        badgeColor: v.badge_color,
-        originalPrice: v.original_price,
-        ofActive: v.of_active ?? 0,
-        ofPrice: v.of_price,
-        ofWholesalePrice: v.of_wholesale_price,
-        ofOriginalPrice: v.of_original_price,
-        ofBadge: v.of_badge,
-        ofBadgeColor: v.of_badge_color,
-        ofStock: v.of_stock,
+        badgeColor: v.badgeColor ?? v.badge_color,
+        originalPrice: v.originalPrice ?? v.original_price,
+        ofActive: v.ofActive ?? v.of_active ?? 0,
+        ofPrice: v.ofPrice ?? v.of_price,
+        ofWholesalePrice: v.ofWholesalePrice ?? v.of_wholesale_price,
+        ofOriginalPrice: v.ofOriginalPrice ?? v.of_original_price,
+        ofBadge: v.ofBadge ?? v.of_badge,
+        ofBadgeColor: v.ofBadgeColor ?? v.of_badge_color,
+        ofStock: v.ofStock ?? v.of_stock,
       }))
 
     seenLabels.clear()
-    const childVariants = (p.child_variants || [])
+    const childVariants = (p.child_variants || p.childVariants || [])
       .filter((v: any) => {
         if (seenLabels.has(v.label)) return false
         seenLabels.add(v.label)
@@ -129,48 +132,55 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
         id: String(v.id ?? v.label),
         label: v.label,
         price: v.price ?? p.price,
-        wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
+        wholesalePrice: (v.wholesalePrice ?? v.wholesale_price) ?? p.wholesale_price ?? p.wholesalePrice ?? p.price,
         stock: v.stock ?? 0,
         badge: v.badge,
-        badgeColor: v.badge_color,
-        originalPrice: v.original_price,
-        ofActive: v.of_active ?? 0,
-        ofPrice: v.of_price,
-        ofWholesalePrice: v.of_wholesale_price,
-        ofOriginalPrice: v.of_original_price,
-        ofBadge: v.of_badge,
-        ofBadgeColor: v.of_badge_color,
-        ofStock: v.of_stock,
+        badgeColor: v.badgeColor ?? v.badge_color,
+        originalPrice: v.originalPrice ?? v.original_price,
+        ofActive: v.ofActive ?? v.of_active ?? 0,
+        ofPrice: v.ofPrice ?? v.of_price,
+        ofWholesalePrice: v.ofWholesalePrice ?? v.of_wholesale_price,
+        ofOriginalPrice: v.ofOriginalPrice ?? v.of_original_price,
+        ofBadge: v.ofBadge ?? v.of_badge,
+        ofBadgeColor: v.ofBadgeColor ?? v.of_badge_color,
+        ofStock: v.ofStock ?? v.of_stock,
       }))
 
     return {
       id: p.id,
       name: p.name,
-      price: p.price,
-      originalPrice: p.originalPrice,
-      image: p.image,
+      price: hasProductOffer && p.of_price ? p.of_price : (staticP?.price ?? p.price),
+      wholesalePrice: hasProductOffer && p.of_wholesale_price ? p.of_wholesale_price : (staticP?.wholesalePrice ?? p.wholesale_price ?? p.wholesalePrice ?? p.price),
+      originalPrice: staticP?.originalPrice ?? productOriginalPrice,
+      image: staticP?.image ?? p.image,
       images: staticP?.images,
-      badge: p.badge,
-      badgeColor: p.badge_color,
+      badge: p.of_badge || p.badge,
+      badgeColor: p.of_badge_color || p.badge_color || p.badgeColor,
       variants: variants.length > 0 ? variants : undefined,
       rating: p.rating,
       reviews: p.reviews ?? p.rating_count ?? 0,
       category: p.category,
       adultVariants: adultVariants.length > 0 ? adultVariants : undefined,
       childVariants: childVariants.length > 0 ? childVariants : undefined,
-      adultImages: p.adultImages,
-      childImages: p.childImages,
+      adultImages: p.adult_images ?? p.adultImages,
+      childImages: p.child_images ?? p.childImages,
       features: staticP?.features || FEATURES_FALLBACK,
-      stock: p.stock,
-      wholesalePrice: p.wholesalePrice,
+      stock: p.of_stock ?? p.stock,
       isNew: !!p.is_new,
-      isSale: !!p.is_sale,
-      minWholesale: p.minWholesale ?? 12,
+      isSale: !!hasProductOffer,
+      ofActive: productOfActive,
+      ofPrice: p.of_price,
+      ofWholesalePrice: p.of_wholesale_price,
+      ofOriginalPrice: productOriginalPrice,
+      ofBadge: p.of_badge,
+      ofBadgeColor: p.of_badge_color,
+      ofStock: p.of_stock,
+      minWholesale: p.minWholesale ?? p.min_wholesale ?? 12,
     }
   })
 }
 
-export default function OfertasClient({ initialProducts }: { initialProducts: any[] }) {
+export default function OfertasClient({ initialProducts, maxDiscount }: { initialProducts: any[]; maxDiscount?: number }) {
   const { addToCart, addToWholesale, purchaseMode, setPurchaseMode } = useCart()
   const { formatUSD } = useUSDPrice()
   const products = useMemo(() => mergeProducts(initialProducts), [initialProducts])
@@ -201,7 +211,7 @@ const filteredProducts = useMemo(() => {
     filtered = filtered.map((p) => {
       const offeredVariants = (variants: any[] | undefined) => {
         if (!variants || variants.length === 0) return undefined
-        return variants.filter(v => v.badge || v.ofActive)
+        return variants.filter(v => v.badge || v.ofActive || v.ofPrice || v.ofOriginalPrice || v.ofBadge || v.ofStock)
       }
 
       return {
@@ -210,7 +220,7 @@ const filteredProducts = useMemo(() => {
         adultVariants: offeredVariants(p.adultVariants),
         childVariants: offeredVariants(p.childVariants),
       }
-    }).filter((p) => p.variants?.length || p.adultVariants?.length || p.childVariants?.length || p.originalPrice || p.badge)
+    }).filter((p) => p.variants?.length || p.adultVariants?.length || p.childVariants?.length || p.originalPrice || p.badge || p.ofActive || p.ofPrice || p.ofOriginalPrice || p.ofBadge || p.isSale)
 
     if (searchQuery) {
       filtered = filtered.filter((p) =>
@@ -307,12 +317,18 @@ const filteredProducts = useMemo(() => {
         }
         return purchaseMode === "wholesale" ? variant.wholesalePrice : variant.price
       }
+      if (product.ofActive === 1 && product.ofPrice) {
+        return purchaseMode === "wholesale" ? (product.ofWholesalePrice ?? product.ofPrice) : product.ofPrice
+      }
+      if (product.badge || product.originalPrice || product.isSale) {
+        return purchaseMode === "wholesale" ? baseWholesalePrice : basePrice
+      }
       return purchaseMode === "wholesale" ? (baseWholesalePrice || Math.round(basePrice * 0.7)) : basePrice
     }
 
   const getButtonText = (product: ProductType) => {
     const variant = getSelectedVariant(product)
-    const offerStock = variant?.ofStock
+    const offerStock = variant?.ofStock ?? (product.ofActive === 1 ? product.ofStock : undefined)
     if (offerStock !== undefined && offerStock !== null && offerStock <= 0) {
       return "Agotado en oferta"
     }
@@ -321,7 +337,7 @@ const filteredProducts = useMemo(() => {
 
   const getStockDisabled = (product: ProductType) => {
     const v = getSelectedVariant(product)
-    const os = v?.ofStock
+    const os = v?.ofStock ?? (product.ofActive === 1 ? product.ofStock : undefined)
     if (os !== undefined && os !== null) return os <= 0
     const s = getSelectedVariant(product)?.stock ?? product.stock
     return s !== undefined && s <= 0
@@ -329,7 +345,7 @@ const filteredProducts = useMemo(() => {
 
   const handleAddToCart = (product: ProductType) => {
     const variant = getSelectedVariant(product)
-    const availableOfferStock = variant?.ofStock ?? Infinity
+    const availableOfferStock = variant?.ofStock ?? (product.ofActive === 1 ? product.ofStock ?? Infinity : Infinity)
     if (availableOfferStock <= 0) return
 
     const price = getProductPrice(product)
@@ -341,7 +357,7 @@ const filteredProducts = useMemo(() => {
 
     if (purchaseMode === "wholesale") {
       const qty = getQuantity(product.id)
-      const maxStock = getVariantStock(variant)
+      const maxStock = variant ? getVariantStock(variant) : (product.ofActive === 1 ? product.ofStock ?? Infinity : Infinity)
       const finalQty = maxStock !== Infinity ? Math.min(qty, maxStock) : qty
       addToWholesale({
         id: variant ? parseInt(`${product.id}${variant.id.replace(/\D/g, '')}`) : product.id,
@@ -369,20 +385,30 @@ const filteredProducts = useMemo(() => {
     }, 2000)
   }
 
-  const maxDiscount = Math.max(...allProductsForDisplay.flatMap(p => {
-    const discounts = [p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0]
-    if (p.variants) {
-      discounts.push(...p.variants.map(v => v.ofActive ? Math.round((1 - v.ofPrice! / v.ofOriginalPrice!) * 100) : (v.originalPrice ? Math.round((1 - v.price / v.originalPrice) * 100) : 0)).filter(d => d > 0))
+  const calculatedMaxDiscount = Math.max(...allProductsForDisplay.flatMap(p => {
+    const productOriginalPrice = p.ofOriginalPrice ?? p.originalPrice
+    const productPrice = p.ofPrice ?? p.price
+    const discounts = [productOriginalPrice ? Math.max(0, Math.round((1 - productPrice / productOriginalPrice) * 100)) : 0]
+    const collectVariantDiscounts = (variants: ProductVariant[] | undefined) => {
+      if (!variants) return
+      for (const variant of variants) {
+        const originalPrice = variant.ofOriginalPrice ?? variant.originalPrice
+        const price = variant.ofPrice ?? variant.price
+        if (originalPrice && price) {
+          discounts.push(Math.max(0, Math.round((1 - price / originalPrice) * 100)))
+        }
+      }
     }
-    if (p.adultVariants) {
-      discounts.push(...p.adultVariants.map(v => v.ofActive ? Math.round((1 - v.ofPrice! / v.ofOriginalPrice!) * 100) : (v.originalPrice ? Math.round((1 - v.price / v.originalPrice) * 100) : 0)).filter(d => d > 0))
-    }
-    if (p.childVariants) {
-      discounts.push(...p.childVariants.map(v => v.ofActive ? Math.round((1 - v.ofPrice! / v.ofOriginalPrice!) * 100) : (v.originalPrice ? Math.round((1 - v.price / v.originalPrice) * 100) : 0)).filter(d => d > 0))
-    }
+    collectVariantDiscounts(p.variants)
+    collectVariantDiscounts(p.adultVariants)
+    collectVariantDiscounts(p.childVariants)
     return discounts
   }), 0)
-  const totalSavings = allProductsForDisplay.reduce((acc, p) => acc + ((p.originalPrice || 0) - p.price), 0)
+  const totalSavings = allProductsForDisplay.reduce((acc, p) => {
+    const originalPrice = p.ofOriginalPrice ?? p.originalPrice ?? 0
+    const price = p.ofPrice ?? p.price
+    return acc + Math.max(0, originalPrice - price)
+  }, 0)
 
   return (
     <main className="min-h-screen bg-background">
@@ -410,7 +436,7 @@ const filteredProducts = useMemo(() => {
           <div className="text-center text-white">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
               <Percent className="h-5 w-5 text-yellow-400" />
-              <span className="font-semibold">OFERTAS HASTA {maxDiscount}% OFF</span>
+              <span className="font-semibold">OFERTAS HASTA {maxDiscount ?? calculatedMaxDiscount}% OFF</span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
               Ofertas Especiales
@@ -425,7 +451,7 @@ const filteredProducts = useMemo(() => {
                 <div className="text-sm opacity-80">Productos en oferta</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4">
-                <div className="text-3xl md:text-3xl lg:text-4xl font-bold">Hasta {maxDiscount}%</div>
+                <div className="text-3xl md:text-3xl lg:text-4xl font-bold">Hasta {maxDiscount ?? calculatedMaxDiscount}%</div>
                 <div className="text-sm opacity-80">De descuento</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4">
@@ -736,9 +762,9 @@ onClick={() => {
                                         {selectedVariant.ofBadge}
                                       </span>
                                     )}
-                                    {selectedVariant?.ofActive && selectedVariant.ofOriginalPrice && (
+                                    {selectedVariant?.ofActive && selectedVariant.ofOriginalPrice && selectedVariant.ofPrice && (
                                       <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                                        -{Math.round((1 - selectedVariant.ofPrice! / selectedVariant.ofOriginalPrice) * 100)}%
+                                        -{Math.max(0, Math.round((1 - selectedVariant.ofPrice / selectedVariant.ofOriginalPrice) * 100))}%
                                       </span>
                                     )}
                                     {!selectedVariant?.ofActive && selectedVariant?.badge && selectedVariant.badge.trim() !== '' && (
@@ -746,14 +772,24 @@ onClick={() => {
                                         {selectedVariant.badge}
                                       </span>
                                     )}
-                                    {!selectedVariant?.ofActive && !selectedVariant?.badge && product.badge && product.badge.trim() !== '' && (
+                                    {!selectedVariant?.ofActive && !selectedVariant?.badge && product.ofBadge && product.ofBadge.trim() !== '' && (
+                                      <span className={`${product.ofBadgeColor || product.badgeColor || "bg-red-500"} text-white text-xs font-bold px-3 py-1 rounded-full`}>
+                                        {product.ofBadge}
+                                      </span>
+                                    )}
+                                    {!selectedVariant?.ofActive && !product.ofBadge && !selectedVariant?.badge && product.badge && product.badge.trim() !== '' && (
                                       <span className={`${product.badgeColor || "bg-red-500"} text-white text-xs font-bold px-3 py-1 rounded-full`}>
                                         {product.badge}
                                       </span>
                                     )}
-                                    {!selectedVariant?.ofActive && product.originalPrice && (
+                                    {!selectedVariant?.ofActive && product.ofOriginalPrice && product.ofPrice && (
                                       <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                                        -{Math.round((1 - product.price / product.originalPrice) * 100)}%
+                                        -{Math.max(0, Math.round((1 - product.ofPrice / product.ofOriginalPrice) * 100))}%
+                                      </span>
+                                    )}
+                                    {!selectedVariant?.ofActive && !product.ofOriginalPrice && product.originalPrice && (
+                                      <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                        -{Math.max(0, Math.round((1 - product.price / product.originalPrice) * 100))}%
                                       </span>
                                     )}
                                   </div>
@@ -1037,5 +1073,8 @@ size="sm"
     </main>
   )
 }
+
+
+
 
 

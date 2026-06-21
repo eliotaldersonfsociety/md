@@ -41,6 +41,13 @@ export interface Product {
   wholesalePrice?: number
   isNew?: boolean
   isSale?: boolean
+  ofActive?: number
+  ofPrice?: number
+  ofWholesalePrice?: number
+  ofOriginalPrice?: number
+  ofBadge?: string
+  ofBadgeColor?: string
+  ofStock?: number
   minWholesale?: number
 }
 
@@ -78,7 +85,7 @@ export function ProductImages({ product, variantType, purchaseMode }: { product:
       if (variantType === "adult" && product.adultImages && product.adultImages.length > 0) {
         return [product.adultImages[0]]
       }
-      return [product.image]
+      return product.image ? [product.image] : ["/images/logo.webp"]
     }
     if (variantType === "child" && product.childImages && product.childImages.length > 0) {
       return product.childImages.slice(0, 2)
@@ -86,7 +93,7 @@ export function ProductImages({ product, variantType, purchaseMode }: { product:
     if (variantType === "adult" && product.adultImages && product.adultImages.length > 0) {
       return product.adultImages.slice(0, 2)
     }
-    return product.images && product.images.length > 0 ? product.images.slice(0, 2) : [product.image]
+    return product.images && product.images.length > 0 ? product.images.slice(0, 2) : (product.image ? [product.image] : ["/images/logo.webp"])
   }
 
   const images = getImages()

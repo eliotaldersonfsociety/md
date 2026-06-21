@@ -102,7 +102,7 @@ function CheckoutContent() {
       businessName: formData.businessName,
       nit: formData.nit,
       firstName: nameParts[0] || formData.lastName,
-      lastName: nameParts.slice(1).join(" ") || null,
+      lastName: nameParts.slice(1).join(" ") || undefined,
       address: formData.address,
       apartment: formData.apartment,
       city: formData.city,
@@ -122,7 +122,8 @@ function CheckoutContent() {
           productName: item.name,
           variantLabel,
           productPrice: isWholesaleMode ? item.wholesalePrice : item.price,
-          quantity: item.quantity
+          quantity: item.quantity,
+          source: (item as any).source || null
         }
       })
     }
@@ -638,11 +639,11 @@ function CheckoutContent() {
                         </label>
                         {selectedImage && (
                           <div className="relative rounded-xl overflow-hidden border border-border">
-                            <img 
-                              src={selectedImage} 
-                              alt="Captura" 
-                              className="w-full h-32 object-cover"
-                            />
+<img 
+                               src={selectedImage || null} 
+                               alt="Captura" 
+                               className="w-full h-32 object-cover"
+                             />
                             <button
                               type="button"
                               onClick={() => {
@@ -763,15 +764,15 @@ function CheckoutContent() {
               
               {/* Cart Items */}
                <div className="flex flex-col gap-2.5 mb-5 max-h-60 overflow-y-auto">
-                {displayItems.map((item) => (
-                  <div key={item.id} className={`flex gap-2 p-2 ${isWholesaleMode ? 'bg-green-50' : 'bg-muted/30'} rounded-xl`}>
-                    <div className="relative h-10 w-10 rounded-md overflow-hidden flex-shrink-0">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                      />
+{displayItems.map((item) => (
+                   <div key={item.id} className={`flex gap-2 p-2 ${isWholesaleMode ? 'bg-green-50' : 'bg-muted/30'} rounded-xl`}>
+                     <div className="relative h-10 w-10 rounded-md overflow-hidden flex-shrink-0">
+                       <Image
+                         src={item.image || "/images/logo.webp"}
+                         alt={item.name}
+                         fill
+                         className="object-cover"
+                       />
                       <span className={`absolute -top-1 -right-1 w-5 h-5 ${isWholesaleMode ? 'bg-green-600' : 'bg-[#5c2d91]'} text-white text-xs font-bold rounded-full flex items-center justify-center`}>
                         {item.quantity}
                       </span>

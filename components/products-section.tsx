@@ -47,6 +47,7 @@ function ProductCard({ product }: { product: typeof allProducts[0] }) {
     const baseId = product.id
     const finalPrice = variant ? variant.price : product.price
     const finalWholesalePrice = variant ? variant.wholesalePrice : (product.wholesalePrice ?? Math.round(product.price * 0.7))
+    const productImage = product.image || "/images/placeholder.webp"
 
     const variantProduct = {
       ...product,
@@ -55,6 +56,7 @@ function ProductCard({ product }: { product: typeof allProducts[0] }) {
       price: finalPrice,
       wholesalePrice: finalWholesalePrice,
       category: product.category || '',
+      image: productImage,
     }
     if (purchaseMode === "retail") {
       addToCart(variantProduct)
@@ -79,7 +81,7 @@ return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border">
       <div className="relative aspect-[2/3] overflow-hidden bg-gray-50">
         <Image
-          src={product.image}
+          src={product.image || "/images/logo.webp"}
           alt={product.name}
           fill
           className="object-cover group-hover:scale-110 transition-transform duration-500"

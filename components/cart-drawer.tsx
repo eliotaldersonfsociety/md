@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react"
+import { X, Plus, Minus, ShoppingBag, Trash2, Flame } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/cart-context"
 import { useExchangeRate } from "@/lib/exchange-rate"
@@ -66,20 +66,20 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {items.map((item) => (
-                <div 
-                  key={item.id}
-                  className="flex gap-4 p-3 bg-muted/50 rounded-xl border border-border"
-                >
-                  {/* Product Image */}
-                  <div className="relative h-20 w-20 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+{items.map((item) => (
+                 <div 
+                   key={item.id}
+                   className="flex gap-4 p-3 bg-muted/50 rounded-xl border border-border"
+                 >
+                   {/* Product Image */}
+                   <div className="relative h-20 w-20 rounded-lg overflow-hidden flex-shrink-0">
+                     <Image
+                       src={item.image || "/images/logo.webp"}
+                       alt={item.name}
+                       fill
+                       className="object-cover"
+                     />
+                   </div>
 
                   {/* Product Info */}
                   <div className="flex-1 min-w-0">
@@ -89,6 +89,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     <p className="text-xs text-muted-foreground mb-2">
                       {item.category}
                     </p>
+                    {item.source === "ofertas" && (
+                      <div className="flex items-center gap-1 text-[11px] text-red-600 font-medium mb-2">
+                        <Flame className="h-3 w-3" />
+                        Oferta
+                      </div>
+                    )}
                     <p className="text-sm font-bold text-[#e91e8c]">
                       {formatPrice(item.price)}
                     </p>
