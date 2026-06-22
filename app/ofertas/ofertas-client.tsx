@@ -220,7 +220,7 @@ const filteredProducts = useMemo(() => {
         adultVariants: offeredVariants(p.adultVariants),
         childVariants: offeredVariants(p.childVariants),
       }
-    }).filter((p) => p.variants?.length || p.adultVariants?.length || p.childVariants?.length || p.originalPrice || p.badge || p.ofActive || p.ofPrice || p.ofOriginalPrice || p.ofBadge || p.isSale)
+    }).filter((p) => p.ofActive || p.ofPrice || p.ofOriginalPrice || p.ofBadge || (p.variants && p.variants.some(v => v.ofActive || v.ofPrice || v.ofOriginalPrice || v.ofBadge || v.ofStock)) || (p.adultVariants && p.adultVariants.some(v => v.ofActive || v.ofPrice || v.ofOriginalPrice || v.ofBadge || v.ofStock)) || (p.childVariants && p.childVariants.some(v => v.ofActive || v.ofPrice || v.ofOriginalPrice || v.ofBadge || v.ofStock)))
 
     if (searchQuery) {
       filtered = filtered.filter((p) =>

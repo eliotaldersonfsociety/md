@@ -941,10 +941,10 @@ function getOfertasFromCatalog() {
   return getProductsWithVariantsCached().then(products => products.filter((product: any) => {
     if (product.is_active === 0) return false
 
-    const hasProductOffer = product.is_sale || product.original_price || product.badge || product.of_active || product.of_price || product.of_original_price || product.of_badge
-    const hasVariantOffer = product.variants?.some((variant: any) => variant.of_active || variant.of_price || variant.of_original_price || variant.of_stock || variant.of_badge || variant.badge) ||
-      product.adult_variants?.some((variant: any) => variant.of_active || variant.of_price || variant.of_original_price || variant.of_stock || variant.of_badge || variant.badge) ||
-      product.child_variants?.some((variant: any) => variant.of_active || variant.of_price || variant.of_original_price || variant.of_stock || variant.of_badge || variant.badge)
+    const hasProductOffer = product.of_active || product.of_price || product.of_original_price || product.of_badge
+    const hasVariantOffer = product.variants?.some((variant: any) => variant.of_active || variant.of_price || variant.of_original_price || variant.of_stock || variant.of_badge) ||
+      product.adult_variants?.some((variant: any) => variant.of_active || variant.of_price || variant.of_original_price || variant.of_stock || variant.of_badge) ||
+      product.child_variants?.some((variant: any) => variant.of_active || variant.of_price || variant.of_original_price || variant.of_stock || variant.of_badge)
 
     return hasProductOffer || hasVariantOffer
   }))
@@ -1694,7 +1694,7 @@ function getMaxOfferDiscount(products: any[]) {
 export async function getOfertasPageData() {
   const ofertas = await getOfertasFromCatalog()
   const products = ofertas.map((product: any) => {
-    const hasProductOffer = product.is_sale || product.original_price || product.badge || product.of_active || product.of_price || product.of_original_price || product.of_badge
+    const hasProductOffer = product.of_active || product.of_price || product.of_original_price || product.of_badge
     const productPrice = hasProductOffer && product.of_price ? product.of_price : product.price
     const productWholesalePrice = hasProductOffer && product.of_wholesale_price ? product.of_wholesale_price : (product.wholesale_price ?? product.wholesalePrice ?? product.price)
 
