@@ -1784,8 +1784,8 @@ export async function getOfertasPageData() {
   const products = rows.map((row: any) => {
     const isVariant = !!row.variant_id
     return {
-      id: isVariant ? -Number(row.variant_id) : row.product_id,
-      name: isVariant ? row.product_name : row.label,
+      id: isVariant ? Number(row.variant_id) : row.product_id,
+      name: `${row.product_name}${isVariant ? ` - ${row.variant_label || row.label}` : ''}`,
       price: row.price,
       wholesalePrice: row.wholesale_price,
       originalPrice: row.original_price,
