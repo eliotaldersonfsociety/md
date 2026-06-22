@@ -1778,7 +1778,7 @@ function getMaxOfferDiscount(products: any[]) {
 export async function getOfertasPageData() {
   await initTables()
   const result = await turso.execute({
-    sql: `SELECT o.*, p.name as product_name, p.image as product_image, c.name as product_category, v.label as variant_label FROM ofertas o JOIN products p ON o.product_id = p.id LEFT JOIN categories c ON p.category_id = c.id LEFT JOIN product_variants v ON o.variant_id = v.id WHERE o.active = 1 ORDER BY o.id DESC`
+    sql: `SELECT o.id as oferta_id, o.product_id, o.variant_id, o.label, o.price, o.wholesale_price, o.original_price, o.stock, o.badge, o.badge_color, o.active, p.name as product_name, p.image as product_image, c.name as product_category, v.label as variant_label FROM ofertas o JOIN products p ON o.product_id = p.id LEFT JOIN categories c ON p.category_id = c.id LEFT JOIN product_variants v ON o.variant_id = v.id WHERE o.active = 1 ORDER BY o.product_id ASC, o.variant_id IS NULL DESC, o.id ASC`
   })
   const rows = (result as any).rows
   const products = rows.map((row: any) => {
