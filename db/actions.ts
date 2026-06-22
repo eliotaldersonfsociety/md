@@ -1299,7 +1299,7 @@ export async function getExchangeRateAction(): Promise<number> {
   const timeout = setTimeout(() => controller.abort(), 5000)
 
   try {
-    const response = await fetch("https://dolarapi.com/v1/trm", {
+    const response = await fetch("https://co.dolarapi.com/v1/trm", {
       next: { revalidate: 86400 },
       signal: controller.signal,
     })
