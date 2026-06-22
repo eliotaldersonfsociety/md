@@ -191,6 +191,54 @@ async function initTables() {
   })
 
   await turso.execute({
+    sql: `CREATE TABLE IF NOT EXISTS ofertas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      product_id INTEGER NOT NULL,
+      variant_id INTEGER,
+      label TEXT NOT NULL,
+      price REAL NOT NULL,
+      wholesale_price REAL NOT NULL,
+      original_price REAL,
+      stock INTEGER NOT NULL DEFAULT 0,
+      badge TEXT,
+      badge_color TEXT,
+      active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+      FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE CASCADE
+    )`
+  })
+
+  try {
+    const countResult = await turso.execute({ sql: `SELECT COUNT(*) as cnt FROM ofertas` })
+    const count = (countResult as any).rows[0]?.cnt ?? 0
+    if (count === 0) {
+      const productOffers = await turso.execute({
+        sql: `SELECT id, of_price, of_wholesale_price, of_original_price, of_stock, of_badge, of_badge_color FROM products WHERE of_active = 1 AND of_price IS NOT NULL`
+      })
+      for (const row of (productOffers as any).rows) {
+        await turso.execute({
+          sql: `INSERT INTO ofertas (product_id, variant_id, label, price, wholesale_price, original_price, stock, badge, badge_color, active) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, 1)`,
+          args: [row.id, row.of_badge || "OFERTA", row.of_price, row.of_wholesale_price, row.of_original_price, row.of_stock, row.of_badge, row.of_badge_color]
+        })
+      }
+
+      const variantOffers = await turso.execute({
+        sql: `SELECT id, product_id, label, of_price, of_wholesale_price, of_original_price, of_stock, of_badge, of_badge_color FROM product_variants WHERE of_active = 1 AND of_price IS NOT NULL`
+      })
+      for (const row of (variantOffers as any).rows) {
+        await turso.execute({
+          sql: `INSERT INTO ofertas (product_id, variant_id, label, price, wholesale_price, original_price, stock, badge, badge_color, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+          args: [row.product_id, row.id, row.label || "OFERTA", row.of_price, row.of_wholesale_price, row.of_original_price, row.of_stock, row.of_badge, row.of_badge_color]
+        })
+      }
+    }
+  } catch (e) {
+    console.error("Error migrating oferta data:", e)
+  }
+
+  await turso.execute({
     sql: `CREATE TABLE IF NOT EXISTS admin_users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
@@ -938,16 +986,52 @@ async function getProductsWithVariantsCached() {
 }
 
 function getOfertasFromCatalog() {
-  return getProductsWithVariantsCached().then(products => products.filter((product: any) => {
-    if (product.is_active === 0) return false
-
-    const hasProductOffer = product.of_active || product.of_price || product.of_original_price || product.of_badge
-    const hasVariantOffer = product.variants?.some((variant: any) => variant.of_active || variant.of_price || variant.of_original_price || variant.of_stock || variant.of_badge) ||
-      product.adult_variants?.some((variant: any) => variant.of_active || variant.of_price || variant.of_original_price || variant.of_stock || variant.of_badge) ||
-      product.child_variants?.some((variant: any) => variant.of_active || variant.of_price || variant.of_original_price || variant.of_stock || variant.of_badge)
-
-    return hasProductOffer || hasVariantOffer
-  }))
+  return getProductsWithVariantsCached().then(products => {
+    const productMap = new Map(products.map(p => [p.id, p]))
+    return turso.execute({
+      sql: `SELECT * FROM ofertas WHERE active = 1`
+    }).then((result: any) => {
+      const rows = result.rows as any[]
+      return rows.map((row: any) => {
+        const base = productMap.get(row.product_id)
+        if (!base) return null
+        const variant = row.variant_id ? (base.variants || base.adult_variants || base.child_variants || []).find((v: any) => v.id === row.variant_id) : null
+        const isVariantOferta = !!row.variant_id && !!variant
+        return {
+          ...base,
+          id: isVariantOferta ? -Number(row.variant_id) : base.id,
+          price: row.price,
+          wholesalePrice: row.wholesale_price,
+          originalPrice: row.original_price,
+          stock: row.stock,
+          badge: row.badge,
+          badge_color: row.badge_color,
+          isSale: true,
+          ofActive: 1,
+          ofPrice: row.price,
+          ofWholesalePrice: row.wholesale_price,
+          ofOriginalPrice: row.original_price,
+          ofBadge: row.badge,
+          ofBadgeColor: row.badge_color,
+          ofStock: row.stock,
+          ofVariantId: row.variant_id,
+          ofId: row.id,
+          variants: isVariantOferta ? [] : (base.variants || []).filter((v: any) => {
+            const of = (base.variants || []).find((vv: any) => vv.id === v.id)
+            return !of || !of.of_active
+          }),
+          adult_variants: isVariantOferta ? [] : (base.adult_variants || []).filter((v: any) => {
+            const of = (base.adult_variants || []).find((vv: any) => vv.id === v.id)
+            return !of || !of.of_active
+          }),
+          child_variants: isVariantOferta ? [] : (base.child_variants || []).filter((v: any) => {
+            const of = (base.child_variants || []).find((vv: any) => vv.id === v.id)
+            return !of || !of.of_active
+          }),
+        }
+      }).filter(Boolean) as any[]
+    })
+  })
 }
 
 export async function getProductStock(productId: number): Promise<number> {
@@ -1692,28 +1776,34 @@ function getMaxOfferDiscount(products: any[]) {
 }
 
 export async function getOfertasPageData() {
-  const ofertas = await getOfertasFromCatalog()
-  const products = ofertas.map((product: any) => {
-    const hasProductOffer = product.of_active || product.of_price || product.of_original_price || product.of_badge
-    const productPrice = hasProductOffer && product.of_price ? product.of_price : product.price
-    const productWholesalePrice = hasProductOffer && product.of_wholesale_price ? product.of_wholesale_price : (product.wholesale_price ?? product.wholesalePrice ?? product.price)
-
+  await initTables()
+  const result = await turso.execute({
+    sql: `SELECT o.*, p.name as product_name, p.image as product_image, c.name as product_category, v.label as variant_label FROM ofertas o JOIN products p ON o.product_id = p.id LEFT JOIN categories c ON p.category_id = c.id LEFT JOIN product_variants v ON o.variant_id = v.id WHERE o.active = 1 ORDER BY o.id DESC`
+  })
+  const rows = (result as any).rows
+  const products = rows.map((row: any) => {
+    const isVariant = !!row.variant_id
     return {
-      ...product,
-      isSale: !!hasProductOffer,
-      price: productPrice,
-      wholesalePrice: productWholesalePrice,
-      originalPrice: product.of_original_price ?? product.original_price,
-      stock: product.of_stock ?? product.product_stock ?? product.stock,
-      badge: product.of_badge || product.badge,
-      badge_color: product.of_badge_color || product.badge_color,
-      ofActive: product.of_active ?? 0,
-      ofPrice: product.of_price,
-      ofWholesalePrice: product.of_wholesale_price,
-      ofOriginalPrice: product.of_original_price,
-      ofBadge: product.of_badge,
-      ofBadgeColor: product.of_badge_color,
-      ofStock: product.of_stock,
+      id: isVariant ? -Number(row.variant_id) : row.product_id,
+      name: isVariant ? row.product_name : row.label,
+      price: row.price,
+      wholesalePrice: row.wholesale_price,
+      originalPrice: row.original_price,
+      stock: row.stock,
+      image: row.product_image,
+      category: row.product_category,
+      badge: row.badge,
+      badgeColor: row.badge_color,
+      isSale: true,
+      ofActive: 1,
+      ofPrice: row.price,
+      ofWholesalePrice: row.wholesale_price,
+      ofOriginalPrice: row.original_price,
+      ofBadge: row.badge,
+      ofBadgeColor: row.badge_color,
+      ofStock: row.stock,
+      ofVariantId: row.variant_id,
+      ofId: row.id,
     }
   })
 
@@ -1725,53 +1815,26 @@ export async function getOfertasPageData() {
 
 export async function getOfertasTableEntries() {
   await requireAdmin()
-  const ofertas = await getOfertasFromCatalog()
-  const entries: any[] = []
-
-  for (const product of ofertas) {
-    const hasProductOffer = product.is_sale || product.original_price || product.badge || product.of_active || product.of_price || product.of_original_price || product.of_badge
-
-    if (hasProductOffer) {
-      entries.push({
-        id: product.id,
-        product_id: product.id,
-        variant_id: null,
-        label: product.name,
-        price: product.of_price ?? product.price,
-        wholesale_price: product.of_wholesale_price ?? product.wholesale_price,
-        original_price: product.of_original_price ?? product.original_price,
-        stock: product.of_stock ?? product.product_stock ?? product.stock,
-        badge: product.of_badge || product.badge || "OFERTA",
-        badge_color: product.of_badge_color || product.badge_color || "bg-red-500",
-        active: !!(product.of_active || product.is_sale),
-      })
-    }
-
-    const variantGroups = [product.variants || [], product.adult_variants || [], product.child_variants || []]
-
-    for (const variants of variantGroups) {
-      for (const variant of variants) {
-        const hasVariantOffer = variant.of_active || variant.of_price || variant.of_original_price || variant.of_stock || variant.of_badge || variant.badge
-        if (!hasVariantOffer) continue
-
-        entries.push({
-          id: -Number(variant.id),
-          product_id: product.id,
-          variant_id: Number(variant.id),
-          label: variant.label,
-          price: variant.of_price ?? variant.price,
-          wholesale_price: variant.of_wholesale_price ?? variant.wholesale_price,
-          original_price: variant.of_original_price ?? variant.original_price,
-          stock: variant.of_stock ?? variant.stock,
-          badge: variant.of_badge || variant.badge || "OFERTA",
-          badge_color: variant.of_badge_color || variant.badge_color || "bg-red-500",
-          active: !!(variant.of_active || variant.of_price || variant.of_original_price || variant.of_badge),
-        })
-      }
-    }
-  }
-
-  return entries
+  const result = await turso.execute({
+    sql: `SELECT o.*, p.name as product_name, p.image as product_image, c.name as product_category, v.label as variant_label FROM ofertas o JOIN products p ON o.product_id = p.id LEFT JOIN categories c ON p.category_id = c.id LEFT JOIN product_variants v ON o.variant_id = v.id ORDER BY o.id DESC`
+  })
+  return (result as any).rows.map((row: any) => ({
+    id: row.id,
+    product_id: row.product_id,
+    variant_id: row.variant_id,
+    label: row.label,
+    price: row.price,
+    wholesale_price: row.wholesale_price,
+    original_price: row.original_price,
+    stock: row.stock,
+    badge: row.badge,
+    badge_color: row.badge_color,
+    active: !!row.active,
+    product_name: row.product_name,
+    product_image: row.product_image,
+    product_category: row.product_category,
+    variant_label: row.variant_label,
+  }))
 }
 
 export async function upsertOfertaEntry(data: {
@@ -1798,22 +1861,47 @@ export async function upsertOfertaEntry(data: {
       throw new Error("Variante no encontrada")
     }
 
-    await turso.execute({
-      sql: `UPDATE product_variants SET of_price = ?, of_wholesale_price = ?, of_original_price = ?, of_stock = ?, of_badge = ?, of_badge_color = ?, of_active = ? WHERE id = ?`,
-      args: [
-        data.price,
-        data.wholesalePrice,
-        data.originalPrice ?? null,
-        data.stock,
-        data.badge || null,
-        data.badgeColor || null,
-        data.active !== false ? 1 : 0,
-        data.variantId,
-      ],
+    const existing = await turso.execute({
+      sql: `SELECT id FROM ofertas WHERE product_id = ? AND variant_id = ?`,
+      args: [data.productId, data.variantId],
     })
+
+    if ((existing as any).rows.length > 0) {
+      const ofertaId = (existing as any).rows[0].id
+      await turso.execute({
+        sql: `UPDATE ofertas SET label = ?, price = ?, wholesale_price = ?, original_price = ?, stock = ?, badge = ?, badge_color = ?, active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        args: [
+          data.badge || "OFERTA",
+          data.price,
+          data.wholesalePrice,
+          data.originalPrice ?? null,
+          data.stock,
+          data.badge || null,
+          data.badgeColor || null,
+          data.active !== false ? 1 : 0,
+          ofertaId,
+        ],
+      })
+    } else {
+      await turso.execute({
+        sql: `INSERT INTO ofertas (product_id, variant_id, label, price, wholesale_price, original_price, stock, badge, badge_color, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          data.productId,
+          data.variantId,
+          data.badge || "OFERTA",
+          data.price,
+          data.wholesalePrice,
+          data.originalPrice ?? null,
+          data.stock,
+          data.badge || null,
+          data.badgeColor || null,
+          data.active !== false ? 1 : 0,
+        ],
+      })
+    }
   } else {
     const productResult = await turso.execute({
-      sql: `SELECT price, wholesale_price, original_price, stock FROM products WHERE id = ?`,
+      sql: `SELECT id, price, wholesale_price, original_price, stock FROM products WHERE id = ?`,
       args: [data.productId],
     })
     const product = (productResult as any).rows[0]
@@ -1824,23 +1912,43 @@ export async function upsertOfertaEntry(data: {
 
     const originalPrice = data.originalPrice ?? product.original_price ?? data.price ?? null
 
-    await turso.execute({
-      sql: `UPDATE products SET of_price = ?, of_wholesale_price = ?, of_original_price = ?, of_stock = ?, of_badge = ?, of_badge_color = ?, of_active = ?, original_price = ?, badge = ?, badge_color = ?, is_sale = ? WHERE id = ?`,
-      args: [
-        data.price,
-        data.wholesalePrice,
-        originalPrice,
-        data.stock,
-        data.badge || null,
-        data.badgeColor || null,
-        data.active !== false ? 1 : 0,
-        originalPrice,
-        data.badge || null,
-        data.badgeColor || null,
-        data.active !== false ? 1 : 0,
-        data.productId,
-      ],
+    const existing = await turso.execute({
+      sql: `SELECT id FROM ofertas WHERE product_id = ? AND variant_id IS NULL`,
+      args: [data.productId],
     })
+
+    if ((existing as any).rows.length > 0) {
+      const ofertaId = (existing as any).rows[0].id
+      await turso.execute({
+        sql: `UPDATE ofertas SET label = ?, price = ?, wholesale_price = ?, original_price = ?, stock = ?, badge = ?, badge_color = ?, active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        args: [
+          data.badge || "OFERTA",
+          data.price,
+          data.wholesalePrice,
+          originalPrice,
+          data.stock,
+          data.badge || null,
+          data.badgeColor || null,
+          data.active !== false ? 1 : 0,
+          ofertaId,
+        ],
+      })
+    } else {
+      await turso.execute({
+        sql: `INSERT INTO ofertas (product_id, variant_id, label, price, wholesale_price, original_price, stock, badge, badge_color, active) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          data.productId,
+          data.badge || "OFERTA",
+          data.price,
+          data.wholesalePrice,
+          originalPrice,
+          data.stock,
+          data.badge || null,
+          data.badgeColor || null,
+          data.active !== false ? 1 : 0,
+        ],
+      })
+    }
   }
 
   invalidateProductCatalogCache()
@@ -1849,19 +1957,10 @@ export async function upsertOfertaEntry(data: {
 export async function toggleOfertaEntryActive(id: number, active: boolean) {
   await requireAdmin()
   await initTables()
-
-  if (id > 0) {
-    await turso.execute({
-      sql: `UPDATE products SET of_active = ?, is_sale = ? WHERE id = ?`,
-      args: [active ? 1 : 0, active ? 1 : 0, id],
-    })
-  } else {
-    await turso.execute({
-      sql: `UPDATE product_variants SET of_active = ? WHERE id = ?`,
-      args: [active ? 1 : 0, -id],
-    })
-  }
-
+  await turso.execute({
+    sql: `UPDATE ofertas SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    args: [active ? 1 : 0, id],
+  })
   invalidateProductCatalogCache()
 }
 
@@ -1871,12 +1970,12 @@ export async function deleteOfertaEntry(id: number) {
 
   if (id > 0) {
     await turso.execute({
-      sql: `UPDATE products SET of_active = 0, of_price = NULL, of_wholesale_price = NULL, of_original_price = NULL, of_stock = 0, of_badge = NULL, of_badge_color = NULL, is_sale = 0, original_price = NULL, badge = NULL, badge_color = NULL WHERE id = ?`,
+      sql: `DELETE FROM ofertas WHERE product_id = ? AND variant_id IS NULL`,
       args: [id],
     })
   } else {
     await turso.execute({
-      sql: `UPDATE product_variants SET of_active = 0, of_price = NULL, of_wholesale_price = NULL, of_original_price = NULL, of_stock = 0, of_badge = NULL, of_badge_color = NULL WHERE id = ?`,
+      sql: `DELETE FROM ofertas WHERE variant_id = ?`,
       args: [-id],
     })
   }
@@ -2062,29 +2161,52 @@ export async function setVariantOferta(variantId: number, data: {
  }): Promise<void> {
    await initTables()
 
-   const fieldsOf: string[] = []
-   const argsOf: any[] = []
+   const variantResult = await turso.execute({
+     sql: `SELECT product_id FROM product_variants WHERE id = ?`,
+     args: [variantId],
+   })
+   const variantRow = (variantResult as any).rows[0]
+   if (!variantRow) return
 
-   if (data.active !== undefined) { fieldsOf.push('of_active = ?'); argsOf.push(data.active ? 1 : 0) }
-   if (data.price !== undefined) { fieldsOf.push('of_price = ?'); argsOf.push(data.price) }
-   if (data.wholesalePrice !== undefined) { fieldsOf.push('of_wholesale_price = ?'); argsOf.push(data.wholesalePrice) }
-   if (data.originalPrice !== undefined) { fieldsOf.push('of_original_price = ?'); argsOf.push(data.originalPrice) }
-   if (data.stock !== undefined) { fieldsOf.push('of_stock = ?'); argsOf.push(data.stock) }
-   if (data.badge !== undefined) { fieldsOf.push('of_badge = ?'); argsOf.push(data.badge) }
-   if (data.badgeColor !== undefined) { fieldsOf.push('of_badge_color = ?'); argsOf.push(data.badgeColor) }
+   const existing = await turso.execute({
+     sql: `SELECT id FROM ofertas WHERE product_id = ? AND variant_id = ?`,
+     args: [variantRow.product_id, variantId],
+   })
 
-    if (fieldsOf.length > 0) {
-      fieldsOf.push('id = ?')
-      argsOf.push(variantId)
-      try {
-        await turso.execute({
-          sql: `UPDATE product_variants SET ${fieldsOf.join(', ')} WHERE id = ?`,
-          args: argsOf
-        })
-       } catch (e) {
-         // Columns may not exist yet
-       }
+   if ((existing as any).rows.length > 0) {
+     const ofertaId = (existing as any).rows[0].id
+     const updates: string[] = []
+     const args: any[] = []
+     if (data.active !== undefined) { updates.push('active = ?'); args.push(data.active ? 1 : 0) }
+     if (data.price !== undefined) { updates.push('price = ?'); args.push(data.price) }
+     if (data.wholesalePrice !== undefined) { updates.push('wholesale_price = ?'); args.push(data.wholesalePrice) }
+     if (data.originalPrice !== undefined) { updates.push('original_price = ?'); args.push(data.originalPrice) }
+     if (data.stock !== undefined) { updates.push('stock = ?'); args.push(data.stock) }
+     if (data.badge !== undefined) { updates.push('badge = ?'); args.push(data.badge) }
+     if (data.badgeColor !== undefined) { updates.push('badge_color = ?'); args.push(data.badgeColor) }
+     updates.push('updated_at = CURRENT_TIMESTAMP')
+     args.push(ofertaId)
+     if (updates.length > 1) {
+       await turso.execute({ sql: `UPDATE ofertas SET ${updates.join(', ')} WHERE id = ?`, args })
      }
+   } else if (data.active || data.price) {
+     await turso.execute({
+       sql: `INSERT INTO ofertas (product_id, variant_id, label, price, wholesale_price, original_price, stock, badge, badge_color, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       args: [
+         variantRow.product_id,
+         variantId,
+         data.badge || "OFERTA",
+         data.price ?? 0,
+         data.wholesalePrice ?? 0,
+         data.originalPrice ?? null,
+         data.stock ?? 0,
+         data.badge || null,
+         data.badgeColor || null,
+         (data.active ?? true) ? 1 : 0,
+       ],
+     })
+   }
+
    invalidateProductCatalogCache()
  }
 
