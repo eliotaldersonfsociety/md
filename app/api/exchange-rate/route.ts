@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getExchangeRateAction } from "@/db/actions"
 
-export const revalidate = 3600
+export const revalidate = 86400
 
 export async function GET() {
   try {

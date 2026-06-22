@@ -1286,35 +1286,42 @@ export async function getProductsWithStock(): Promise<Array<{
 }
 
 let exchangeRateCache: { rate: number; timestamp: number } | null = null
-const EXCHANGE_RATE_TTL = 60 * 60 * 1000
+const EXCHANGE_RATE_TTL = 24 * 60 * 60 * 1000
 
 export async function getExchangeRateAction(): Promise<number> {
   const now = Date.now()
-  
+
   if (exchangeRateCache && now - exchangeRateCache.timestamp < EXCHANGE_RATE_TTL) {
     return exchangeRateCache.rate
   }
-  
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 5000)
+
   try {
-    const response = await fetch("https://api.exchangerate-api.com/v4/latest/COP", {
-      next: { revalidate: 3600 }
+    const response = await fetch("https://dolarapi.com/v1/trm", {
+      next: { revalidate: 86400 },
+      signal: controller.signal,
     })
-    
+
+    clearTimeout(timeout)
+
     if (!response.ok) {
       throw new Error("Failed to fetch exchange rate")
     }
-    
+
     const data = await response.json()
-    const usdRate = data.rates?.USD
-    
-    if (usdRate) {
-      exchangeRateCache = { rate: usdRate, timestamp: now }
-      return usdRate
+    const trm = data.valor
+
+    if (trm) {
+      exchangeRateCache = { rate: 1 / trm, timestamp: now }
+      return exchangeRateCache.rate
     }
   } catch (error) {
+    clearTimeout(timeout)
     console.error("Exchange rate fetch error:", error)
   }
-  
+
   return 0.00025
 }
 
