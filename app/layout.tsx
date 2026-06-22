@@ -3,6 +3,7 @@ import { Poppins, Quicksand } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { CartProvider } from '@/context/cart-context'
 import { RatingProvider } from '@/context/rating-context'
+import { ExchangeRateProvider } from '@/lib/exchange-rate'
 import './globals.css'
 
 const poppins = Poppins({ 
@@ -41,11 +42,13 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${poppins.variable} ${quicksand.variable} antialiased`}>
-        <CartProvider>
-          <RatingProvider>
-            {children}
-          </RatingProvider>
-        </CartProvider>
+        <ExchangeRateProvider>
+          <CartProvider>
+            <RatingProvider>
+              {children}
+            </RatingProvider>
+          </CartProvider>
+        </ExchangeRateProvider>
         <Analytics />
       </body>
     </html>
