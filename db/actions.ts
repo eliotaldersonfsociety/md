@@ -1968,17 +1968,10 @@ export async function deleteOfertaEntry(id: number) {
   await requireAdmin()
   await initTables()
 
-  if (id > 0) {
-    await turso.execute({
-      sql: `DELETE FROM ofertas WHERE product_id = ? AND variant_id IS NULL`,
-      args: [id],
-    })
-  } else {
-    await turso.execute({
-      sql: `DELETE FROM ofertas WHERE variant_id = ?`,
-      args: [-id],
-    })
-  }
+  await turso.execute({
+    sql: `DELETE FROM ofertas WHERE id = ?`,
+    args: [id],
+  })
 
   invalidateProductCatalogCache()
 }
