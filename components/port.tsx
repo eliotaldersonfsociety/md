@@ -31,7 +31,7 @@ export function HeroSection() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-accent font-bold">•</span>
-                +30 años de experiencia
+                +15 años de experiencia
               </li>
             </ul>
           </div>
@@ -64,7 +64,7 @@ export function HeroSection() {
             </div>
             <div>
               <p className="font-semibold text-foreground text-sm">Jose Olarte <span className="bg-accent text-accent-foreground text-xs px-2 py-0.5 rounded-full ml-1">Online</span></p>
-              <p className="text-xs text-muted-foreground">¿Preguntas? Escríbenos</p>
+              <p className="text-xs text-muted-foreground">Venezuela Escríbenos</p>
             </div>
           </div>
           <div className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg">
@@ -73,7 +73,7 @@ export function HeroSection() {
             </div>
             <div>
               <p className="font-semibold text-foreground text-sm">Claudia Aldana <span className="bg-accent text-accent-foreground text-xs px-2 py-0.5 rounded-full ml-1">Online</span></p>
-              <p className="text-xs text-muted-foreground">¿Preguntas? Escríbenos</p>
+              <p className="text-xs text-muted-foreground">Colombia Escríbenos</p>
             </div>
           </div>
         </div>
