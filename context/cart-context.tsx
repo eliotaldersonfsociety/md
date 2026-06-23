@@ -83,7 +83,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeFromCart(productId)
       return
     }
-    setItems((prevItems) => prevItems.map((item) => item.id === productId ? { ...item, quantity } : item))
+    setItems((prevItems) => {
+      const item = prevItems.find((i) => i.id === productId)
+      if (item?.minWholesale && quantity < item.minWholesale) {
+        return prevItems
+      }
+      return prevItems.map((item) => item.id === productId ? { ...item, quantity } : item)
+    })
   }, [removeFromCart])
 
   const clearCart = useCallback(() => setItems([]), [])
@@ -110,7 +116,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeFromWholesale(productId)
       return
     }
-    setWholesaleItems((prevItems) => prevItems.map((item) => item.id === productId ? { ...item, quantity } : item))
+    setWholesaleItems((prevItems) => {
+      const item = prevItems.find((i) => i.id === productId)
+      if (item?.minWholesale && quantity < item.minWholesale) {
+        return prevItems
+      }
+      return prevItems.map((item) => item.id === productId ? { ...item, quantity } : item)
+    })
   }, [removeFromWholesale])
 
   const clearWholesale = useCallback(() => setWholesaleItems([]), [])

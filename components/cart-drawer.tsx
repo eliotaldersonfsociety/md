@@ -99,39 +99,43 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     )}
                   </div>
 
-                  {/* Quantity & Remove */}
-                  <div className="flex flex-col items-end justify-between">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                      onClick={() => removeFromCart(item.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                   {/* Quantity & Remove */}
+                   <div className="flex flex-col items-end justify-between">
+                     <Button
+                       variant="ghost"
+                       size="icon"
+                       className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                       onClick={() => removeFromCart(item.id)}
+                     >
+                       <Trash2 className="h-4 w-4" />
+                     </Button>
 
-                    <div className="flex items-center gap-1 bg-card rounded-full border border-border">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 rounded-full"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="w-6 text-center text-sm font-medium">
-                        {item.quantity}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 rounded-full"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
+                     {item.minWholesale ? (
+                       <span className="text-sm font-medium mt-1">Min. {item.minWholesale} uds</span>
+                     ) : (
+                       <div className="flex items-center gap-1 bg-card rounded-full border border-border">
+                         <Button
+                           variant="ghost"
+                           size="icon"
+                           className="h-7 w-7 rounded-full"
+                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                         >
+                           <Minus className="h-3 w-3" />
+                         </Button>
+                         <span className="w-6 text-center text-sm font-medium">
+                           {item.quantity}
+                         </span>
+                         <Button
+                           variant="ghost"
+                           size="icon"
+                           className="h-7 w-7 rounded-full"
+                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                         >
+                           <Plus className="h-3 w-3" />
+                         </Button>
+                       </div>
+                     )}
+                   </div>
                 </div>
               ))}
             </div>

@@ -168,7 +168,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
       stock: p.stock,
       isNew: !!p.is_new,
       isSale: !!p.is_sale,
-      minWholesale: p.min_wholesale ?? 12,
+      minWholesale: p.min_wholesale ?? 3,
     }
   })
 }
@@ -236,12 +236,12 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
     )
   }
 
-  const getQuantity = (productId: number) => quantities[productId] || 12
+  const getQuantity = (productId: number) => quantities[productId] || 3
 
   const updateQuantity = (productId: number, delta: number) => {
     setQuantities(prev => {
-      const current = prev[productId] || 12
-      const next = Math.max(12, current + delta)
+      const current = prev[productId] || 3
+      const next = Math.max(3, current + delta)
       return { ...prev, [productId]: next }
     })
   }
@@ -361,7 +361,7 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
 
             {purchaseMode === "wholesale" && (
               <p className="mt-4 text-sm text-green-200 font-medium">
-                Precios especiales para mayoristas - Minimo 12 unidades por referencia
+                Precios especiales para mayoristas - Minimo 3 unidades por referencia
               </p>
             )}
           </div>
