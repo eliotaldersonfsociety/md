@@ -37,7 +37,7 @@ export function ProcessSection() {
           Nuestro Plan de Desarrollo
         </h2>
         <p className="text-center text-muted-foreground max-w-3xl mx-auto mb-16 text-lg">
-          En Pelanas, transformamos tus ideas en soluciones creativas, innovadoras y completamente personalizadas. 
+          En Fabrica de Peluches Mundo Disney, transformamos tus ideas en soluciones creativas, innovadoras y completamente personalizadas. 
           Nuestro equipo de expertos se dedica a entender a fondo tus necesidades y objetivos, trabajando codo a codo 
           contigo en cada paso del proceso para ofrecer desarrollos únicos que realmente conecten con tu visión.
         </p>
@@ -74,7 +74,7 @@ export function ProcessSection() {
             Nuestros Peluches cuentan con el certificado de conformidad de producto
           </p>
           <Link 
-            href="/solicitud" 
+            href="/contacto" 
             className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-semibold text-lg"
           >
             <span className="text-accent">→</span>
