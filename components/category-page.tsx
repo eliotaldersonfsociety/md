@@ -162,7 +162,6 @@ export default function CategoryPage({ title, description, products, category, v
   const [showFilters, setShowFilters] = useState(false)
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000])
   const [showOnlyNew, setShowOnlyNew] = useState(false)
-  const [showOnlySale, setShowOnlySale] = useState(false)
   const [favorites, setFavorites] = useState<number[]>([])
   const [addedProducts, setAddedProducts] = useState<Record<number, boolean>>({})
   const [quantities, setQuantities] = useState<Record<number, number>>({})
@@ -193,7 +192,6 @@ export default function CategoryPage({ title, description, products, category, v
     if (selectedCategory !== "Todos" && p.category !== selectedCategory) return false
     if (p.price < priceRange[0] || p.price > priceRange[1]) return false
     if (showOnlyNew && !p.isNew) return false
-    if (showOnlySale && !p.isSale) return false
     return true
   }).sort((a, b) => {
     switch (sortBy) {
@@ -362,8 +360,7 @@ export default function CategoryPage({ title, description, products, category, v
                 <Input type="number" placeholder="Max" value={priceRange[1] || ""} onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])} className="w-24 h-9" />
               </div>
               <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={showOnlyNew} onChange={(e) => setShowOnlyNew(e.target.checked)} className="rounded border-gray-300 text-primary focus:ring-primary" /><span className="text-sm">Solo nuevos</span></label>
-              <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={showOnlySale} onChange={(e) => setShowOnlySale(e.target.checked)} className="rounded border-gray-300 text-primary focus:ring-primary" /><span className="text-sm">En oferta</span></label>
-              <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setSelectedCategory("Todos"); setPriceRange([0, 100000]); setShowOnlyNew(false); setShowOnlySale(false); }} className="text-primary"><X className="h-4 w-4 mr-1" /> Limpiar</Button>
+              <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setSelectedCategory("Todos"); setPriceRange([0, 100000]); setShowOnlyNew(false); }} className="text-primary"><X className="h-4 w-4 mr-1" /> Limpiar</Button>
             </div>
           )}
         </div>
@@ -377,7 +374,7 @@ export default function CategoryPage({ title, description, products, category, v
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-xl font-semibold mb-2">No encontramos productos</h3>
               <p className="text-muted-foreground mb-4">Intenta cambiar los filtros o buscar algo diferente</p>
-              <Button onClick={() => { setSearchQuery(""); setSelectedCategory("Todos"); setPriceRange([0, 100000]); setShowOnlyNew(false); setShowOnlySale(false); }}>Ver todos los productos</Button>
+              <Button onClick={() => { setSearchQuery(""); setSelectedCategory("Todos"); setPriceRange([0, 100000]); setShowOnlyNew(false); }}>Ver todos los productos</Button>
             </div>
           ) : (
             <div className={cn("grid gap-6", gridCols === 3 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4")}>

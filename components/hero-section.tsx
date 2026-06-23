@@ -31,7 +31,7 @@ const slides = [
     titleEnd: "en Peluches",
     description: "Aprovecha nuestras ofertas exclusivas en toda la coleccion. Tiempo limitado.",
     image: "/images/portada/4.webp",
-    primaryButton: { text: "Ver Ofertas", href: "/ofertas" },
+    primaryButton: { text: "Ver Productos", href: "/tienda" },
     secondaryButton: { text: "Conocer Mas", href: "/nosotros" },
     stats: [
       { value: "40%", label: "Descuento Max" },

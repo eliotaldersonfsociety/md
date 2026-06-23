@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Search, RefreshCw, Edit2, X, Check, ShoppingCart, Package, Eye, Flame } from "lucide-react"
+import { Search, RefreshCw, Edit2, X, Check, ShoppingCart, Package, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -23,13 +23,8 @@ import {
   adminGetOrders,
   adminUpdateOrderStatus,
   adminUpdateVariant,
-  adminSetVariantOferta,
   createProduct,
   createVariant,
-  getOfertasTableEntries,
-  upsertOfertaEntry,
-  toggleOfertaEntryActive,
-  deleteOfertaEntry,
   seedProductsFromData,
 } from "@/db/actions"
 
@@ -64,21 +59,15 @@ interface EditingProduct {
 }
 
 interface VariantBase {
-   id: number
-   label: string
-   price: number
-   wholesale_price: number
-   stock: number
-   badge?: string
-   badge_color?: string
-   is_active?: boolean
-   of_active?: boolean
-   of_price?: number
-   of_wholesale_price?: number
-   of_original_price?: number
-   of_badge?: string
-   of_badge_color?: string
- }
+    id: number
+    label: string
+    price: number
+    wholesale_price: number
+    stock: number
+    badge?: string
+    badge_color?: string
+    is_active?: boolean
+  }
 
 interface VariantWithType extends VariantBase {
   variant_type?: string
@@ -94,48 +83,22 @@ export default function AdminDashboard() {
    const [editForm, setEditForm] = useState<EditingProduct | null>(null)
    const [editingVariantId, setEditingVariantId] = useState<number | null>(null)
 const [editVariantForm, setEditVariantForm] = useState<{
-       id?: number;
-       price?: number;
-       wholesale_price?: number;
-       stock?: number;
-       badge?: string;
-       badge_color?: string;
-       active?: boolean;
-       of_active?: boolean;
-       of_price?: number;
-       of_wholesale_price?: number;
-       of_original_price?: number;
-       of_stock?: number;
-       of_badge?: string;
-       of_badge_color?: string;
-     } | null>(null)
+        id?: number;
+        price?: number;
+        wholesale_price?: number;
+        stock?: number;
+        badge?: string;
+        badge_color?: string;
+        active?: boolean;
+      } | null>(null)
 const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { text: string; color: string }>>({})
-  const [editedVariantOfertas, setEditedVariantOfertas] = useState<Record<number, { price?: number; originalPrice?: number; active?: boolean }>>({})
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [usernameInput, setUsernameInput] = useState("")
   const [passwordInput, setPasswordInput] = useState("")
   const [loginLoading, setLoginLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("products")
-  
-  const [ofertaEntries, setOfertaEntries] = useState<any[]>([])
-  const [ofertaLoading, setOfertaLoading] = useState(false)
-  const [editingOfertaId, setEditingOfertaId] = useState<number | null>(null)
-  const [editOfertaForm, setEditOfertaForm] = useState<{
-    id?: number
-    productId?: number
-    variantId?: number | null
-    label: string
-    price: number
-    wholesalePrice: number
-    originalPrice?: number | null
-    stock: number
-    badge?: string
-    badgeColor?: string
-    active?: boolean
-  } | null>(null)
-  const [showAddOfertaDialog, setShowAddOfertaDialog] = useState(false)
   
   const [showCreateVariantDialog, setShowCreateVariantDialog] = useState(false)
   const [createVariantProduct, setCreateVariantProduct] = useState<Product | null>(null)
@@ -246,19 +209,6 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
     }
   }
 
-  const fetchOfertas = useCallback(async () => {
-    setOfertaLoading(true)
-    try {
-      const result: any = await getOfertasTableEntries()
-      setOfertaEntries(result || [])
-    } catch (error) {
-      toast.error("Error al cargar ofertas")
-      console.error(error)
-    } finally {
-      setOfertaLoading(false)
-    }
-  }, [])
-
   const fetchProducts = useCallback(async () => {
     setLoading(true)
     try {
@@ -297,9 +247,8 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
     if (isAuthenticated) {
       fetchProducts()
       fetchOrders()
-      fetchOfertas()
     }
-  }, [isAuthenticated, fetchProducts, fetchOrders, fetchOfertas])
+  }, [isAuthenticated, fetchProducts, fetchOrders])
 
   const handleEdit = (product: Product) => {
     setEditingId(product.id)
@@ -363,13 +312,6 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
           badge: editVariantForm.badge,
           badgeColor: editVariantForm.badge_color,
           active: editVariantForm.active,
-          of_active: editVariantForm.of_active,
-          of_price: editVariantForm.of_price,
-          of_wholesale_price: editVariantForm.of_wholesale_price,
-          of_original_price: editVariantForm.of_original_price,
-          of_stock: editVariantForm.of_stock,
-          of_badge: editVariantForm.of_badge,
-          of_badge_color: editVariantForm.of_badge_color,
         })
         if (result.success) {
          toast.success("Variante actualizada")
@@ -442,91 +384,6 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
     return <Badge className={s.className}>{s.label}</Badge>
   }
 
-  const handleEditOferta = (entry: any) => {
-    setEditingOfertaId(entry.id)
-    setEditOfertaForm({
-      id: entry.id,
-      productId: entry.product_id,
-      variantId: entry.variant_id,
-      label: entry.label || "",
-      price: entry.price || 0,
-      wholesalePrice: entry.wholesale_price || 0,
-      originalPrice: entry.original_price || null,
-      stock: entry.stock || 0,
-      badge: entry.badge || "",
-      badgeColor: entry.badge_color || "bg-red-500",
-      active: entry.active ?? true
-    })
-  }
-
-  const handleSaveOferta = async () => {
-    if (!editOfertaForm) return
-    try {
-      await upsertOfertaEntry({
-        productId: editOfertaForm.productId!,
-        variantId: editOfertaForm.variantId,
-        price: editOfertaForm.price,
-        wholesalePrice: editOfertaForm.wholesalePrice,
-        originalPrice: editOfertaForm.originalPrice,
-        stock: editOfertaForm.stock,
-        badge: editOfertaForm.badge,
-        badgeColor: editOfertaForm.badgeColor,
-        active: editOfertaForm.active
-      })
-      toast.success("Oferta actualizada")
-      setEditingOfertaId(null)
-      setEditOfertaForm(null)
-      fetchOfertas()
-    } catch (error) {
-      toast.error("Error al guardar oferta")
-      console.error(error)
-    }
-  }
-
-  const handleDeleteOferta = async (id: number) => {
-    if (!confirm("¿Eliminar esta oferta?")) return
-    try {
-      await deleteOfertaEntry(id)
-      toast.success("Oferta eliminada")
-      fetchOfertas()
-    } catch (error) {
-      toast.error("Error al eliminar")
-      console.error(error)
-    }
-  }
-
-  const handleAddOferta = (product: Product) => {
-    setEditingOfertaId(null)
-    setEditOfertaForm({
-      productId: product.id,
-      variantId: null,
-      label: "OFERTA",
-      price: product.price,
-      wholesalePrice: product.wholesale_price,
-      stock: product.stock,
-      badge: "OFERTA",
-      badgeColor: "bg-red-500",
-      active: true
-    })
-    setShowAddOfertaDialog(true)
-  }
-
-  const handleAddVariantToOferta = (product: Product, variant: VariantBase) => {
-    setEditingOfertaId(null)
-    setEditOfertaForm({
-      productId: product.id,
-      variantId: variant.id,
-      label: variant.label,
-      price: variant.price,
-      wholesalePrice: variant.wholesale_price,
-      stock: variant.stock,
-      badge: "OFERTA",
-      badgeColor: "bg-red-500",
-      active: true
-    })
-    setShowAddOfertaDialog(true)
-  }
-
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = selectedCategory === "all" || p.category === selectedCategory
@@ -583,7 +440,7 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
             <p className="text-sm text-muted-foreground">Gestiona productos y ordenes</p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => { fetchProducts(); fetchOrders(); fetchOfertas(); }} variant="outline" size="sm">
+            <Button onClick={() => { fetchProducts(); fetchOrders(); }} variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />
               Actualizar
             </Button>
@@ -681,10 +538,6 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
             <TabsTrigger value="orders" className="gap-2">
               <ShoppingCart className="h-4 w-4" />
               Compras / Ordenes
-            </TabsTrigger>
-            <TabsTrigger value="offers" className="gap-2">
-              <Flame className="h-4 w-4" />
-              Ofertas
             </TabsTrigger>
           </TabsList>
 
@@ -794,7 +647,6 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
                                </div>
                                <div className="flex items-center gap-2">
                                   <Switch checked={editForm?.is_sale} onCheckedChange={(checked) => setEditForm(prev => prev ? { ...prev, is_sale: checked } : prev)} />
-                                 <span className="text-xs">Oferta</span>
                                </div>
                                 <Input placeholder="Badge text" value={editForm?.badge || ""} onChange={(e) => setEditForm(prev => prev ? { ...prev, badge: e.target.value } : prev)} className="h-7 text-xs" />
                                 <Input placeholder="Badge color (bg-green-500)" value={editForm?.badge_color || ""} onChange={(e) => setEditForm(prev => prev ? { ...prev, badge_color: e.target.value } : prev)} className="h-7 text-xs" />
@@ -802,7 +654,6 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
                           ) : (
                             <div className="flex flex-wrap gap-1">
                               {product.is_new && <Badge className="bg-green-500">Nuevo</Badge>}
-                              {product.is_sale && <Badge className="bg-red-500">Oferta</Badge>}
                               {product.badge && !product.is_new && !product.is_sale && (
                                 <Badge className={product.badge_color || "bg-gray-500"}>{product.badge}</Badge>
                               )}
@@ -828,13 +679,10 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
                              <div className="flex justify-end gap-1">
                                <Button onClick={() => handleEdit(product)} size="icon" variant="ghost" className="h-8 w-8"><Edit2 className="h-4 w-4" /></Button>
                                <Button onClick={() => handleDelete(product.id)} size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600"><X className="h-4 w-4" /></Button>
-                               <Button onClick={() => { setCreateVariantProduct(product); setCreateVariantForm({ label: "", price: product.price, wholesalePrice: product.wholesale_price, stock: product.stock }); setShowCreateVariantDialog(true); }} size="icon" variant="ghost" className="h-8 w-8 text-blue-500 hover:text-blue-600" title="Crear variante">
-                                 <Package className="h-4 w-4" />
-                               </Button>
-                               <Button onClick={() => handleAddOferta(product)} size="icon" variant="ghost" className="h-8 w-8 text-orange-500 hover:text-orange-600" title="Agregar a ofertas">
-                                 <Flame className="h-4 w-4" />
-                               </Button>
-                             </div>
+                                <Button onClick={() => { setCreateVariantProduct(product); setCreateVariantForm({ label: "", price: product.price, wholesalePrice: product.wholesale_price, stock: product.stock }); setShowCreateVariantDialog(true); }} size="icon" variant="ghost" className="h-8 w-8 text-blue-500 hover:text-blue-600" title="Crear variante">
+                                  <Package className="h-4 w-4" />
+                                </Button>
+                              </div>
                            )}
                          </TableCell>
                       </TableRow>
@@ -892,16 +740,11 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
                               {editingVariantId === variant.id ? (
                                 <Input type="number" value={editVariantForm?.stock || variant.stock} onChange={(e) => setEditVariantForm(prev => ({ ...prev, stock: Number(e.target.value) } as any))} className="w-20 text-right" />
                              ) : (
-                               <div className="flex flex-col items-end">
-                                 <span className={cn("font-mono", (variant.stock || 0) <= 10 && "text-red-500 font-bold text-muted-foreground")}>
-                                   {variant.stock}
-                                 </span>
-                                 {(variant as any).of_active && (variant as any).of_stock !== undefined && (variant as any).of_stock !== null && (
-                                   <span className="text-xs text-primary font-medium">
-                                     Oferta: {(variant as any).of_stock}
-                                   </span>
-                                 )}
-                               </div>
+                                <div className="flex flex-col items-end">
+                                  <span className={cn("font-mono", (variant.stock || 0) <= 10 && "text-red-500 font-bold text-muted-foreground")}>
+                                    {variant.stock}
+                                  </span>
+                                </div>
                              )}
                            </TableCell>
 <TableCell>
@@ -909,87 +752,28 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
                                 <div className="flex flex-col gap-1">
                                   <Input placeholder="Badge texto" value={editVariantForm?.badge ?? variant.badge ?? ''} onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, badge: e.target.value } : null)} className="h-7 text-xs w-24" />
                                   <Input placeholder="Color (ej: bg-red-500)" value={editVariantForm?.badge_color ?? variant.badge_color ?? ''} onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, badge_color: e.target.value } : null)} className="h-7 text-xs w-24" />
-                <div className="flex items-center gap-2 mt-1">
-                  <Switch
-                    checked={editVariantForm?.active ?? variant.is_active ?? true}
-                    onCheckedChange={(checked) => setEditVariantForm(prev => prev ? { ...prev, active: checked } : prev)}
-                  />
-                  <span className="text-xs">Activa</span>
-                </div>
-                {/* Oferta controls for variants */}
-                <div className="border-t pt-2 mt-2">
-                  <span className="text-xs font-semibold text-primary">Oferta:</span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Switch
-                      checked={editVariantForm?.of_active ?? (variant as any).of_active ?? false}
-                      onCheckedChange={(checked) => setEditVariantForm(prev => prev ? { ...prev, of_active: checked } : prev)}
-                    />
-                    <span className="text-xs">Activar oferta</span>
-                  </div>
-                   {(editVariantForm?.of_active ?? (variant as any).of_active ?? false) && (
-                     <div className="flex flex-col gap-1 mt-1">
-                       <Input 
-                         type="number" 
-                         placeholder="Precio oferta" 
-                         value={editVariantForm?.of_price ?? (variant as any).of_price ?? ''} 
-                         onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, of_price: Number(e.target.value) } : null)} 
-                         className="h-7 text-xs w-24" 
-                       />
-                       <Input 
-                         type="number" 
-                         placeholder="Precio orig." 
-                         value={editVariantForm?.of_original_price ?? (variant as any).of_original_price ?? ''} 
-                         onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, of_original_price: Number(e.target.value) } : null)} 
-                         className="h-7 text-xs w-24" 
-                       />
-                       <Input 
-                         type="number"
-                         placeholder="Stock oferta"
-                         value={editVariantForm?.of_stock ?? (variant as any).of_stock ?? ''}
-                         onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, of_stock: Number(e.target.value) } : null)}
-                         className="h-7 text-xs w-24"
-                       />
-                       <Input 
-                         placeholder="Badge oferta" 
-                         value={editVariantForm?.of_badge ?? (variant as any).of_badge ?? 'OFERTA'} 
-                         onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, of_badge: e.target.value } : null)} 
-                         className="h-7 text-xs w-24" 
-                       />
-                       <Input 
-                         placeholder="Color (bg-red-500)" 
-                         value={editVariantForm?.of_badge_color ?? (variant as any).of_badge_color ?? 'bg-red-500'} 
-                         onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, of_badge_color: e.target.value } : null)} 
-                         className="h-7 text-xs w-24" 
-                       />
-                     </div>
-                   )}
-                </div>
-                               </div>
+                 <div className="flex items-center gap-2 mt-1">
+                   <Switch
+                     checked={editVariantForm?.active ?? variant.is_active ?? true}
+                     onCheckedChange={(checked) => setEditVariantForm(prev => prev ? { ...prev, active: checked } : prev)}
+                   />
+                   <span className="text-xs">Activa</span>
+                 </div>
+                                </div>
                               ) : (
-                                <div className="flex flex-col gap-1">
-                                  <div className="flex flex-wrap gap-1 text-xs">
-                                    {variant.stock <= 10 && <Badge className="bg-red-500 text-white">Stock Bajo</Badge>}
-                                    {variant.badge && <Badge className={variant.badge_color || "bg-gray-500"}>{variant.badge}</Badge>}
-                                    {(variant as any).of_active && <Badge className="bg-red-500 text-white">OFERTA</Badge>}
-                                  </div>
+                                 <div className="flex flex-col gap-1">
+                                   <div className="flex flex-wrap gap-1 text-xs">
+                                     {variant.stock <= 10 && <Badge className="bg-red-500 text-white">Stock Bajo</Badge>}
+                                     {variant.badge && <Badge className={variant.badge_color || "bg-gray-500"}>{variant.badge}</Badge>}
+                                   </div>
                 <div className="flex items-center gap-2 mt-1">
                   <Switch
                     checked={variant.is_active ?? true}
                     onCheckedChange={(checked) => handleToggleVariantActive(variant.id, variant.is_active ?? true)}
                   />
-                  <span className="text-xs">Activa</span>
-                </div>
-<div className="flex items-center gap-2 mt-1">
-                    <Switch
-                      checked={(variant as any).of_active ?? false}
-                      onCheckedChange={async (checked) => {
-                        await adminSetVariantOferta(variant.id, { active: checked })
-                        fetchProducts()
-                      }}
-                    />
-                    <span className="text-xs">En oferta</span>
-                  </div>
-                                </div>
+                   <span className="text-xs">Activa</span>
+                 </div>
+                                 </div>
                               )}
                             </TableCell>
 <TableCell className="text-right">
@@ -1000,29 +784,19 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
                                 </div>
                               ) : (
                                 <div className="flex justify-end gap-1">
-                                  <Button onClick={() => {
-                                     setEditingVariantId(variant.id);
-                                     setEditVariantForm({ 
-                                       id: variant.id, 
-                                       price: variant.price, 
-                                       wholesale_price: variant.wholesale_price, 
-                                       stock: variant.stock, 
-                                       badge: variant.badge, 
-                                       badge_color: variant.badge_color, 
-                                       active: variant.is_active ?? true,
-                                       of_active: (variant as any).of_active ?? false,
-                                       of_price: (variant as any).of_price,
-                                       of_wholesale_price: (variant as any).of_wholesale_price,
-                                       of_original_price: (variant as any).of_original_price,
-                                       of_stock: (variant as any).of_stock,
-                                       of_badge: (variant as any).of_badge ?? 'OFERTA',
-                                       of_badge_color: (variant as any).of_badge_color ?? 'bg-red-500'
-                                     });
-                                   }} size="icon" variant="ghost" className="h-8 w-8"><Edit2 className="h-4 w-4" /></Button>
-                                  <Button onClick={() => handleAddVariantToOferta(product, variant)} size="icon" variant="ghost" className="h-8 w-8 text-orange-500 hover:text-orange-600" title="Agregar variante a ofertas">
-                                    <Flame className="h-4 w-4" />
-                                  </Button>
-                                </div>
+                                   <Button onClick={() => {
+                                      setEditingVariantId(variant.id);
+                                      setEditVariantForm({ 
+                                        id: variant.id, 
+                                        price: variant.price, 
+                                        wholesale_price: variant.wholesale_price, 
+                                        stock: variant.stock, 
+                                        badge: variant.badge, 
+                                        badge_color: variant.badge_color, 
+                                        active: variant.is_active ?? true,
+                                      });
+                                    }} size="icon" variant="ghost" className="h-8 w-8"><Edit2 className="h-4 w-4" /></Button>
+                                 </div>
                               )}
                             </TableCell>
                         </TableRow>
@@ -1221,262 +995,6 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
               <p className="text-sm text-muted-foreground">Mostrando {filteredOrders.length} de {orders.length} ordenes</p>
             )}
           </TabsContent>
-          
-          <TabsContent value="offers" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Flame className="h-5 w-5 text-red-500" />
-                Gestión de Ofertas
-              </h2>
-              <div className="flex gap-2">
-                <Dialog open={showAddOfertaDialog} onOpenChange={setShowAddOfertaDialog}>
-                  <DialogTrigger asChild>
-                    <Button size="sm">
-                      <Flame className="h-4 w-4 mr-2" />
-                      Agregar Oferta
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-lg">
-                    <DialogHeader>
-                      <DialogTitle>Agregar Producto a Ofertas</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Producto</label>
-                        <Select value={String(editOfertaForm?.productId ?? "")} onValueChange={(v) => {
-                          const p = products.find(p => p.id === Number(v))
-                          setEditOfertaForm(p ? { 
-                            productId: p.id, 
-                            variantId: null,
-                            label: "OFERTA",
-                            price: p.price, 
-                            wholesalePrice: p.wholesale_price, 
-                            stock: p.stock,
-                            badge: "OFERTA",
-                            badgeColor: "bg-red-500",
-                            active: true
-                          } : null)
-                        }}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar producto" />
-                          </SelectTrigger>
-<SelectContent>
-                             {products.map(p => (
-                               <SelectItem key={`product-${p.id}`} value={p.id.toString()}>{p.name}</SelectItem>
-                             ))}
-                           </SelectContent>
-                        </Select>
-                      </div>
-                      {editOfertaForm?.productId && (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Tipo</label>
-                          <Select value={editOfertaForm.variantId ? "variant" : "product"} onValueChange={(v) => {
-                            const p = products.find(p => p.id === editOfertaForm.productId)
-                            setEditOfertaForm(prev => ({ 
-                              ...prev!, 
-                              variantId: v === "product" ? null : undefined, 
-                              price: v === "product" ? p?.price || 0 : prev!.price 
-                            }))
-                          }}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="product">Producto Principal</SelectItem>
-                              <SelectItem value="variant">Variante</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                      {editOfertaForm?.productId && editOfertaForm?.variantId === undefined && (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Variante</label>
-                          <Select value="" onValueChange={(v) => {
-                            const product = products.find(p => p.id === editOfertaForm.productId)
-                            const allVariants = [...(product?.variants || []), ...(product?.adult_variants || []), ...(product?.child_variants || [])]
-                            const variant = allVariants.find((variant: any) => variant.id === Number(v))
-                            setEditOfertaForm(prev => prev ? { ...prev, variantId: Number(v), price: variant?.price || prev.price, wholesalePrice: variant?.wholesale_price || prev.wholesalePrice, stock: variant?.stock || prev.stock } : null)
-                          }}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seleccionar variante" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {(() => {
-                                const prod = products.find(p => p.id === editOfertaForm?.productId)
-                                const allVariants = [...(prod?.variants || []), ...(prod?.adult_variants || []), ...(prod?.child_variants || [])]
-                                const seen = new Set()
-                                return allVariants.filter((variant: any) => {
-                                  if (seen.has(variant.label)) return false
-                                  seen.add(variant.label)
-                                  return true
-}).map((variant: any) => (
-                                   <SelectItem key={`variant-${variant.id}-${editOfertaForm?.productId}`} value={variant.id.toString()}>{variant.label}</SelectItem>
-                                 ))
-                              })()}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Precio Oferta</label>
-                          <Input type="number" value={editOfertaForm?.price || 0} onChange={(e) => setEditOfertaForm(prev => prev ? { ...prev, price: Number(e.target.value) } : null)} />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Precio Mayor</label>
-                          <Input type="number" value={editOfertaForm?.wholesalePrice || 0} onChange={(e) => setEditOfertaForm(prev => prev ? { ...prev, wholesalePrice: Number(e.target.value) } : null)} />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Stock Oferta</label>
-                        <Input type="number" value={editOfertaForm?.stock || 0} onChange={(e) => setEditOfertaForm(prev => prev ? { ...prev, stock: Number(e.target.value) } : null)} />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch checked={editOfertaForm?.active ?? true} onCheckedChange={(c) => setEditOfertaForm(prev => prev ? { ...prev, active: c } : null)} />
-                        <label className="text-sm">Activa</label>
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => { setShowAddOfertaDialog(false); setEditOfertaForm(null); }}>Cancelar</Button>
-                        <Button onClick={handleSaveOferta} disabled={!editOfertaForm?.productId}>Agregar</Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-                <Button onClick={() => fetchOfertas()} variant="outline" size="sm">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Actualizar
-                </Button>
-              </div>
-            </div>
-            
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Producto</TableHead>
-                      <TableHead>Variante</TableHead>
-                      <TableHead>Precio Oferta</TableHead>
-                      <TableHead className="text-right">Precio Mayor</TableHead>
-                      <TableHead className="text-right">Stock</TableHead>
-                      <TableHead>Badge</TableHead>
-                      <TableHead className="text-center">Activa</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {ofertaLoading ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8">Cargando ofertas...</TableCell>
-                      </TableRow>
-                    ) : ofertaEntries.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No hay ofertas configuradas</TableCell>
-                      </TableRow>
-                    ) : (
-                        ofertaEntries.map((entry: any) => {
-                         const product = products.find(p => p.id === entry.product_id)
-                         const allVariants = [...(product?.variants || []), ...(product?.adult_variants || []), ...(product?.child_variants || [])]
-                         const variant = allVariants.find((v: any) => String(v.id) === String(entry.variant_id))
-                         return (
-                          <TableRow key={entry.id}>
-                            <TableCell>{product?.name || `ID: ${entry.product_id}`}</TableCell>
-                            <TableCell>{entry.variant_id ? (variant?.label || "Variante") : "Producto principal"}</TableCell>
-                            <TableCell>
-                              {editingOfertaId === entry.id ? (
-                                <Input type="number" value={editOfertaForm?.price ?? 0} onChange={(e) => setEditOfertaForm(prev => prev ? { ...prev, price: Number(e.target.value) } : null)} className="w-28" />
-                              ) : (
-                                `$${entry.price.toLocaleString("es-CO")}`
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {editingOfertaId === entry.id ? (
-                                <Input type="number" value={editOfertaForm?.wholesalePrice ?? 0} onChange={(e) => setEditOfertaForm(prev => prev ? { ...prev, wholesalePrice: Number(e.target.value) } : null)} className="w-28" />
-                              ) : (
-                                `$${entry.wholesale_price.toLocaleString("es-CO")}`
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {editingOfertaId === entry.id ? (
-                                <Input type="number" value={editOfertaForm?.stock ?? 0} onChange={(e) => setEditOfertaForm(prev => prev ? { ...prev, stock: Number(e.target.value) } : null)} className="w-20" />
-                              ) : (
-                                entry.stock
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {editingOfertaId === entry.id ? (
-                                <Input value={editOfertaForm?.badge ?? 'OFERTA'} onChange={(e) => setEditOfertaForm(prev => prev ? { ...prev, badge: e.target.value } : null)} className="h-7 text-xs w-24" />
-                              ) : (
-                                <Badge className={entry.badge_color || "bg-red-500"}>{entry.badge || "OFERTA"}</Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Switch
-                                checked={!!entry.active}
-                                onCheckedChange={async (checked) => {
-                                  await toggleOfertaEntryActive(entry.id, checked)
-                                  fetchOfertas()
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {editingOfertaId === entry.id ? (
-                                <div className="flex justify-end gap-1">
-                                  <Button onClick={handleSaveOferta} size="icon" variant="default" className="h-8 w-8"><Check className="h-4 w-4" /></Button>
-                                  <Button onClick={() => { setEditingOfertaId(null); setEditOfertaForm(null); }} size="icon" variant="ghost" className="h-8 w-8"><X className="h-4 w-4" /></Button>
-                                </div>
-                              ) : (
-                                <div className="flex justify-end gap-1">
-                                  <Button onClick={() => handleEditOferta(entry)} size="icon" variant="ghost" className="h-8 w-8"><Edit2 className="h-4 w-4" /></Button>
-                                  <Button onClick={() => handleDeleteOferta(entry.id)} size="icon" variant="ghost" className="h-8 w-8 text-red-500"><X className="h-4 w-4" /></Button>
-                                </div>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-            
-            <div className="text-sm text-muted-foreground">Total: {ofertaEntries.length} ofertas</div>
-          </TabsContent>
-          
-          <Dialog open={!!editOfertaForm} onOpenChange={(open) => { if (!open) { setEditingOfertaId(null); setEditOfertaForm(null); } }}>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>{editingOfertaId ? "Editar Oferta" : "Editar Oferta"}</DialogTitle>
-              </DialogHeader>
-              {editOfertaForm && (
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Precio Oferta</label>
-                      <Input type="number" value={editOfertaForm.price} onChange={(e) => setEditOfertaForm(prev => prev ? { ...prev, price: Number(e.target.value) } : null)} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Precio Mayor</label>
-                      <Input type="number" value={editOfertaForm.wholesalePrice} onChange={(e) => setEditOfertaForm(prev => prev ? { ...prev, wholesalePrice: Number(e.target.value) } : null)} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Stock</label>
-                    <Input type="number" value={editOfertaForm.stock} onChange={(e) => setEditOfertaForm(prev => prev ? { ...prev, stock: Number(e.target.value) } : null)} />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={editOfertaForm.active} onCheckedChange={(c) => setEditOfertaForm(prev => prev ? { ...prev, active: c } : null)} />
-                    <label className="text-sm">Activa</label>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => { setEditingOfertaId(null); setEditOfertaForm(null); }}>Cancelar</Button>
-                    <Button onClick={handleSaveOferta}>Guardar</Button>
-                  </div>
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
           
           <Dialog open={showCreateVariantDialog} onOpenChange={setShowCreateVariantDialog}>
             <DialogContent className="max-w-lg">

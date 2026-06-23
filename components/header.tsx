@@ -169,12 +169,6 @@ export function Header() {
                 <Link href="/empresas" className="text-sm font-medium text-white hover:text-white/80 transition-colors">
                   Empresas
                 </Link>
-                <Link 
-                  href="/ofertas" 
-                  className="px-4 py-1.5 bg-[#00bcd4] text-white text-sm font-semibold rounded-md hover:bg-[#00acc1] transition-colors"
-                >
-                  Ofertas
-                </Link>
                 <Link href="/contacto" className="text-sm font-medium text-white hover:text-white/80 transition-colors">
                   Contacto
                 </Link>
@@ -279,13 +273,6 @@ export function Header() {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Empresas
-                  </Link>
-                  <Link 
-                    href="/ofertas" 
-                    className="inline-flex w-fit px-4 py-2 bg-[#00bcd4] text-white text-sm font-semibold rounded-md"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Ofertas
                   </Link>
                   <Link 
                     href="/contacto" 

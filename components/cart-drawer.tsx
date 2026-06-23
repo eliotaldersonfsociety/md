@@ -89,12 +89,6 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     <p className="text-xs text-muted-foreground mb-2">
                       {item.category}
                     </p>
-                    {item.source === "ofertas" && (
-                      <div className="flex items-center gap-1 text-[11px] text-red-600 font-medium mb-2">
-                        <Flame className="h-3 w-3" />
-                        Oferta
-                      </div>
-                    )}
                     <p className="text-sm font-bold text-[#e91e8c]">
                       {formatPrice(item.price)}
                     </p>

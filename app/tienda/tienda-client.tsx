@@ -185,7 +185,6 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
   const [showFilters, setShowFilters] = useState(false)
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000])
   const [showOnlyNew, setShowOnlyNew] = useState(false)
-  const [showOnlySale, setShowOnlySale] = useState(false)
   const [favorites, setFavorites] = useState<number[]>([])
   const [addedProducts, setAddedProducts] = useState<Record<number, boolean>>({})
   const [quantities, setQuantities] = useState<Record<number, number>>({})
@@ -213,10 +212,6 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
       filtered = filtered.filter((p) => p.isNew)
     }
 
-    if (showOnlySale) {
-      filtered = filtered.filter((p) => p.isSale)
-    }
-
     switch (sortBy) {
       case "newest":
         filtered = filtered.filter((p) => p.isNew).concat(filtered.filter((p) => !p.isNew))
@@ -233,7 +228,7 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
     }
 
     return filtered
-  }, [products, searchQuery, selectedCategory, sortBy, priceRange, showOnlyNew, showOnlySale])
+  }, [products, searchQuery, selectedCategory, sortBy, priceRange, showOnlyNew])
 
   const toggleFavorite = (id: number) => {
     setFavorites((prev) =>
@@ -489,16 +484,6 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                 <span className="text-sm">Solo nuevos</span>
               </label>
 
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showOnlySale}
-                  onChange={(e) => setShowOnlySale(e.target.checked)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <span className="text-sm">En oferta</span>
-              </label>
-
               <Button
                 variant="ghost"
                 size="sm"
@@ -507,7 +492,6 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                   setSelectedCategory("Todos")
                   setPriceRange([0, 100000])
                   setShowOnlyNew(false)
-                  setShowOnlySale(false)
                 }}
                 className="text-primary"
               >
@@ -540,7 +524,6 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                   setSelectedCategory("Todos")
                   setPriceRange([0, 100000])
                   setShowOnlyNew(false)
-                  setShowOnlySale(false)
                 }}
               >
                 Ver todos los productos
