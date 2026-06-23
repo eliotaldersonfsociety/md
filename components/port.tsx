@@ -62,7 +62,6 @@ export function HeroSection() {
             href="https://wa.me/584121234567" 
             target="_blank" 
             rel="noopener noreferrer"
-            onClick={(e) => { e.preventDefault(); window.open('https://wa.me/584121234567', '_blank'); }}
             className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer no-underline"
             style={{ textDecoration: 'none' }}
           >
@@ -78,7 +77,6 @@ export function HeroSection() {
             href="https://wa.me/573101234567" 
             target="_blank" 
             rel="noopener noreferrer"
-            onClick={(e) => { e.preventDefault(); window.open('https://wa.me/573101234567', '_blank'); }}
             className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer no-underline"
             style={{ textDecoration: 'none' }}
           >
