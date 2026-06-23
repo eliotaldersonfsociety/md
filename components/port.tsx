@@ -58,10 +58,9 @@ export function HeroSection() {
 
         {/* Contact cards */}
         <div className="mt-12 flex flex-wrap gap-4 justify-center lg:justify-start">
-          <a 
-            href="https://wa.me/584121234567" 
-            target="_blank" 
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => window.open('https://wa.me/584121234567', '_blank')}
             className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
           >
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
@@ -71,11 +70,10 @@ export function HeroSection() {
               <p className="font-semibold text-foreground text-sm">Jose Olarte <span className="bg-accent text-accent-foreground text-xs px-2 py-0.5 rounded-full ml-1">Online</span></p>
               <p className="text-xs text-muted-foreground">Venezuela Escríbenos</p>
             </div>
-          </a>
-          <a 
-            href="https://wa.me/573101234567" 
-            target="_blank" 
-            rel="noopener noreferrer"
+          </button>
+          <button
+            type="button"
+            onClick={() => window.open('https://wa.me/573101234567', '_blank')}
             className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
           >
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
@@ -85,7 +83,7 @@ export function HeroSection() {
               <p className="font-semibold text-foreground text-sm">Claudia Aldana <span className="bg-accent text-accent-foreground text-xs px-2 py-0.5 rounded-full ml-1">Online</span></p>
               <p className="text-xs text-muted-foreground">Colombia Escríbenos</p>
             </div>
-          </a>
+          </button>
         </div>
       </div>
 
