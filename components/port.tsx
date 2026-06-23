@@ -38,7 +38,7 @@ export function HeroSection() {
             {/* Contact cards - inside left column */}
             <div className="flex flex-wrap gap-4 pt-4">
               <a 
-                href="https://wa.me/584121234567" 
+                href="https://api.whatsapp.com/send/?phone=584121234567" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow no-underline"
@@ -53,7 +53,7 @@ export function HeroSection() {
                 </div>
               </a>
               <a 
-                href="https://wa.me/573101234567" 
+                href="https://api.whatsapp.com/send/?phone=573101234567" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow no-underline"
