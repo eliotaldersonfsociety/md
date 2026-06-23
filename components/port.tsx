@@ -4,7 +4,7 @@ import { Play } from "lucide-react"
 
 export function HeroSection() {
   return (
-    <section className="relative bg-cyan-500 overflow-hidden">
+    <section className="relative bg-cyan-500 overflow-hidden pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left content */}
@@ -57,13 +57,13 @@ export function HeroSection() {
         </div>
 
         {/* Contact cards */}
-        <div className="mt-12 flex flex-wrap gap-4 justify-center lg:justify-start">
+        <div className="mt-12 flex flex-wrap gap-4 justify-center lg:justify-start relative z-10">
           <a 
             href="https://wa.me/584121234567" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer no-underline"
-            style={{ textDecoration: 'none' }}
+            className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer no-underline pointer-events-auto"
+            style={{ textDecoration: 'none', position: 'relative', zIndex: 20 }}
           >
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
               <img src="https://randomuser.me/api/portraits/men/72.jpg" alt="Jose Olarte" className="w-full h-full object-cover" />
@@ -77,8 +77,8 @@ export function HeroSection() {
             href="https://wa.me/573101234567" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer no-underline"
-            style={{ textDecoration: 'none' }}
+            className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer no-underline pointer-events-auto"
+            style={{ textDecoration: 'none', position: 'relative', zIndex: 20 }}
           >
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
               <img src="https://randomuser.me/api/portraits/women/42.jpg" alt="Claudia Aldana" className="w-full h-full object-cover" />
