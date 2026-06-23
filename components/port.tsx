@@ -37,12 +37,10 @@ export function HeroSection() {
 
             {/* Contact cards - inside left column */}
             <div className="flex flex-wrap gap-4 pt-4">
-              <a 
-                href="https://api.whatsapp.com/send/?phone=584121234567" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow no-underline"
-                style={{ textDecoration: 'none' }}
+              <button
+                type="button"
+                onClick={() => { window.location.href = 'https://api.whatsapp.com/send/?phone=584121234567'; }}
+                className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer border-none"
               >
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
                   <img src="https://randomuser.me/api/portraits/men/72.jpg" alt="Jose Olarte" className="w-full h-full object-cover" />
@@ -51,13 +49,11 @@ export function HeroSection() {
                   <p className="font-semibold text-foreground text-sm">Jose Olarte <span className="bg-accent text-accent-foreground text-xs px-2 py-0.5 rounded-full ml-1">Online</span></p>
                   <p className="text-xs text-muted-foreground">Venezuela Escríbenos</p>
                 </div>
-              </a>
-              <a 
-                href="https://api.whatsapp.com/send/?phone=573101234567" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow no-underline"
-                style={{ textDecoration: 'none' }}
+              </button>
+              <button
+                type="button"
+                onClick={() => { window.location.href = 'https://api.whatsapp.com/send/?phone=573101234567'; }}
+                className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer border-none"
               >
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
                   <img src="https://randomuser.me/api/portraits/women/42.jpg" alt="Claudia Aldana" className="w-full h-full object-cover" />
@@ -66,7 +62,7 @@ export function HeroSection() {
                   <p className="font-semibold text-foreground text-sm">Claudia Aldana <span className="bg-accent text-accent-foreground text-xs px-2 py-0.5 rounded-full ml-1">Online</span></p>
                   <p className="text-xs text-muted-foreground">Colombia Escríbenos</p>
                 </div>
-              </a>
+              </button>
             </div>
           </div>
 
