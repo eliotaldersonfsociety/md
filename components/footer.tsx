@@ -115,10 +115,10 @@ export function Footer() {
               © 2026 Fabrica de Peluches Mundo Disney. Todos los derechos reservados.
             </p>
             <div className="flex gap-6">
-              <Link href="#" className="text-card/40 hover:text-card text-sm transition-colors">
+              <Link href="/politica-privacidad" className="text-card/40 hover:text-card text-sm transition-colors">
                 Política de Privacidad
               </Link>
-              <Link href="#" className="text-card/40 hover:text-card text-sm transition-colors">
+              <Link href="/terminos-uso" className="text-card/40 hover:text-card text-sm transition-colors">
                 Términos de Uso
               </Link>
             </div>
