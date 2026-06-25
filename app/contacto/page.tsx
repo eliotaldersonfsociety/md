@@ -415,7 +415,15 @@ export default function ContactoPage() {
               },
               {
                 question: "¿Hacen envíos a otras ciudades de Colombia?",
-                answer: "Sí, realizamos envíos a toda Colombia. Cucuta 2-3 días hábiles, otras ciudades 3-5 días hábiles."
+                answer: "Sí, realizamos envíos a toda Colombia y Venezuela. Cúcuta y San Antonio del Táchira tienen envío gratis. El tiempo de entrega es de 2-5 días hábiles según tu ubicación."
+              },
+              {
+                question: "¿Cuáles son las transportadoras disponibles?",
+                answer: "Trabajamos con Interrapidisimo y Servientrega en Colombia, y MRW, Zoom y Tealca en Venezuela. Puedes ver más detalles en nuestra página de Envíos."
+              },
+              {
+                question: "¿Cuál es la política de devoluciones?",
+                answer: "Aceptamos devoluciones dentro de los 7 días posteriores a la recepción del producto, siempre que esté en perfectas condiciones y con su empaque original. Los productos personalizados no pueden ser devueltos a menos que tengan defectos de fabricación."
               }
             ].map((faq, index) => (
               <details 

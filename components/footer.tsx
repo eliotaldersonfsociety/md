@@ -1,32 +1,32 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Facebook, Instagram, MessageCircle } from "lucide-react"
+import { Facebook, Instagram, Music2 } from "lucide-react"
 
 const footerLinks = {
   productos: [
-    { name: "Peluches", href: "#" },
-    { name: "Cojines", href: "#" },
-    { name: "Mantas", href: "#" },
-    { name: "Regalos", href: "#" }
+    { name: "Peluches", href: "/peluches" },
+    { name: "Cojines", href: "/cojines" },
+    { name: "Ropa", href: "/ropa" },
+    { name: "Llaveros", href: "/llaveros" }
   ],
   empresa: [
-    { name: "Nosotros", href: "#" },
-    { name: "Mayoreo", href: "#mayoreo" },
-    { name: "Corporativo", href: "#corporativo" },
-    { name: "Contacto", href: "#contacto" }
+    { name: "Nosotros", href: "/nosotros" },
+    { name: "Mayoreo", href: "/tienda?mode=wholesale" },
+    { name: "Corporativo", href: "/empresas" },
+    { name: "Contacto", href: "/contacto" }
   ],
   soporte: [
-    { name: "Preguntas Frecuentes", href: "#" },
-    { name: "Envíos", href: "#" },
-    { name: "Devoluciones", href: "#" },
-    { name: "Términos y Condiciones", href: "#" }
+    { name: "Preguntas Frecuentes", href: "/contacto" },
+    { name: "Envíos", href: "/envios" },
+    { name: "Devoluciones", href: "/devoluciones" },
+    { name: "Términos y Condiciones", href: "/terminos-uso" }
   ]
 }
 
 const socialLinks = [
-  { name: "Facebook", icon: Facebook, href: "#" },
-  { name: "Instagram", icon: Instagram, href: "#" },
-  { name: "WhatsApp", icon: MessageCircle, href: "#" }
+  { name: "Facebook", icon: Facebook, href: "https://www.facebook.com/share/1cFyeKzVzo/" },
+  { name: "Instagram", icon: Instagram, href: "https://instagram.com/fabricadepeluchesmundodisney" },
+  { name: "TikTok", icon: Music2, href: "https://www.tiktok.com/@fabricamundodisney" }
 ]
 
 export function Footer() {
