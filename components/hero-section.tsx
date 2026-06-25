@@ -141,6 +141,11 @@ export function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0)
 
   useEffect(() => {
+    slides.forEach(slide => {
+      const img = new window.Image()
+      img.src = slide.image
+    })
+    
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length)
     }, 3000)
@@ -152,16 +157,28 @@ export function HeroSection() {
   return (
     <section id="inicio" className="relative min-h-[80vh]">
       <div className="absolute inset-0">
-        <Image
-          src={slide.image}
-          alt={slide.title}
-          fill
-          className="object-cover"
-          priority
-          key={slide.id}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        {slides.map((s, index) => (
+          <div
+            key={s.id}
+            className={`transition-opacity duration-1000 ${
+              index === currentSlide ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {index === currentSlide && (
+              <>
+                <Image
+                  src={s.image}
+                  alt={s.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              </>
+            )}
+          </div>
+        ))}
       </div>
       
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
