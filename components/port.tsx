@@ -79,9 +79,17 @@ export function HeroSection() {
                 className="w-full h-auto object-cover"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <button className="w-16 h-16 lg:w-20 lg:h-20 bg-primary rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                  <Play className="h-8 w-8 lg:h-10 lg:w-10 text-primary-foreground fill-current ml-1" />
-                </button>
+                <a 
+                  href="https://www.youtube.com/watch?v=0MyyCWPeBVI" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="no-underline"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <button className="w-16 h-16 lg:w-20 lg:h-20 bg-primary rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer">
+                    <Play className="h-8 w-8 lg:h-10 lg:w-10 text-primary-foreground fill-current ml-1" />
+                  </button>
+                </a>
               </div>
             </div>
             <p className="text-center text-primary-foreground/80 mt-4 text-sm lg:text-base">
