@@ -15,7 +15,7 @@ export function HeroSection() {
             <p className="text-lg text-primary-foreground/90 max-w-lg">
               Creamos cualquier idea corporativa a través del diseño y fabricación de productos que impulsen la imagen, proyección y promoción de tu compañía.
             </p>
-            
+
             <ul className="space-y-3 text-primary-foreground/90">
               <li className="flex items-start gap-2">
                 <span className="text-accent font-bold">•</span>
@@ -53,7 +53,42 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/* Wave decoration */}
+        {/* Contact cards */}
+        <div className="mt-12 flex flex-wrap gap-4 justify-center lg:justify-start relative z-10">
+          <a 
+            href="https://wa.me/584121234567" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow no-underline"
+            style={{ textDecoration: 'none', position: 'relative', zIndex: 20 }}
+          >
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+              <img src="https://randomuser.me/api/portraits/men/72.jpg" alt="Jose Olarte" className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground text-sm">Jose Olarte <span className="bg-accent text-accent-foreground text-xs px-2 py-0.5 rounded-full ml-1">Online</span></p>
+              <p className="text-xs text-muted-foreground">Venezuela Escríbenos</p>
+            </div>
+          </a>
+          <a 
+            href="https://wa.me/573101234567" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bg-white rounded-full px-4 py-2 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow no-underline"
+            style={{ textDecoration: 'none', position: 'relative', zIndex: 20 }}
+          >
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+              <img src="https://randomuser.me/api/portraits/women/42.jpg" alt="Claudia Aldana" className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground text-sm">Claudia Aldana <span className="bg-accent text-accent-foreground text-xs px-2 py-0.5 rounded-full ml-1">Online</span></p>
+              <p className="text-xs text-muted-foreground">Colombia Escríbenos</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      {/* Wave decoration */}
       <div className="absolute bottom-0 left-0 right-0 z-0">
         <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
           <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white"/>
