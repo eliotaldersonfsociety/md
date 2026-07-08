@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useCallback, ReactNode } from "react"
+import { toast } from "sonner"
 
 export interface ProductVariant {
   id: string
@@ -72,6 +73,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prevItems, { ...product, quantity: 1 }]
     })
+    toast.success("Agregado al carrito", { description: product.name })
   }, [])
 
   const removeFromCart = useCallback((productId: number) => {
@@ -105,6 +107,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prevItems, { ...product, quantity }]
     })
+    toast.success("Agregado al pedido al mayor", { description: `${product.name} (${quantity} uds)` })
   }, [])
 
   const removeFromWholesale = useCallback((productId: number) => {

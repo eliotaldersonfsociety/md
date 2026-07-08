@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { CartProvider } from '@/context/cart-context'
 import { RatingProvider } from '@/context/rating-context'
 import { ExchangeRateProvider } from '@/lib/exchange-rate'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 const poppins = Poppins({ 
@@ -49,6 +50,7 @@ export default function RootLayout({
             </RatingProvider>
           </CartProvider>
         </ExchangeRateProvider>
+        <Toaster position="top-center" richColors closeButton />
         <Analytics />
       </body>
     </html>

@@ -195,13 +195,18 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
     let filtered = [...products]
 
     if (searchQuery) {
+      const query = searchQuery.toLowerCase().trim()
       filtered = filtered.filter((p) =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+        p.name.toLowerCase().includes(query) ||
+        (p.category && p.category.toLowerCase().includes(query))
       )
     }
 
     if (selectedCategory !== "Todos") {
-      filtered = filtered.filter((p) => p.category === selectedCategory)
+      const target = selectedCategory.toLowerCase().trim()
+      filtered = filtered.filter(
+        (p) => p.category && p.category.toLowerCase().trim() === target
+      )
     }
 
     filtered = filtered.filter(
