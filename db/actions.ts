@@ -2,7 +2,8 @@
 
 import { randomBytes } from "crypto"
 import { Buffer } from "buffer"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
+import { unstable_cache, revalidateTag } from "next/cache"
 import { turso } from "@/db"
 
 const SESSION_COOKIE = "admin_session"
@@ -37,396 +38,201 @@ const LATIN_NAMES = [
   "Lucía Romero", "Roberto Navarro", "Silvia Delgado", "Fernando Herrera", "Claudia Campos"
 ]
 
-let initialized = false
-let cachedData: { ratings: Record<number, { avg: number; count: number }>; reviews: Record<number, any[]> } | null = null
-let cacheTimestamp = 0
-const CACHE_TTL = 60 * 60 * 1000 // 1 hora
-const STATIC_CACHE_TTL = 60 * 60 * 1000 // 1 hora
+const loginAttempts = new Map<string, { count: number; firstAttempt: number }>()
+const LOGIN_RATE_LIMIT_WINDOW = 60 * 1000 // 1 minuto
+const LOGIN_RATE_LIMIT_MAX = 5 // 5 intentos por minuto
 
-type CacheEntry<T> = {
-  value: T
-  timestamp: number
-}
+function checkLoginRateLimit(identifier: string): boolean {
+  const now = Date.now()
+  const attempt = loginAttempts.get(identifier)
 
-let cachedProductsWithStock: CacheEntry<any[]> | null = null
-let cachedVariants: CacheEntry<any[]> | null = null
-let cachedCategories: CacheEntry<any[]> | null = null
-let cachedProductsWithVariants: CacheEntry<any[]> | null = null
-let cachedOfertas: CacheEntry<any[]> | null = null
-
-function cloneCachedValue<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T
-}
-
-function getCachedValue<T>(cache: CacheEntry<T> | null, ttl = STATIC_CACHE_TTL): T | null {
-  if (cache && Date.now() - cache.timestamp < ttl) {
-    return cloneCachedValue(cache.value)
+  if (!attempt) {
+    loginAttempts.set(identifier, { count: 1, firstAttempt: now })
+    return true
   }
-  return null
+
+  if (now - attempt.firstAttempt > LOGIN_RATE_LIMIT_WINDOW) {
+    loginAttempts.set(identifier, { count: 1, firstAttempt: now })
+    return true
+  }
+
+  if (attempt.count >= LOGIN_RATE_LIMIT_MAX) {
+    return false
+  }
+
+  attempt.count++
+  return true
 }
 
-function setCachedValue<T>(cacheSetter: (entry: CacheEntry<T>) => void, value: T) {
-  cacheSetter({ value, timestamp: Date.now() })
+async function getCategories() {
+
+  const result = await turso.execute({
+    sql: `SELECT id, name, slug FROM categories ORDER BY id`,
+  })
+
+  return (result as any).rows
 }
+
+const getCategoriesCached = unstable_cache(
+  getCategories,
+  ["categories"],
+  { revalidate: 3600, tags: ["products"] }
+)
+
+async function _loadProductsWithStock() {
+
+  const result = await turso.execute({
+    sql: `SELECT id, name, stock, price, wholesale_price, original_price, is_new, is_sale, image, category_id, badge, badge_color, min_wholesale, of_price, of_wholesale_price, of_original_price, of_stock, of_badge, of_badge_color, of_active FROM products ORDER BY name`,
+  })
+
+  return (result as any).rows
+}
+
+const getProductsWithStockCached = unstable_cache(
+  _loadProductsWithStock,
+  ["products-with-stock"],
+  { revalidate: 3600, tags: ["products"] }
+)
+
+export async function getProductsWithStock(): Promise<Array<{ 
+  id: number, 
+  name: string, 
+  stock: number,
+  price: number,
+  wholesale_price: number,
+  image: string,
+  category_id: number,
+  original_price?: number,
+  is_new?: boolean,
+  is_sale?: boolean,
+  badge?: string,
+  badge_color?: string,
+  min_wholesale?: number,
+  of_price?: number,
+  of_wholesale_price?: number,
+  of_original_price?: number,
+  of_stock?: number,
+  of_badge?: string,
+  of_badge_color?: string,
+  of_active?: number
+}>> {
+  return getProductsWithStockCached()
+}
+
+async function getVariants() {
+
+  const result = await turso.execute({
+    sql: `SELECT id, product_id, label, price, wholesale_price, stock, variant_type, badge, badge_color, of_active, of_price, of_wholesale_price, of_original_price, of_stock, of_badge, of_badge_color FROM product_variants ORDER BY product_id, id`,
+  })
+
+  return (result as any).rows
+}
+
+const getVariantsCached = unstable_cache(
+  getVariants,
+  ["variants"],
+  { revalidate: 3600, tags: ["products"] }
+)
+
+async function getProductsWithVariants() {
+
+  const [productRows, variantRows, categoryRows] = await Promise.all([
+    _loadProductsWithStock(),
+    getVariants(),
+    getCategories()
+  ])
+
+  const categoryById = new Map<number, any>(categoryRows.map((row: any) => [row.id, row]))
+  const productMap = new Map<number, any>()
+
+  for (const row of productRows) {
+    productMap.set(row.id, {
+      id: row.id,
+      name: row.name,
+      price: row.price,
+      wholesale_price: row.wholesale_price,
+      original_price: row.original_price,
+      image: row.image || '/images/placeholder.webp',
+      images: [],
+      category_id: row.category_id,
+      category: categoryById.get(row.category_id)?.name,
+      is_new: row.is_new ?? false,
+      is_sale: row.is_sale ?? false,
+      is_active: 1,
+      of_price: row.of_price,
+      of_wholesale_price: row.of_wholesale_price,
+      of_original_price: row.of_original_price,
+      of_stock: row.of_stock,
+      of_badge: row.of_badge,
+      of_badge_color: row.of_badge_color,
+      of_active: row.of_active ?? 0,
+      min_wholesale: row.min_wholesale ?? 12,
+      rating: 4.5,
+      reviews: 0,
+      features: ["Suavidad", "Relleno antialergico", "Durabilidad", "Facil lavado"],
+      stock: row.stock ?? 0,
+      product_stock: row.stock ?? 0,
+      badge: row.badge,
+      badge_color: row.badge_color,
+      variants: [],
+      adult_variants: [],
+      child_variants: [],
+      adult_images: [],
+      child_images: [],
+    })
+  }
+
+  for (const row of variantRows) {
+    const product = productMap.get(row.product_id)
+    if (!product) continue
+
+    const variantEntry = {
+      id: String(row.id),
+      label: row.label,
+      price: row.price,
+      wholesale_price: row.wholesale_price,
+      stock: row.stock ?? 0,
+      badge: row.badge,
+      badge_color: row.badge_color,
+      is_active: 1,
+      of_active: row.of_active ?? 0,
+      of_price: row.of_price,
+      of_wholesale_price: row.of_wholesale_price,
+      of_original_price: row.of_original_price,
+      of_stock: row.of_stock,
+      of_badge: row.of_badge,
+      of_badge_color: row.of_badge_color,
+    }
+
+    if (row.variant_type === "adult") {
+      product.adult_variants.push(variantEntry)
+    } else if (row.variant_type === "child") {
+      product.child_variants.push(variantEntry)
+    } else {
+      product.variants.push(variantEntry)
+    }
+
+    product.stock += variantEntry.stock
+  }
+
+  return Array.from(productMap.values()).filter((product: any) => product.is_active !== 0).sort((a: any, b: any) => a.id - b.id)
+}
+
+const getProductsWithVariantsCached = unstable_cache(
+  getProductsWithVariants,
+  ["products-with-variants"],
+  { revalidate: 3600, tags: ["products"] }
+)
 
 function invalidateProductCatalogCache() {
-  cachedProductsWithStock = null
-  cachedVariants = null
-  cachedCategories = null
-  cachedProductsWithVariants = null
-  cachedOfertas = null
+  revalidateTag("products", {})
 }
 
 function invalidateReviewCache() {
-  cachedData = null
-}
-
-async function initTables() {
-  if (initialized) return
-  initialized = true
-  
-  // Create tables (run once on first access after cold start)
-  await turso.execute({
-    sql: `CREATE TABLE IF NOT EXISTS categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      slug TEXT UNIQUE NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`
-  })
-  
-  await turso.execute({
-    sql: `CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT,
-      price REAL NOT NULL,
-      wholesale_price REAL NOT NULL,
-      original_price REAL,
-      image TEXT,
-      category_id INTEGER,
-      is_new BOOLEAN DEFAULT FALSE,
-      is_sale BOOLEAN DEFAULT FALSE,
-      is_best_seller BOOLEAN DEFAULT FALSE,
-      min_wholesale INTEGER DEFAULT 12,
-      rating_sum INTEGER DEFAULT 0,
-      rating_count INTEGER DEFAULT 0,
-      stock INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (category_id) REFERENCES categories(id)
-    )`
-  })
-  
-  await turso.execute({
-    sql: `CREATE TABLE IF NOT EXISTS reviews (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      product_id INTEGER NOT NULL,
-      rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
-      comment TEXT,
-      username TEXT,
-      avatar TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-    )`
-  })
-  
-  await turso.execute({
-    sql: `CREATE TABLE IF NOT EXISTS product_variants (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      product_id INTEGER NOT NULL,
-      label TEXT NOT NULL,
-      price REAL NOT NULL,
-      wholesale_price REAL NOT NULL,
-      stock INTEGER DEFAULT 0,
-      variant_type TEXT DEFAULT 'general',
-      badge TEXT,
-      badge_color TEXT,
-      is_active BOOLEAN DEFAULT 1,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-    )`
-  })
-  
-  await turso.execute({
-    sql: `CREATE TABLE IF NOT EXISTS orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_number TEXT UNIQUE NOT NULL,
-      mode TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'pending',
-      email TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      business_name TEXT,
-      nit TEXT,
-      first_name TEXT,
-      last_name TEXT,
-      address TEXT,
-      apartment TEXT,
-      city TEXT,
-      department TEXT,
-      postal_code TEXT,
-      payment_method TEXT NOT NULL,
-      payment_reference TEXT,
-      payment_screenshot TEXT,
-      subtotal REAL NOT NULL,
-      shipping_cost REAL DEFAULT 0,
-      total REAL NOT NULL,
-      notes TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`
-  })
-  
-  await turso.execute({
-    sql: `CREATE TABLE IF NOT EXISTS order_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
-      product_name TEXT NOT NULL,
-      product_price REAL NOT NULL,
-      quantity INTEGER NOT NULL,
-      total REAL NOT NULL,
-      variant_label TEXT,
-      FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-      FOREIGN KEY (product_id) REFERENCES products(id)
-    )`
-  })
-
-  await turso.execute({
-    sql: `CREATE TABLE IF NOT EXISTS admin_users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      salt TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`
-  })
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE order_items ADD COLUMN variant_label TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN original_price REAL`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN stock INTEGER DEFAULT 0`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN badge TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN badge_color TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE product_variants ADD COLUMN variant_type TEXT DEFAULT 'general'`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE product_variants ADD COLUMN badge TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE product_variants ADD COLUMN badge_color TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE reviews ADD COLUMN username TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE reviews ADD COLUMN avatar TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN of_price REAL`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN of_wholesale_price REAL`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN of_original_price REAL`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN of_stock INTEGER DEFAULT 0`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN of_badge TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN of_badge_color TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN of_active BOOLEAN DEFAULT 0`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE product_variants ADD COLUMN of_price REAL`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE product_variants ADD COLUMN of_wholesale_price REAL`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE product_variants ADD COLUMN of_original_price REAL`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE product_variants ADD COLUMN of_stock INTEGER DEFAULT 0`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE product_variants ADD COLUMN of_badge TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE product_variants ADD COLUMN of_badge_color TEXT`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE product_variants ADD COLUMN of_active BOOLEAN DEFAULT 0`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE products ADD COLUMN is_active BOOLEAN DEFAULT 1`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `ALTER TABLE admin_users ADD COLUMN active INTEGER DEFAULT 1`
-    })
-  } catch (e) {
-    // Column already exists
-  }
-
-  try {
-    await turso.execute({
-      sql: `CREATE TABLE IF NOT EXISTS contacts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        phone TEXT,
-        subject TEXT NOT NULL,
-        message TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )`
-    })
-  } catch (e) {
-    // Table already exists
-  }
+  revalidateTag("reviews", {})
 }
 
 export async function rateProduct(productId: number, rating: number, comment?: string, username?: string, avatar?: string) {
-  await initTables()
 
   // Insert review
   await turso.execute({
@@ -458,146 +264,180 @@ export async function rateProduct(productId: number, rating: number, comment?: s
   }
 }
 
-export async function getAllRatingsAndReviews() {
-  // Check cache first
-  const now = Date.now()
-  if (cachedData && now - cacheTimestamp < CACHE_TTL) {
-    return cachedData
-  }
-  
-  await initTables()
-  
-  // Single query for all products with ratings
-  const ratingsResult = await turso.execute({
-    sql: `SELECT id, rating_sum, rating_count FROM products WHERE rating_count > 0`,
-  })
+let ratingsReviewsCache: { data: { ratings: any; reviews: any }; timestamp: number } | null = null
+const RATINGS_REVIEWS_TTL = 60 * 1000
 
-  // Single query for all reviews
-  const reviewsResult = await turso.execute({
-    sql: `SELECT product_id, id, rating, comment, username, avatar, created_at FROM reviews ORDER BY created_at DESC LIMIT 500`,
-  })
+export async function getAllRatingsAndReviews(cursor?: string | null, limit = 100) {
+   const now = Date.now()
+   const pageSize = Math.min(Math.max(limit, 1), 200)
 
-  // Get ALL products with their static rating data
-  const allProductsResult = await turso.execute({
-    sql: `SELECT id, name FROM products`,
-  })
+   if (!cursor) {
+     if (ratingsReviewsCache && now - ratingsReviewsCache.timestamp < RATINGS_REVIEWS_TTL) {
+       return ratingsReviewsCache.data
+     }
+   }
+   
+   
+   // Single query for all products with ratings
+   const ratingsResult = await turso.execute({
+     sql: `SELECT id, rating_sum, rating_count FROM products WHERE rating_count > 0`,
+   })
 
-  const ratings: Record<number, { avg: number; count: number }> = {}
-  const rows = (ratingsResult as any).rows
-  for (const row of rows) {
-    ratings[row.id] = {
-      avg: row.rating_sum / row.rating_count,
-      count: row.rating_count
+   let reviewsQuery = `SELECT product_id, id, rating, comment, username, avatar, created_at FROM reviews`
+   const reviewsArgs: any[] = []
+   
+    if (cursor) {
+      // Cursor format is `${created_at}_${id}` (see nextCursor below).
+      // Split on the last "_" so the ISO timestamp (which contains no "_") stays intact.
+      const underscoreIndex = cursor.lastIndexOf("_")
+      const cursorCreatedAt = underscoreIndex >= 0 ? cursor.slice(0, underscoreIndex) : cursor
+      const cursorId = underscoreIndex >= 0 ? parseInt(cursor.slice(underscoreIndex + 1) || "0", 10) : 0
+      reviewsQuery += ` WHERE created_at < ? OR (created_at = ? AND id < ?)`
+      reviewsArgs.push(cursorCreatedAt, cursorCreatedAt, cursorId)
+    }
+   
+   reviewsQuery += ` ORDER BY created_at DESC, id DESC LIMIT ?`
+   reviewsArgs.push(pageSize)
+
+   // Single query for all reviews (paginated)
+   const reviewsResult = await turso.execute({
+     sql: reviewsQuery,
+     args: reviewsArgs,
+   })
+
+   // Get ALL products with their static rating data
+   const allProductsResult = await turso.execute({
+     sql: `SELECT id, name FROM products`,
+   })
+
+   const ratings: Record<number, { avg: number; count: number }> = {}
+   const rows = (ratingsResult as any).rows
+   for (const row of rows) {
+     ratings[row.id] = {
+       avg: row.rating_sum / row.rating_count,
+       count: row.rating_count
+     }
+   }
+
+   // Also get product names for sample reviews
+   const productNames: Record<number, string> = {}
+   const allProductsRows = (allProductsResult as any).rows
+   for (const row of allProductsRows) {
+     productNames[row.id] = row.name
+   }
+
+   const getRandomUserAvatar = (id: number) => {
+     const gender = id % 2 === 0 ? "women" : "men"
+     const imageId = ((id * 17 + Math.floor(Math.abs(id) / 100)) % 90) + 1
+     return `https://randomuser.me/api/portraits/${gender}/${imageId}.jpg`
+   }
+
+   const LATIN_COMMENTS: Record<string, string[]> = {
+     peluche: [
+       "¡Muy tierno y suave! Mi hija lo adora.",
+       "Calidad excelente, llegó en perfectas condiciones.",
+       "Ideal para regalar, superó mis expectativas."
+     ],
+     cervical: [
+       "Perfecta para viajes largos, muy cómoda.",
+       "Excelente calidad del relleno antialérgico.",
+       "Mejor de lo esperado, muy práctica."
+     ],
+     cojin: [
+       "Hermoso diseño, llena perfecto mi salón.",
+       "Muy suave y decorativa, llegó rápido.",
+       "Calidad premium, vale cada peso invertido."
+     ],
+     lata: [
+       "Diseño original y muy divertido.",
+       "Ideal para guardar dulces, muy útil.",
+       "Perfecta decoración para mi cuarto."
+     ],
+     llavero: [
+       "Muy práctico y bonito, gran detalle.",
+       "Calidad excelente para su pequeño tamaño.",
+       "Perfecto para agarradera de mochila."
+     ],
+     default: [
+       "Excelente producto, muy recomendable.",
+       "Calidad superior, llegó rápido.",
+       "Perfecto, exactamente lo que esperaba."
+     ]
+   }
+
+   const getSampleReviews = (productId: number, avgRating: number, count: number): any[] => {
+     const productName = productNames[productId] || "Producto"
+     const category = productName.toLowerCase().includes("peluche") ? "peluche" :
+                     productName.toLowerCase().includes("cervical") ? "cervical" :
+                     productName.toLowerCase().includes("cojin") ? "cojin" :
+                     productName.toLowerCase().includes("lata") ? "lata" :
+                     productName.toLowerCase().includes("llavero") ? "llavero" : "default"
+     
+     const comments = LATIN_COMMENTS[category]
+     const commentIndex = (Math.abs(productId) * 7 + productName.length * 3) % comments.length
+     const nameIndex = (Math.abs(productId) * 5 + productId.toString().charCodeAt(0) || 0) % LATIN_NAMES.length
+     const imageId = ((productId * 17 + Math.floor(Math.abs(productId) / 100)) % 90) + 1
+     const gender = productId % 2 === 0 ? "women" : "men"
+     
+     return [{
+       id: -Math.abs(productId),
+       rating: Math.max(1, Math.min(5, Math.round(avgRating))),
+       comment: comments[commentIndex],
+       avatar: `https://randomuser.me/api/portraits/${gender}/${imageId}.jpg`,
+       username: LATIN_NAMES[nameIndex],
+       created_at: new Date(now).toISOString()
+     }]
+   }
+
+   const reviewsByProduct: Record<number, any[]> = {}
+   const reviewRows = (reviewsResult as any).rows
+   
+   for (const row of reviewRows) {
+     if (!reviewsByProduct[row.product_id]) {
+       reviewsByProduct[row.product_id] = []
+     }
+     reviewsByProduct[row.product_id].push({
+       id: row.id,
+       rating: row.rating,
+       comment: row.comment,
+       avatar: row.avatar || getRandomUserAvatar(row.id),
+       username: row.username || LATIN_NAMES[row.id % LATIN_NAMES.length],
+       created_at: row.created_at
+     })
+   }
+
+   // Add sample reviews for ALL products that have no reviews
+   for (const row of allProductsRows) {
+     if (!reviewsByProduct[row.id] || reviewsByProduct[row.id].length === 0) {
+       const avgRating = ratings[row.id]?.avg || 4.5
+       const count = ratings[row.id]?.count || 50
+       reviewsByProduct[row.id] = getSampleReviews(row.id, avgRating, count)
+       
+       // Add to ratings if not exists
+       if (!ratings[row.id]) {
+         ratings[row.id] = { avg: avgRating, count }
+       }
+     }
+   }
+
+    if (!cursor) {
+      const response = { ratings, reviews: reviewsByProduct }
+      ratingsReviewsCache = { data: response, timestamp: Date.now() }
+      return response
+    }
+
+   const lastReview = reviewRows[reviewRows.length - 1]
+   const nextCursor = lastReview ? `${lastReview.created_at}_${lastReview.id}` : null
+
+    return {
+      ratings,
+      reviews: reviewsByProduct,
+      nextCursor,
+      hasMore: reviewRows.length >= pageSize,
     }
   }
-
-  // Also get product names for sample reviews
-  const productNames: Record<number, string> = {}
-  const allProductsRows = (allProductsResult as any).rows
-  for (const row of allProductsRows) {
-    productNames[row.id] = row.name
-  }
-
-  const getRandomUserAvatar = (id: number) => {
-    const gender = id % 2 === 0 ? "women" : "men"
-    const imageId = ((id * 17 + Math.floor(id / 100)) % 90) + 1
-    return `https://randomuser.me/api/portraits/${gender}/${imageId}.jpg`
-  }
-
-  const LATIN_COMMENTS: Record<string, string[]> = {
-    peluche: [
-      "¡Muy tierno y suave! Mi hija lo adora.",
-      "Calidad excelente, llegó en perfectas condiciones.",
-      "Ideal para regalar, superó mis expectativas."
-    ],
-    cervical: [
-      "Perfecta para viajes largos, muy cómoda.",
-      "Excelente calidad del relleno antialérgico.",
-      "Mejor de lo esperado, muy práctica."
-    ],
-    cojin: [
-      "Hermoso diseño, llena perfecto mi salón.",
-      "Muy suave y decorativa, llegó rápido.",
-      "Calidad premium, vale cada peso invertido."
-    ],
-    lata: [
-      "Diseño original y muy divertido.",
-      "Ideal para guardar dulces, muy útil.",
-      "Perfecta decoración para mi cuarto."
-    ],
-    llavero: [
-      "Muy práctico y bonito, gran detalle.",
-      "Calidad excelente para su pequeño tamaño.",
-      "Perfecto para agarradera de mochila."
-    ],
-    default: [
-      "Excelente producto, muy recomendable.",
-      "Calidad superior, llegó rápido.",
-      "Perfecto, exactamente lo que esperaba."
-    ]
-  }
-
-  const getSampleReviews = (productId: number, avgRating: number, count: number): any[] => {
-    const productName = productNames[productId] || "Producto"
-    const category = productName.toLowerCase().includes("peluche") ? "peluche" :
-                    productName.toLowerCase().includes("cervical") ? "cervical" :
-                    productName.toLowerCase().includes("cojin") ? "cojin" :
-                    productName.toLowerCase().includes("lata") ? "lata" :
-                    productName.toLowerCase().includes("llavero") ? "llavero" : "default"
-    
-    const comments = LATIN_COMMENTS[category]
-    const commentIndex = (Math.abs(productId) * 7 + productName.length * 3) % comments.length
-    const nameIndex = (Math.abs(productId) * 5 + productId.toString().charCodeAt(0) || 0) % LATIN_NAMES.length
-    const imageId = ((productId * 17 + Math.floor(Math.abs(productId) / 100)) % 90) + 1
-    const gender = productId % 2 === 0 ? "women" : "men"
-    
-    return [{
-      id: -Math.abs(productId),
-      rating: Math.max(1, Math.min(5, Math.round(avgRating))),
-      comment: comments[commentIndex],
-      avatar: `https://randomuser.me/api/portraits/${gender}/${imageId}.jpg`,
-      username: LATIN_NAMES[nameIndex],
-      created_at: new Date(now).toISOString()
-    }]
-  }
-
-  const reviewsByProduct: Record<number, any[]> = {}
-  const reviewRows = (reviewsResult as any).rows
   
-  for (const row of reviewRows) {
-    if (!reviewsByProduct[row.product_id]) {
-      reviewsByProduct[row.product_id] = []
-    }
-    reviewsByProduct[row.product_id].push({
-      id: row.id,
-      rating: row.rating,
-      comment: row.comment,
-      avatar: row.avatar || getRandomUserAvatar(row.id),
-      username: row.username || LATIN_NAMES[row.id % LATIN_NAMES.length],
-      created_at: row.created_at
-    })
-  }
-
-  // Add sample reviews for ALL products that have no reviews
-  for (const row of allProductsRows) {
-    if (!reviewsByProduct[row.id] || reviewsByProduct[row.id].length === 0) {
-      const avgRating = ratings[row.id]?.avg || 4.5
-      const count = ratings[row.id]?.count || 50
-      reviewsByProduct[row.id] = getSampleReviews(row.id, avgRating, count)
-      
-      // Add to ratings if not exists
-      if (!ratings[row.id]) {
-        ratings[row.id] = { avg: avgRating, count }
-      }
-    }
-  }
-
-  cachedData = { ratings, reviews: reviewsByProduct }
-  cacheTimestamp = now
-  return cachedData
-}
-
-export async function createOrderAction(data: {
+  export async function createOrderAction(data: {
   mode: "retail" | "wholesale"
   email: string
   phone: string
@@ -625,95 +465,91 @@ export async function createOrderAction(data: {
     variantLabel?: string
   }>
 }): Promise<{ orderId: number; orderNumber: string } | { error: string }> {
-  await initTables()
 
-  if (!data.items.length) {
-    return { error: "No hay productos en el pedido" }
-  }
+   if (!data.items.length) {
+     return { error: "No hay productos en el pedido" }
+   }
 
-  const insufficientStock: string[] = []
+   const orderNumber = `${data.mode === "wholesale" ? "COT" : "PEL"}-${randomBytes(6).toString("hex").toUpperCase()}`
 
-  for (const item of data.items) {
-    const variantLabel = item.variantLabel && item.variantLabel.trim() !== "" ? item.variantLabel : null
-    const stock = variantLabel
-      ? await getVariantStock(item.productId, variantLabel)
-      : await getProductStock(item.productId)
+   // Single transaction: order + stock reduction + items are atomic.
+   // If any item lacks stock we rollback everything (no orphan order, no partial stock).
+   const tx = await turso.transaction("write")
 
-    if (stock < item.quantity) {
-      insufficientStock.push(item.productName)
-    }
-  }
-
-  if (insufficientStock.length > 0) {
-    return { error: `Stock insuficiente para: ${insufficientStock.join(", ")}` }
-  }
-
-  const orderNumber = `${data.mode === "wholesale" ? "COT" : "PEL"}-${randomBytes(6).toString("hex").toUpperCase()}`
-
-  const result = await turso.execute({
-    sql: `INSERT INTO orders (
-      order_number, mode, email, phone, business_name, nit,
-      first_name, last_name, address, apartment, city, department, postal_code,
-      payment_method, payment_reference, payment_screenshot,
-      subtotal, shipping_cost, total, notes, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-    args: [
-      orderNumber,
-      data.mode,
-      data.email,
-      data.phone,
-      data.businessName || null,
-      data.nit || null,
-      data.firstName || null,
-      data.lastName || null,
-      data.address || null,
-      data.apartment || null,
-      data.city || null,
-      data.department || null,
-      data.postalCode || null,
-      data.paymentMethod,
-      data.paymentReference,
-      data.paymentScreenshot || null,
-      data.subtotal,
-      data.shippingCost,
-      data.total,
-      data.notes || null,
-    ],
-  })
-
-   const orderId = Number((result as any).lastInsertRowid)
-
-   // Process order items and reduce stock
-    for (const item of data.items) {
-      const variantLabel = item.variantLabel && item.variantLabel.trim() !== "" ? item.variantLabel : null
-      
-      const sufficientStock = variantLabel
-        ? await reduceVariantStock(item.productId, variantLabel, item.quantity)
-        : await reduceProductStock(item.productId, item.quantity)
-      
-      if (!sufficientStock) {
-        throw new Error(`Insufficient stock for product ${item.productName}`)
-      }
-      
-      await turso.execute({
-       sql: `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity, total, variant_label)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+   try {
+     const result = await tx.execute({
+       sql: `INSERT INTO orders (
+         order_number, mode, email, phone, business_name, nit,
+         first_name, last_name, address, apartment, city, department, postal_code,
+         payment_method, payment_reference, payment_screenshot,
+         subtotal, shipping_cost, total, notes, status
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
        args: [
-         orderId,
-         item.productId,
-         item.productName,
-         item.productPrice,
-         item.quantity,
-         item.productPrice * item.quantity,
-         variantLabel,
+         orderNumber,
+         data.mode,
+         data.email,
+         data.phone,
+         data.businessName || null,
+         data.nit || null,
+         data.firstName || null,
+         data.lastName || null,
+         data.address || null,
+         data.apartment || null,
+         data.city || null,
+         data.department || null,
+         data.postalCode || null,
+         data.paymentMethod,
+         data.paymentReference,
+         data.paymentScreenshot || null,
+         data.subtotal,
+         data.shippingCost,
+         data.total,
+         data.notes || null,
        ],
      })
-    }
- 
-   invalidateProductCatalogCache()
- 
-   return { orderId, orderNumber }
-}
+
+     const orderId = Number((result as any).lastInsertRowid)
+
+     for (const item of data.items) {
+       const variantLabel = item.variantLabel && item.variantLabel.trim() !== "" ? item.variantLabel : null
+
+       const sufficientStock = variantLabel
+         ? await reduceVariantStock(item.productId, variantLabel, item.quantity, tx)
+         : await reduceProductStock(item.productId, item.quantity, tx)
+
+       if (!sufficientStock) {
+         await tx.rollback()
+         return { error: `Stock insuficiente para: ${item.productName}` }
+       }
+
+       await tx.execute({
+         sql: `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity, total, variant_label)
+               VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         args: [
+           orderId,
+           item.productId,
+           item.productName,
+           item.productPrice,
+           item.quantity,
+           item.productPrice * item.quantity,
+           variantLabel,
+         ],
+       })
+     }
+
+     await tx.commit()
+     invalidateProductCatalogCache()
+
+     return { orderId, orderNumber }
+   } catch (error) {
+     try {
+       await tx.rollback()
+     } catch {
+     }
+     console.error("createOrderAction error:", error)
+     return { error: "Ocurrió un error al procesar el pedido. Inténtalo de nuevo." }
+   }
+  }
 
 export async function uploadScreenshotAction(formData: FormData) {
   const file = formData.get("file") as File | null
@@ -800,143 +636,6 @@ export async function submitContactForm(data: {
   }
 }
 
-async function getCategoriesCached() {
-  await initTables()
-
-  const cached = getCachedValue(cachedCategories)
-  if (cached) return cached
-
-  const result = await turso.execute({
-    sql: `SELECT id, name, slug FROM categories ORDER BY id`,
-  })
-
-  const rows = (result as any).rows
-  setCachedValue((entry) => { cachedCategories = entry }, rows)
-  return rows
-}
-
-async function getProductsWithStockCached() {
-  await initTables()
-
-  const cached = getCachedValue(cachedProductsWithStock)
-  if (cached) return cached
-
-  const result = await turso.execute({
-    sql: `SELECT id, name, stock, price, wholesale_price, original_price, is_new, is_sale, image, category_id, badge, badge_color, min_wholesale, of_price, of_wholesale_price, of_original_price, of_stock, of_badge, of_badge_color, of_active FROM products ORDER BY name`
-  })
-
-  const rows = (result as any).rows
-  setCachedValue((entry) => { cachedProductsWithStock = entry }, rows)
-  return rows
-}
-
-async function getVariantsCached() {
-  await initTables()
-
-  const cached = getCachedValue(cachedVariants)
-  if (cached) return cached
-
-  const result = await turso.execute({
-    sql: `SELECT id, product_id, label, price, wholesale_price, stock, variant_type, badge, badge_color, of_active, of_price, of_wholesale_price, of_original_price, of_stock, of_badge, of_badge_color FROM product_variants ORDER BY product_id, id`
-  })
-
-  const rows = (result as any).rows
-  setCachedValue((entry) => { cachedVariants = entry }, rows)
-  return rows
-}
-
-async function getProductsWithVariantsCached() {
-  await initTables()
-
-  const cached = getCachedValue(cachedProductsWithVariants)
-  if (cached) return cached
-
-  const [productRows, variantRows, categoryRows] = await Promise.all([
-    getProductsWithStockCached(),
-    getVariantsCached(),
-    getCategoriesCached()
-  ])
-
-  const categoryById = new Map<number, any>(categoryRows.map((row: any) => [row.id, row]))
-  const productMap = new Map<number, any>()
-
-  for (const row of productRows) {
-    productMap.set(row.id, {
-      id: row.id,
-      name: row.name,
-      price: row.price,
-      wholesale_price: row.wholesale_price,
-      original_price: row.original_price,
-      image: row.image || '/images/placeholder.webp',
-      images: [],
-      category_id: row.category_id,
-      category: categoryById.get(row.category_id)?.name,
-      is_new: row.is_new ?? false,
-      is_sale: row.is_sale ?? false,
-      is_active: 1,
-      of_price: row.of_price,
-      of_wholesale_price: row.of_wholesale_price,
-      of_original_price: row.of_original_price,
-      of_stock: row.of_stock,
-      of_badge: row.of_badge,
-      of_badge_color: row.of_badge_color,
-      of_active: row.of_active ?? 0,
-      min_wholesale: row.min_wholesale ?? 12,
-      rating: 4.5,
-      reviews: 0,
-      features: ["Suavidad", "Relleno antialergico", "Durabilidad", "Facil lavado"],
-      stock: row.stock ?? 0,
-      product_stock: row.stock ?? 0,
-      badge: row.badge,
-      badge_color: row.badge_color,
-      variants: [],
-      adult_variants: [],
-      child_variants: [],
-      adult_images: [],
-      child_images: [],
-    })
-  }
-
-  for (const row of variantRows) {
-    const product = productMap.get(row.product_id)
-    if (!product) continue
-
-    const variantEntry = {
-      id: String(row.id),
-      label: row.label,
-      price: row.price,
-      wholesale_price: row.wholesale_price,
-      stock: row.stock ?? 0,
-      badge: row.badge,
-      badge_color: row.badge_color,
-      is_active: 1,
-      of_active: row.of_active ?? 0,
-      of_price: row.of_price,
-      of_wholesale_price: row.of_wholesale_price,
-      of_original_price: row.of_original_price,
-      of_stock: row.of_stock,
-      of_badge: row.of_badge,
-      of_badge_color: row.of_badge_color,
-    }
-
-    if (row.variant_type === "adult") {
-      product.adult_variants.push(variantEntry)
-    } else if (row.variant_type === "child") {
-      product.child_variants.push(variantEntry)
-    } else {
-      product.variants.push(variantEntry)
-    }
-
-    product.stock += variantEntry.stock
-  }
-
-  const rows = Array.from(productMap.values()).filter((product: any) =>
-    product.is_active !== 0
-  ).sort((a: any, b: any) => a.id - b.id)
-  setCachedValue((entry) => { cachedProductsWithVariants = entry }, rows)
-  return rows
-}
-
 function getOfertasFromCatalog() {
   return getProductsWithVariantsCached().then(products => products.filter((product: any) => {
     if (product.is_active === 0) return false
@@ -951,7 +650,6 @@ function getOfertasFromCatalog() {
 }
 
 export async function getProductStock(productId: number): Promise<number> {
-  await initTables()
   
   const result = await turso.execute({
     sql: `SELECT stock FROM products WHERE id = ?`,
@@ -963,7 +661,6 @@ export async function getProductStock(productId: number): Promise<number> {
 }
 
 export async function addProductStock(productId: number, quantity: number): Promise<void> {
-  await initTables()
   
   await turso.execute({
     sql: `UPDATE products SET stock = stock + ? WHERE id = ?`,
@@ -972,26 +669,22 @@ export async function addProductStock(productId: number, quantity: number): Prom
   invalidateProductCatalogCache()
 }
 
-export async function reduceProductStock(productId: number, quantity: number): Promise<boolean> {
-  await initTables()
-  
-  // First check if we have enough stock
-  const currentStock = await getProductStock(productId)
-  if (currentStock < quantity) {
-    return false // Not enough stock
-  }
-  
-  await turso.execute({
-    sql: `UPDATE products SET stock = stock - ? WHERE id = ?`,
-    args: [quantity, productId]
+export async function reduceProductStock(productId: number, quantity: number, executor: any = turso): Promise<boolean> {
+
+  const result = await executor.execute({
+    sql: `UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?`,
+    args: [quantity, productId, quantity]
   })
+
+  if ((result as any).rowsAffected === 0) {
+    return false
+  }
+
   invalidateProductCatalogCache()
-  
   return true
 }
 
 export async function setProductStock(productId: number, quantity: number): Promise<void> {
-  await initTables()
   
   await turso.execute({
     sql: `UPDATE products SET stock = ? WHERE id = ?`,
@@ -1013,7 +706,6 @@ export async function getVariantsByProductId(productId: number): Promise<Array<{
 }
 
 export async function seedProductsAndVariants(): Promise<void> {
-  await initTables()
 
   const categories = [
     { name: "llaveros", slug: "llaveros" },
@@ -1195,7 +887,6 @@ export async function upsertProductVariants(productId: number, variants: Array<{
   wholesalePrice: number
   stock: number
 }>): Promise<void> {
-  await initTables()
 
   const cachedVariants = await getVariantsCached()
   let inserted = false
@@ -1222,67 +913,30 @@ function normalizeLabel(label: string): string {
 }
 
 export async function getVariantStock(productId: number, variantLabel: string): Promise<number> {
-  await initTables()
-  
-  const normalized = normalizeLabel(variantLabel)
   const result = await turso.execute({
-    sql: `SELECT label, stock FROM product_variants WHERE product_id = ?`,
-    args: [productId]
-  })
-  
-  const rows = (result as any).rows as any[]
-  for (const row of rows) {
-    if (normalizeLabel(row.label) === normalized) {
-      return row.stock
-    }
-  }
-  
-  const directResult = await turso.execute({
-    sql: `SELECT stock FROM product_variants WHERE product_id = ? AND label = ?`,
+    sql: `SELECT stock FROM product_variants WHERE product_id = ? AND LOWER(label) = LOWER(?) COLLATE NOCASE`,
     args: [productId, variantLabel]
   })
-  const directRow = (directResult as any).rows[0]
-  return directRow ? directRow.stock : 0
+  const row = (result as any).rows[0]
+  return row ? row.stock : 0
 }
 
-export async function reduceVariantStock(productId: number, variantLabel: string, quantity: number): Promise<boolean> {
-  await initTables()
-  
-  const currentStock = await getVariantStock(productId, variantLabel)
-  if (currentStock < quantity) {
-    return false
-  }
-  
-  const normalized = normalizeLabel(variantLabel)
-  const result = await turso.execute({
-    sql: `SELECT label FROM product_variants WHERE product_id = ?`,
-    args: [productId]
-  })
-  const rows = (result as any).rows as any[]
-  const exactLabel = rows.find((row: any) => normalizeLabel(row.label) === normalized)?.label ?? variantLabel
-  
-  await turso.execute({
+export async function reduceVariantStock(productId: number, variantLabel: string, quantity: number, executor: any = turso): Promise<boolean> {
+  const result = await executor.execute({
     sql: `UPDATE product_variants SET 
           stock = CASE WHEN of_active != 1 THEN stock - ? ELSE stock END,
           of_stock = CASE WHEN of_active = 1 THEN of_stock - ? ELSE of_stock END
-          WHERE product_id = ? AND label = ?`,
-    args: [quantity, quantity, productId, exactLabel]
+          WHERE product_id = ? AND LOWER(label) = LOWER(?) COLLATE NOCASE
+          AND ((of_active != 1 AND stock >= ?) OR (of_active = 1 AND of_stock >= ?))`,
+    args: [quantity, quantity, productId, variantLabel, quantity, quantity]
   })
-  
+
+  if ((result as any).rowsAffected === 0) {
+    return false
+  }
+
   invalidateProductCatalogCache()
   return true
-}
-
-export async function getProductsWithStock(): Promise<Array<{ 
-  id: number, 
-  name: string, 
-  stock: number,
-  price: number,
-  wholesale_price: number,
-  image: string,
-  category_id: number
-}>> {
-  return getProductsWithStockCached()
 }
 
 let exchangeRateCache: { rate: number; timestamp: number } | null = null
@@ -1384,7 +1038,6 @@ export async function getProductsWithVariantsFromDB(categorySlug?: string): Prom
 }
 
 export async function updateProductPrice(productId: number, price: number, wholesalePrice: number, originalPrice?: number): Promise<void> {
-  await initTables()
   
   if (originalPrice !== undefined) {
     await turso.execute({
@@ -1401,7 +1054,6 @@ export async function updateProductPrice(productId: number, price: number, whole
 }
 
 export async function updateProductStock(productId: number, stock: number): Promise<void> {
-  await initTables()
   
   await turso.execute({
     sql: `UPDATE products SET stock = ? WHERE id = ?`,
@@ -1411,7 +1063,6 @@ export async function updateProductStock(productId: number, stock: number): Prom
 }
 
 export async function updateProductBadge(productId: number, isNew: boolean, isSale: boolean, badge?: string, badgeColor?: string): Promise<void> {
-  await initTables()
   const ofActive = isSale ? 1 : 0
   await turso.execute({
     sql: `UPDATE products SET is_new = ?, is_sale = ?, badge = ?, badge_color = ?, of_active = ? WHERE id = ?`,
@@ -1421,7 +1072,6 @@ export async function updateProductBadge(productId: number, isNew: boolean, isSa
 }
 
 export async function updateVariantBadge(variantId: number, badge?: string, badgeColor?: string): Promise<void> {
-  await initTables()
   
   await turso.execute({
     sql: `UPDATE product_variants SET badge = ?, badge_color = ? WHERE id = ?`,
@@ -1431,7 +1081,6 @@ export async function updateVariantBadge(variantId: number, badge?: string, badg
 }
 
 export async function updateVariantPrice(variantId: number, price: number, wholesalePrice: number): Promise<void> {
-  await initTables()
   
   await turso.execute({
     sql: `UPDATE product_variants SET price = ?, wholesale_price = ? WHERE id = ?`,
@@ -1441,7 +1090,6 @@ export async function updateVariantPrice(variantId: number, price: number, whole
 }
 
 export async function updateVariantStock(variantId: number, stock: number): Promise<void> {
-  await initTables()
   
   await turso.execute({
     sql: `UPDATE product_variants SET stock = ? WHERE id = ?`,
@@ -1464,30 +1112,28 @@ export async function createProduct(data: {
   badgeColor?: string
   features?: string[]
 }): Promise<number> {
-  await initTables()
-  
+  await requireAdmin()
+
   const categoryResult = await turso.execute({
     sql: `SELECT id FROM categories WHERE slug = ?`,
     args: [data.category]
   })
-  
+
   const categoryRow = (categoryResult as any).rows[0]
   if (!categoryRow) {
     throw new Error(`Category ${data.category} not found`)
   }
-  
+
   const result = await turso.execute({
-    sql: `SELECT p.id, p.name, p.price, p.wholesale_price, p.original_price, p.image, p.category_id, p.is_new, p.is_sale, p.stock, p.badge, p.badge_color, c.name as category, pv.id as variant_id, pv.label as variant_label, pv.price as variant_price, pv.wholesale_price as variant_wholesale, pv.stock as variant_stock, pv.badge as variant_badge, pv.badge_color as variant_badge_color, pv.variant_type, pv.is_active as variant_is_active        FROM products p
-       INNER JOIN product_variants pv ON p.id = pv.product_id
-       LEFT JOIN categories c ON p.category_id = c.id`
+    sql: `INSERT INTO products (name, price, wholesale_price, image, category_id, is_new, is_sale, stock, of_active, of_price, of_original_price, of_stock, of_badge, of_badge_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [data.name, data.price, data.wholesalePrice, data.image, categoryRow.id, !!(data.isNew || data.badge), !!data.originalPrice, data.stock, data.originalPrice ? 1 : 0, data.originalPrice ? data.price : null, data.originalPrice || null, data.originalPrice ? data.stock : 0, data.originalPrice ? "OFERTA" : null, data.originalPrice ? "bg-red-500" : null],
   })
-  
+
   invalidateProductCatalogCache()
   return Number((result as any).lastInsertRowid)
 }
 
 export async function deleteProduct(productId: number): Promise<void> {
-  await initTables()
   
   await turso.execute({
     sql: `DELETE FROM products WHERE id = ?`,
@@ -1503,7 +1149,6 @@ export async function createVariant(productId: number, data: {
   stock: number
   variantType?: string
 }): Promise<number> {
-  await initTables()
   
   const result = await turso.execute({
     sql: `INSERT INTO product_variants (product_id, label, price, wholesale_price, stock, variant_type) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -1550,42 +1195,61 @@ export async function getAllOrders(): Promise<Array<{
      quantity: number
      total: number
      variant_label?: string
- }>
-}>> {
-   await initTables()
+   }>
+  }>> {
+   await requireAdmin()
 
-   const ordersResult = await turso.execute({
-     sql: `SELECT * FROM orders ORDER BY created_at DESC`
+   const result = await turso.execute({
+     sql: `SELECT o.id, o.order_number, o.mode, o.status, o.email, o.phone, o.business_name, o.nit, o.first_name, o.last_name, o.address, o.city, o.department, o.payment_method, o.payment_reference, o.payment_screenshot, o.subtotal, o.shipping_cost, o.total, o.notes, o.created_at, oi.product_id, oi.product_name, oi.product_price, oi.quantity, oi.total as item_total, oi.variant_label FROM orders o LEFT JOIN order_items oi ON o.id = oi.order_id ORDER BY o.created_at DESC`,
    })
 
-   const orders = (ordersResult as any).rows
+   const rows = (result as any).rows as any[]
+   const ordersMap = new Map<number, any>()
 
-   const ordersWithItems = await Promise.all(
-     orders.map(async (order: any) => {
-       const itemsResult = await turso.execute({
-         sql: `SELECT product_id, product_name, product_price, quantity, total, variant_label FROM order_items WHERE order_id = ?`,
-         args: [order.id]
+   for (const row of rows) {
+     if (!ordersMap.has(row.id)) {
+       ordersMap.set(row.id, {
+         id: row.id,
+         order_number: row.order_number,
+         mode: row.mode,
+         status: row.status,
+         email: row.email,
+         phone: row.phone,
+         business_name: row.business_name,
+         nit: row.nit,
+         first_name: row.first_name,
+         last_name: row.last_name,
+         address: row.address,
+         city: row.city,
+         department: row.department,
+         payment_method: row.payment_method,
+         payment_reference: row.payment_reference,
+         payment_screenshot: row.payment_screenshot,
+         subtotal: row.subtotal,
+         shipping_cost: row.shipping_cost,
+         total: row.total,
+         notes: row.notes,
+         created_at: row.created_at,
+         items: [],
        })
+     }
 
-       return {
-         ...order,
-         items: (itemsResult as any).rows.map((row: any) => ({
-           product_id: row.product_id,
-           product_name: row.product_name,
-           product_price: row.product_price,
-           quantity: row.quantity,
-           total: row.total,
-           variant_label: row.variant_label,
-         }))
-       }
-     })
-   )
+     if (row.product_id) {
+       ordersMap.get(row.id)!.items.push({
+         product_id: row.product_id,
+         product_name: row.product_name,
+         product_price: row.product_price,
+         quantity: row.quantity,
+         total: row.item_total,
+         variant_label: row.variant_label,
+       })
+     }
+   }
 
-   return ordersWithItems
+   return Array.from(ordersMap.values())
  }
 
-export async function updateOrderStatus(orderId: number, status: string): Promise<void> {
-  await initTables()
+ export async function updateOrderStatus(orderId: number, status: string): Promise<void> {
 
   await turso.execute({
     sql: `UPDATE orders SET status = ?, updated_at = ? WHERE id = ?`,
@@ -1595,69 +1259,9 @@ export async function updateOrderStatus(orderId: number, status: string): Promis
 
 // =============== OFERTAS ===============
 
-export async function getOfertas(): Promise<Array<{
-   id: number
-   name: string
-   image: string
-   category: string
-   is_new?: boolean
-   badge?: string
-   badge_color?: string
-   rating?: number
-   reviews?: number
-   features?: string[]
-   stock: number
-   isSale?: boolean
-   price: number
-   wholesalePrice: number
-   originalPrice?: number
-   variants?: Array<{
-     id: string
-     label: string
-     price: number
-     wholesale_price: number
-     stock: number
-     badge?: string
-     badge_color?: string
-     is_active?: boolean
-     of_active?: boolean
-     of_price?: number
-     of_wholesale_price?: number
-     of_original_price?: number
-     of_stock?: number
-   }>
-   adult_variants?: Array<{
-     id: string
-     label: string
-     price: number
-     wholesale_price: number
-     stock: number
-     badge?: string
-     badge_color?: string
-     is_active?: boolean
-     of_active?: boolean
-     of_price?: number
-     of_original_price?: number
-   }>
-   child_variants?: Array<{
-     id: string
-     label: string
-     price: number
-     wholesale_price: number
-     stock: number
-     badge?: string
-     badge_color?: string
-     is_active?: boolean
-     of_active?: boolean
-     of_price?: number
-     of_original_price?: number
-   }>
-}>> {
-  const cached = getCachedValue(cachedOfertas)
-  if (cached) return cached
-
+async function loadOfertas() {
   const ofertas = await getOfertasFromCatalog()
-  const normalized = ofertas.map((product: any) => ({
+  return ofertas.map((product: any) => ({
     ...product,
     isSale: product.is_sale,
     price: product.price,
@@ -1665,9 +1269,13 @@ export async function getOfertas(): Promise<Array<{
     originalPrice: product.original_price,
     stock: product.stock || product.product_stock || 0,
   }))
-  setCachedValue((entry) => { cachedOfertas = entry }, normalized)
-  return normalized
 }
+
+const getOfertas = unstable_cache(
+  loadOfertas,
+  ["ofertas"],
+  { revalidate: 3600, tags: ["products"] }
+)
 
 function getOfferDiscount(originalPrice?: number | null, price?: number | null) {
   if (!originalPrice || !price || originalPrice <= 0) return 0
@@ -1786,7 +1394,6 @@ export async function upsertOfertaEntry(data: {
   active?: boolean
 }) {
   await requireAdmin()
-  await initTables()
 
   if (data.variantId) {
     const variantResult = await turso.execute({
@@ -1848,7 +1455,6 @@ export async function upsertOfertaEntry(data: {
 
 export async function toggleOfertaEntryActive(id: number, active: boolean) {
   await requireAdmin()
-  await initTables()
 
   if (id > 0) {
     await turso.execute({
@@ -1867,7 +1473,6 @@ export async function toggleOfertaEntryActive(id: number, active: boolean) {
 
 export async function deleteOfertaEntry(id: number) {
   await requireAdmin()
-  await initTables()
 
   if (id > 0) {
     await turso.execute({
@@ -1893,7 +1498,6 @@ export async function createOferta(productId: number, data: {
   badgeColor?: string
   active?: boolean
 }): Promise<void> {
-  await initTables()
 
   try {
     await turso.execute({
@@ -1912,7 +1516,6 @@ export async function createOferta(productId: number, data: {
 }
 
 export async function deleteOferta(productId: number): Promise<void> {
-  await initTables()
 
   try {
     await turso.execute({
@@ -1931,7 +1534,6 @@ export async function deleteOferta(productId: number): Promise<void> {
 }
 
 export async function toggleOferta(productId: number, active: boolean): Promise<void> {
-  await initTables()
 
   await turso.execute({
     sql: `UPDATE products SET is_sale = ? WHERE id = ?`,
@@ -1949,24 +1551,30 @@ export async function updateOferta(productId: number, data: {
   badgeColor?: string
   active?: boolean
 }): Promise<void> {
-  await initTables()
 
-  const fields: string[] = []
-  const args: any[] = []
+  // Only allowlisted column names may be interpolated into the SQL (defense in depth).
+  const ALLOWED_COLUMNS = new Set([
+    "price", "wholesale_price", "original_price", "stock", "badge", "badge_color", "is_sale",
+  ])
 
-  if (data.price !== undefined) { fields.push('price = ?'); args.push(data.price) }
-  if (data.wholesalePrice !== undefined) { fields.push('wholesale_price = ?'); args.push(data.wholesalePrice) }
-  if (data.originalPrice !== undefined) { fields.push('original_price = ?'); args.push(data.originalPrice) }
-  if (data.stock !== undefined) { fields.push('stock = ?'); args.push(data.stock) }
-  if (data.badge !== undefined) { fields.push('badge = ?'); args.push(data.badge) }
-  if (data.badgeColor !== undefined) { fields.push('badge_color = ?'); args.push(data.badgeColor) }
-  if (data.active !== undefined) { fields.push('is_sale = ?'); args.push(data.active ? 1 : 0) }
+  const assignments: Array<{ column: string; value: any }> = []
 
-  if (fields.length > 0) {
-    fields.push('id = ?')
+  if (data.price !== undefined) { assignments.push({ column: "price", value: data.price }) }
+  if (data.wholesalePrice !== undefined) { assignments.push({ column: "wholesale_price", value: data.wholesalePrice }) }
+  if (data.originalPrice !== undefined) { assignments.push({ column: "original_price", value: data.originalPrice }) }
+  if (data.stock !== undefined) { assignments.push({ column: "stock", value: data.stock }) }
+  if (data.badge !== undefined) { assignments.push({ column: "badge", value: data.badge }) }
+  if (data.badgeColor !== undefined) { assignments.push({ column: "badge_color", value: data.badgeColor }) }
+  if (data.active !== undefined) { assignments.push({ column: "is_sale", value: data.active ? 1 : 0 }) }
+
+  const validAssignments = assignments.filter((a) => ALLOWED_COLUMNS.has(a.column))
+
+  if (validAssignments.length > 0) {
+    const setClause = validAssignments.map((a) => `${a.column} = ?`).join(", ")
+    const args = validAssignments.map((a) => a.value)
     args.push(productId)
     await turso.execute({
-      sql: `UPDATE products SET ${fields.join(', ')} WHERE id = ?`,
+      sql: `UPDATE products SET ${setClause} WHERE id = ?`,
       args
     })
   }
@@ -1982,7 +1590,6 @@ export async function setOfertaVariantData(variantId: number, data: {
   badgeColor?: string
   active?: boolean
 }): Promise<void> {
-  await initTables()
 
   const fieldsOf: string[] = []
   const argsOf: any[] = []
@@ -2030,7 +1637,6 @@ export async function setOfertaVariantData(variantId: number, data: {
 }
 
 export async function toggleVariantActive(variantId: number, active: boolean): Promise<void> {
-  await initTables()
 
   try {
     await turso.execute({
@@ -2060,7 +1666,6 @@ export async function setVariantOferta(variantId: number, data: {
    badge?: string
    badgeColor?: string
  }): Promise<void> {
-   await initTables()
 
    const fieldsOf: string[] = []
    const argsOf: any[] = []
@@ -2089,7 +1694,6 @@ export async function setVariantOferta(variantId: number, data: {
  }
 
 export async function toggleProductActive(productId: number, active: boolean): Promise<void> {
-  await initTables()
 
   await turso.execute({
     sql: `UPDATE products SET is_active = ? WHERE id = ?`,
@@ -2105,7 +1709,16 @@ export async function adminLogin(password: string, username?: string): Promise<{
     return { success: false, error: "Usuario y contraseña requeridos" }
   }
 
-  await initTables()
+  const headersList = await headers()
+  const clientIp = (headersList.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || headersList.get("x-real-ip")
+    || "unknown")
+
+  // Rate limit both by username and by client IP to prevent brute-forcing many accounts.
+  if (!checkLoginRateLimit(`user:${username}`) || !checkLoginRateLimit(`ip:${clientIp}`)) {
+    return { success: false, error: "Demasiados intentos. Intenta de nuevo en 1 minuto." }
+  }
+
 
   const result = await turso.execute({
     sql: `SELECT id, password_hash, salt FROM admin_users WHERE username = ?`,
@@ -2141,7 +1754,6 @@ export async function createAdminUser(username: string, password: string): Promi
     return { success: false, error: "Usuario y contraseña requeridos" }
   }
 
-  await initTables()
   const salt = randomBytes(16).toString("hex")
   const passwordHash = Buffer.from(require("crypto").scryptSync(password, salt, 64)).toString("hex")
 
@@ -2334,9 +1946,12 @@ export async function updateVariant(variantId: number, data: {
 }
 
 export async function getProductStockAction(productId: number): Promise<{ productId: number; stock: number }> {
-  const products = await getProductsWithStockCached()
-  const product = products.find((row: any) => row.id === productId)
-  return { productId, stock: product ? product.stock : 0 }
+  const result = await turso.execute({
+    sql: `SELECT stock FROM products WHERE id = ?`,
+    args: [productId]
+  })
+  const row = (result as any).rows[0]
+  return { productId, stock: row ? row.stock : 0 }
 }
 
 export async function getAllProductsWithStockAction() {
@@ -2348,7 +1963,7 @@ export async function updateInventoryAction(data: {
   quantity: number
   action: "add" | "reduce" | "set"
 }) {
-  requireAdmin()
+  await requireAdmin()
   try {
     if (data.action === "add") {
       await addProductStock(data.productId, data.quantity)
