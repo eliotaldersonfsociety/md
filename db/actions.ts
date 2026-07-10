@@ -541,12 +541,13 @@ export async function getAllRatingsAndReviews(cursor?: string | null, limit = 10
      invalidateProductCatalogCache()
 
      return { orderId, orderNumber }
-   } catch (error) {
-     try {
-       await tx.rollback()
-     } catch {
-     }
-     console.error("createOrderAction error:", error)
+    } catch (error) {
+      try {
+        await tx.rollback()
+      } catch (rollbackError) {
+        console.error("createOrderAction rollback failed:", rollbackError)
+      }
+      console.error("createOrderAction error:", error)
      return { error: "Ocurrió un error al procesar el pedido. Inténtalo de nuevo." }
    }
   }
@@ -595,6 +596,15 @@ export async function uploadScreenshotAction(formData: FormData) {
   return { url: imageUrl, filename: result.name }
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
 export async function submitContactForm(data: {
   name: string
   email: string
@@ -620,7 +630,7 @@ export async function submitContactForm(data: {
         from: "Mundo Disney <onboarding@resend.dev>",
         to: ["fabricadepeluchesmundodisney@gmail.com"],
         subject: "Nuevo contacto: " + data.subject,
-        html: "<h2>Nuevo mensaje de contacto</h2><p><strong>Nombre:</strong> " + data.name + "</p><p><strong>Email:</strong> " + data.email + "</p><p><strong>Telefono:</strong> " + (data.phone || "No especificado") + "</p><p><strong>Asunto:</strong> " + data.subject + "</p><p><strong>Mensaje:</strong> " + data.message + "</p>"
+        html: "<h2>Nuevo mensaje de contacto</h2><p><strong>Nombre:</strong> " + escapeHtml(data.name) + "</p><p><strong>Email:</strong> " + escapeHtml(data.email) + "</p><p><strong>Telefono:</strong> " + escapeHtml(data.phone || "No especificado") + "</p><p><strong>Asunto:</strong> " + escapeHtml(data.subject) + "</p><p><strong>Mensaje:</strong> " + escapeHtml(data.message) + "</p>"
       })
     })
     
@@ -1707,6 +1717,11 @@ export async function toggleProductActive(productId: number, active: boolean): P
 export async function adminLogin(password: string, username?: string): Promise<{ success: boolean; error?: string }> {
   if (!username || !password) {
     return { success: false, error: "Usuario y contraseña requeridos" }
+  }
+
+  // Limit password length to prevent CPU/DoS via expensive scrypt hashing.
+  if (password.length > 128) {
+    return { success: false, error: "Contraseña demasiado larga" }
   }
 
   const headersList = await headers()

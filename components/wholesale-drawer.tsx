@@ -184,7 +184,7 @@ export function WholesaleDrawer({ isOpen, onClose }: WholesaleDrawerProps) {
               {/* Actions */}
               <div className="space-y-2">
                  <a
-                   href={`https://wa.me/573213438063?text=${generateWhatsAppMessage()}`}
+                   href={`https://wa.me/573112814787?text=${generateWhatsAppMessage()}`}
                    target="_blank"
                    rel="noopener noreferrer"
                    className="w-full"

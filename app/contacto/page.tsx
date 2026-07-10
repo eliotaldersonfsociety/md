@@ -338,7 +338,7 @@ export default function ContactoPage() {
                 </p>
                 <div className="space-y-3">
                   <a 
-                    href="https://wa.me/573213438063" 
+                    href="https://wa.me/573112814787" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 bg-accent text-accent-foreground rounded-xl px-5 py-3 font-semibold hover:bg-accent/90 transition-colors"

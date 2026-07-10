@@ -48,7 +48,7 @@ const slides = [
     description: "Somos fabricantes directos. Obtiene los mejores precios al por mayor.",
     image: "/images/portada/2.webp",
     primaryButton: { text: "Cotizar Mayoreo", href: "/contacto" },
-    secondaryButton: { text: "Llamar Ahora", href: "tel:+573213438063" },
+    secondaryButton: { text: "Llamar Ahora", href: "tel:+573112814787" },
     stats: [
       { value: "-50%", label: "Precios Mayoreo" },
       { value: "+200", label: "Distribuidores" },
