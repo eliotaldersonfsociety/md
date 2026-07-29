@@ -48,10 +48,16 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
       let basePrice = staticVariant?.price ?? v.price ?? p.price
       let baseWholesale = staticVariant?.wholesalePrice ?? v.wholesale_price ?? p.wholesale_price ?? p.price
 
-      const isMiaSam = p.name === "Peluche Mia la Osa" || p.name === "Peluche Sam el Oso"
-      if (isMiaSam && v.label.includes("#4")) {
-        basePrice = 150000
-        baseWholesale = 85000
+      const isPeluche = (p.category || "").toLowerCase() === "peluches" || /Peluche/.test(p.name || "")
+
+      if (isPeluche && v.label.includes("#2")) {
+        baseWholesale = 11
+      }
+      if (isPeluche && v.label.includes("#3")) {
+        baseWholesale = 18
+      }
+      if (isPeluche && v.label.includes("#4")) {
+        baseWholesale = 30
       }
 
       return {
