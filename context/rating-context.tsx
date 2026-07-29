@@ -1,7 +1,6 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { getAllRatingsAndReviews } from "@/db/actions"
 
 type RatingData = Record<number, { avg: number; count: number }>
 type ReviewsData = Record<number, any[]>
@@ -168,37 +167,20 @@ export function RatingProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Import products data to get static ratings
     import("@/lib/products-data").then(({ allProducts }) => {
       const staticRatings: RatingData = {}
       const staticReviews: ReviewsData = {}
       
       allProducts.forEach(product => {
         if (product.rating && product.reviews) {
-          staticRatings[product.id] = {
-            avg: product.rating,
-            count: product.reviews
-          }
+          staticRatings[product.id] = { avg: product.rating, count: product.reviews }
           staticReviews[product.id] = generateSampleReviews(product.id, product.name, product.rating)
         }
       })
       
-      // Try to fetch real reviews from API
-      getAllRatingsAndReviews()
-        .then(data => {
-          if (data.reviews && Object.keys(data.reviews).length > 0) {
-            setReviews(data.reviews)
-            setRatings(data.ratings || staticRatings)
-          } else {
-            setRatings(staticRatings)
-            setReviews(staticReviews)
-          }
-        })
-        .catch(() => {
-          setRatings(staticRatings)
-          setReviews(staticReviews)
-        })
-        .finally(() => setLoading(false))
+      setRatings(staticRatings)
+      setReviews(staticReviews)
+      setLoading(false)
     })
   }, [])
 

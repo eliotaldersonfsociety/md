@@ -41,7 +41,7 @@ const characters = [
   },
   {
     name: "Kira",
-    image: "/images/personajes/Kira.webp",
+    image: "/images/personajes/kira.webp",
     personality: "Valiente y protectora"
   },
   {

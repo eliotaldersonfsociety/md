@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Search, RefreshCw, Edit2, X, Check, ShoppingCart, Package, Eye, Flame } from "lucide-react"
+import { Search, RefreshCw, Edit2, X, Check, ShoppingCart, Package, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -23,7 +23,9 @@ import {
   adminGetOrders,
   adminUpdateOrderStatus,
   adminUpdateVariant,
-  adminSetVariantOferta,
+  createProduct,
+  createVariant,
+  seedProductsFromData,
 } from "@/db/actions"
 
 interface Product {
@@ -57,21 +59,15 @@ interface EditingProduct {
 }
 
 interface VariantBase {
-   id: number
-   label: string
-   price: number
-   wholesale_price: number
-   stock: number
-   badge?: string
-   badge_color?: string
-   is_active?: boolean
-   of_active?: boolean
-   of_price?: number
-   of_wholesale_price?: number
-   of_original_price?: number
-   of_badge?: string
-   of_badge_color?: string
- }
+    id: number
+    label: string
+    price: number
+    wholesale_price: number
+    stock: number
+    badge?: string
+    badge_color?: string
+    is_active?: boolean
+  }
 
 interface VariantWithType extends VariantBase {
   variant_type?: string
@@ -87,30 +83,43 @@ export default function AdminDashboard() {
    const [editForm, setEditForm] = useState<EditingProduct | null>(null)
    const [editingVariantId, setEditingVariantId] = useState<number | null>(null)
 const [editVariantForm, setEditVariantForm] = useState<{
-       id?: number;
-       price?: number;
-       wholesale_price?: number;
-       stock?: number;
-       badge?: string;
-       badge_color?: string;
-       active?: boolean;
-       of_active?: boolean;
-       of_price?: number;
-       of_wholesale_price?: number;
-       of_original_price?: number;
-       of_stock?: number;
-       of_badge?: string;
-       of_badge_color?: string;
-     } | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
-const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { text: string; color: string }>>({})
-   const [editedVariantOfertas, setEditedVariantOfertas] = useState<Record<number, { price?: number; originalPrice?: number; active?: boolean }>>({})
-   const [selectedOrder, setSelectedOrder] = useState<any>(null)
+        id?: number;
+        price?: number;
+        wholesale_price?: number;
+        stock?: number;
+        badge?: string;
+        badge_color?: string;
+        active?: boolean;
+      } | null>(null)
+const [selectedCategory, setSelectedCategory] = useState<string>("all")
+  const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { text: string; color: string }>>({})
+  const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [usernameInput, setUsernameInput] = useState("")
   const [passwordInput, setPasswordInput] = useState("")
   const [loginLoading, setLoginLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("products")
+  
+  const [showCreateVariantDialog, setShowCreateVariantDialog] = useState(false)
+  const [createVariantProduct, setCreateVariantProduct] = useState<Product | null>(null)
+  const [createVariantForm, setCreateVariantForm] = useState({
+    label: "",
+    price: 0,
+    wholesalePrice: 0,
+    stock: 0
+  })
+  
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [createForm, setCreateForm] = useState({
+    name: "",
+    price: 0,
+    wholesalePrice: 0,
+    originalPrice: "",
+    image: "",
+    category: "",
+    stock: 0
+  })
+  const [createLoading, setCreateLoading] = useState(false)
 
   const categories = ["all", ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))]
 
@@ -150,6 +159,54 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
     setProducts([])
     setOrders([])
     toast.success("Sesion cerrada")
+  }
+
+  const handleCreateProduct = async () => {
+    setCreateLoading(true)
+    try {
+      const result: any = await createProduct({
+        name: createForm.name,
+        price: createForm.price,
+        wholesalePrice: createForm.wholesalePrice,
+        originalPrice: createForm.originalPrice ? Number(createForm.originalPrice) : undefined,
+        image: createForm.image,
+        category: createForm.category,
+        stock: createForm.stock
+      })
+      if (result) {
+        toast.success("Producto creado exitosamente")
+        setShowCreateDialog(false)
+        setCreateForm({ name: "", price: 0, wholesalePrice: 0, originalPrice: "", image: "", category: "", stock: 0 })
+        fetchProducts()
+      } else {
+        toast.error("Error al crear producto")
+      }
+    } catch (error) {
+      toast.error("Error al crear producto")
+      console.error(error)
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
+  const handleCreateVariant = async () => {
+    if (!createVariantProduct) return
+    try {
+      await createVariant(createVariantProduct.id, {
+        label: createVariantForm.label,
+        price: createVariantForm.price,
+        wholesalePrice: createVariantForm.wholesalePrice,
+        stock: createVariantForm.stock
+      })
+      toast.success("Variante creada")
+      setShowCreateVariantDialog(false)
+      setCreateVariantProduct(null)
+      setCreateVariantForm({ label: "", price: 0, wholesalePrice: 0, stock: 0 })
+      fetchProducts()
+    } catch (error) {
+      toast.error("Error al crear variante")
+      console.error(error)
+    }
   }
 
   const fetchProducts = useCallback(async () => {
@@ -255,13 +312,6 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
           badge: editVariantForm.badge,
           badgeColor: editVariantForm.badge_color,
           active: editVariantForm.active,
-          of_active: editVariantForm.of_active,
-          of_price: editVariantForm.of_price,
-          of_wholesale_price: editVariantForm.of_wholesale_price,
-          of_original_price: editVariantForm.of_original_price,
-          of_stock: editVariantForm.of_stock,
-          of_badge: editVariantForm.of_badge,
-          of_badge_color: editVariantForm.of_badge_color,
         })
         if (result.success) {
          toast.success("Variante actualizada")
@@ -394,6 +444,83 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
               <RefreshCw className="h-4 w-4 mr-2" />
               Actualizar
             </Button>
+            <Button onClick={async () => {
+              if (confirm("¿Importar productos desde datos estáticos?")) {
+                try {
+                  const result: any = await seedProductsFromData()
+                  if (result.success) {
+                    toast.success("Productos importados")
+                    fetchProducts()
+                  }
+                } catch (error) {
+                  toast.error("Error al importar")
+                }
+              }
+            }} variant="outline" size="sm" className="text-blue-500">
+              Importar Productos
+            </Button>
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button variant="default" size="sm">
+                  <Package className="h-4 w-4 mr-2" />
+                  Crear Producto
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Crear Nuevo Producto</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Nombre</label>
+                      <Input value={createForm.name} onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))} placeholder="Nombre del producto" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Imagen (URL)</label>
+                      <Input value={createForm.image} onChange={(e) => setCreateForm(prev => ({ ...prev, image: e.target.value }))} placeholder="URL imagen" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Precio</label>
+                      <Input type="number" value={createForm.price} onChange={(e) => setCreateForm(prev => ({ ...prev, price: Number(e.target.value) }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Precio Mayorista</label>
+                      <Input type="number" value={createForm.wholesalePrice} onChange={(e) => setCreateForm(prev => ({ ...prev, wholesalePrice: Number(e.target.value) }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Stock</label>
+                      <Input type="number" value={createForm.stock} onChange={(e) => setCreateForm(prev => ({ ...prev, stock: Number(e.target.value) }))} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Precio Original</label>
+                    <Input type="number" value={createForm.originalPrice} onChange={(e) => setCreateForm(prev => ({ ...prev, originalPrice: e.target.value }))} placeholder="Opcional" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Categoría</label>
+                    <Select value={createForm.category} onValueChange={(v) => setCreateForm(prev => ({ ...prev, category: v }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.filter((c): c is string => c !== "all" && c !== undefined).map(cat => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancelar</Button>
+                    <Button onClick={handleCreateProduct} disabled={createLoading}>
+                      {createLoading ? "Creando..." : "Crear Producto"}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button onClick={handleLogout} variant="ghost" size="sm">
               Cerrar sesión
             </Button>
@@ -472,14 +599,14 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
                     rows.push(
                       <TableRow key={`${product.id}-main`}>
                         <TableCell className="font-mono text-sm">{product.id}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
-                              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                            </div>
-                            <span className="font-medium truncate max-w-[200px]">{product.name}</span>
-                          </div>
-                        </TableCell>
+<TableCell>
+                           <div className="flex items-center gap-3">
+                             <div className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                               <img src={product.image || undefined} alt={product.name} className="w-full h-full object-cover" />
+                             </div>
+                             <span className="font-medium truncate max-w-[200px]">{product.name}</span>
+                           </div>
+                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">{product.category || "—"}</Badge>
                         </TableCell>
@@ -520,7 +647,6 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
                                </div>
                                <div className="flex items-center gap-2">
                                   <Switch checked={editForm?.is_sale} onCheckedChange={(checked) => setEditForm(prev => prev ? { ...prev, is_sale: checked } : prev)} />
-                                 <span className="text-xs">Oferta</span>
                                </div>
                                 <Input placeholder="Badge text" value={editForm?.badge || ""} onChange={(e) => setEditForm(prev => prev ? { ...prev, badge: e.target.value } : prev)} className="h-7 text-xs" />
                                 <Input placeholder="Badge color (bg-green-500)" value={editForm?.badge_color || ""} onChange={(e) => setEditForm(prev => prev ? { ...prev, badge_color: e.target.value } : prev)} className="h-7 text-xs" />
@@ -528,7 +654,6 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
                           ) : (
                             <div className="flex flex-wrap gap-1">
                               {product.is_new && <Badge className="bg-green-500">Nuevo</Badge>}
-                              {product.is_sale && <Badge className="bg-red-500">Oferta</Badge>}
                               {product.badge && !product.is_new && !product.is_sale && (
                                 <Badge className={product.badge_color || "bg-gray-500"}>{product.badge}</Badge>
                               )}
@@ -544,19 +669,22 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
                             }}
                           />
                         </TableCell>
-                        <TableCell className="text-right">
-                          {editingId === product.id ? (
-                            <div className="flex justify-end gap-1">
-                              <Button onClick={handleSave} size="icon" variant="default" className="h-8 w-8"><Check className="h-4 w-4" /></Button>
-                              <Button onClick={() => { setEditingId(null); setEditForm(null); }} size="icon" variant="ghost" className="h-8 w-8"><X className="h-4 w-4" /></Button>
-                            </div>
-                          ) : (
-                            <div className="flex justify-end gap-1">
-                              <Button onClick={() => handleEdit(product)} size="icon" variant="ghost" className="h-8 w-8"><Edit2 className="h-4 w-4" /></Button>
-                              <Button onClick={() => handleDelete(product.id)} size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600"><X className="h-4 w-4" /></Button>
-                            </div>
-                          )}
-                        </TableCell>
+<TableCell className="text-right">
+                           {editingId === product.id ? (
+                             <div className="flex justify-end gap-1">
+                               <Button onClick={handleSave} size="icon" variant="default" className="h-8 w-8"><Check className="h-4 w-4" /></Button>
+                               <Button onClick={() => { setEditingId(null); setEditForm(null); }} size="icon" variant="ghost" className="h-8 w-8"><X className="h-4 w-4" /></Button>
+                             </div>
+                           ) : (
+                             <div className="flex justify-end gap-1">
+                               <Button onClick={() => handleEdit(product)} size="icon" variant="ghost" className="h-8 w-8"><Edit2 className="h-4 w-4" /></Button>
+                               <Button onClick={() => handleDelete(product.id)} size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600"><X className="h-4 w-4" /></Button>
+                                <Button onClick={() => { setCreateVariantProduct(product); setCreateVariantForm({ label: "", price: product.price, wholesalePrice: product.wholesale_price, stock: product.stock }); setShowCreateVariantDialog(true); }} size="icon" variant="ghost" className="h-8 w-8 text-blue-500 hover:text-blue-600" title="Crear variante">
+                                  <Package className="h-4 w-4" />
+                                </Button>
+                              </div>
+                           )}
+                         </TableCell>
                       </TableRow>
                     );
 
@@ -577,17 +705,17 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
                       rows.push(
                         <TableRow key={`${product.id}-variant-${variant.label}`} className="bg-muted/50">
                           <TableCell className="font-mono text-sm text-muted-foreground">{product.id}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-3 pl-4">
-                              <div className="w-10 h-10 rounded-md overflow-hidden bg-muted/50 flex-shrink-0">
-                                <img src={product.image} alt={`${product.name} - ${variant.label}`} className="w-full h-full object-cover" />
-                              </div>
-                              <span className="font-medium truncate max-w-[200px] text-muted-foreground">
-                                {variant.label} {variantType === 'adult' && '(Adulto)'} 
-                                {variantType === 'child' && '(Niño)'}
-                              </span>
-                            </div>
-                          </TableCell>
+<TableCell>
+                             <div className="flex items-center gap-3 pl-4">
+                               <div className="w-10 h-10 rounded-md overflow-hidden bg-muted/50 flex-shrink-0">
+                                 <img src={product.image || undefined} alt={`${product.name} - ${variant.label}`} className="w-full h-full object-cover" />
+                               </div>
+                               <span className="font-medium truncate max-w-[200px] text-muted-foreground">
+                                 {variant.label} {variantType === 'adult' && '(Adulto)'} 
+                                 {variantType === 'child' && '(Niño)'}
+                               </span>
+                             </div>
+                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">{product.category || "—"}</Badge>
                           </TableCell>
@@ -612,16 +740,11 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
                               {editingVariantId === variant.id ? (
                                 <Input type="number" value={editVariantForm?.stock || variant.stock} onChange={(e) => setEditVariantForm(prev => ({ ...prev, stock: Number(e.target.value) } as any))} className="w-20 text-right" />
                              ) : (
-                               <div className="flex flex-col items-end">
-                                 <span className={cn("font-mono", (variant.stock || 0) <= 10 && "text-red-500 font-bold text-muted-foreground")}>
-                                   {variant.stock}
-                                 </span>
-                                 {(variant as any).of_active && (variant as any).of_stock !== undefined && (variant as any).of_stock !== null && (
-                                   <span className="text-xs text-primary font-medium">
-                                     Oferta: {(variant as any).of_stock}
-                                   </span>
-                                 )}
-                               </div>
+                                <div className="flex flex-col items-end">
+                                  <span className={cn("font-mono", (variant.stock || 0) <= 10 && "text-red-500 font-bold text-muted-foreground")}>
+                                    {variant.stock}
+                                  </span>
+                                </div>
                              )}
                            </TableCell>
 <TableCell>
@@ -629,117 +752,53 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
                                 <div className="flex flex-col gap-1">
                                   <Input placeholder="Badge texto" value={editVariantForm?.badge ?? variant.badge ?? ''} onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, badge: e.target.value } : null)} className="h-7 text-xs w-24" />
                                   <Input placeholder="Color (ej: bg-red-500)" value={editVariantForm?.badge_color ?? variant.badge_color ?? ''} onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, badge_color: e.target.value } : null)} className="h-7 text-xs w-24" />
-                <div className="flex items-center gap-2 mt-1">
-                  <Switch
-                    checked={editVariantForm?.active ?? variant.is_active ?? true}
-                    onCheckedChange={(checked) => setEditVariantForm(prev => prev ? { ...prev, active: checked } : prev)}
-                  />
-                  <span className="text-xs">Activa</span>
-                </div>
-                {/* Oferta controls for variants */}
-                <div className="border-t pt-2 mt-2">
-                  <span className="text-xs font-semibold text-primary">Oferta:</span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Switch
-                      checked={editVariantForm?.of_active ?? (variant as any).of_active ?? false}
-                      onCheckedChange={(checked) => setEditVariantForm(prev => prev ? { ...prev, of_active: checked } : prev)}
-                    />
-                    <span className="text-xs">Activar oferta</span>
-                  </div>
-                   {(editVariantForm?.of_active ?? (variant as any).of_active ?? false) && (
-                     <div className="flex flex-col gap-1 mt-1">
-                       <Input 
-                         type="number" 
-                         placeholder="Precio oferta" 
-                         value={editVariantForm?.of_price ?? (variant as any).of_price ?? ''} 
-                         onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, of_price: Number(e.target.value) } : null)} 
-                         className="h-7 text-xs w-24" 
-                       />
-                       <Input 
-                         type="number" 
-                         placeholder="Precio orig." 
-                         value={editVariantForm?.of_original_price ?? (variant as any).of_original_price ?? ''} 
-                         onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, of_original_price: Number(e.target.value) } : null)} 
-                         className="h-7 text-xs w-24" 
-                       />
-                       <Input 
-                         type="number"
-                         placeholder="Stock oferta"
-                         value={editVariantForm?.of_stock ?? (variant as any).of_stock ?? ''}
-                         onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, of_stock: Number(e.target.value) } : null)}
-                         className="h-7 text-xs w-24"
-                       />
-                       <Input 
-                         placeholder="Badge oferta" 
-                         value={editVariantForm?.of_badge ?? (variant as any).of_badge ?? 'OFERTA'} 
-                         onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, of_badge: e.target.value } : null)} 
-                         className="h-7 text-xs w-24" 
-                       />
-                       <Input 
-                         placeholder="Color (bg-red-500)" 
-                         value={editVariantForm?.of_badge_color ?? (variant as any).of_badge_color ?? 'bg-red-500'} 
-                         onChange={(e) => setEditVariantForm(prev => prev ? { ...prev, of_badge_color: e.target.value } : null)} 
-                         className="h-7 text-xs w-24" 
-                       />
-                     </div>
-                   )}
-                </div>
-                               </div>
+                 <div className="flex items-center gap-2 mt-1">
+                   <Switch
+                     checked={editVariantForm?.active ?? variant.is_active ?? true}
+                     onCheckedChange={(checked) => setEditVariantForm(prev => prev ? { ...prev, active: checked } : prev)}
+                   />
+                   <span className="text-xs">Activa</span>
+                 </div>
+                                </div>
                               ) : (
-                                <div className="flex flex-col gap-1">
-                                  <div className="flex flex-wrap gap-1 text-xs">
-                                    {variant.stock <= 10 && <Badge className="bg-red-500 text-white">Stock Bajo</Badge>}
-                                    {variant.badge && <Badge className={variant.badge_color || "bg-gray-500"}>{variant.badge}</Badge>}
-                                    {(variant as any).of_active && <Badge className="bg-red-500 text-white">OFERTA</Badge>}
-                                  </div>
+                                 <div className="flex flex-col gap-1">
+                                   <div className="flex flex-wrap gap-1 text-xs">
+                                     {variant.stock <= 10 && <Badge className="bg-red-500 text-white">Stock Bajo</Badge>}
+                                     {variant.badge && <Badge className={variant.badge_color || "bg-gray-500"}>{variant.badge}</Badge>}
+                                   </div>
                 <div className="flex items-center gap-2 mt-1">
                   <Switch
                     checked={variant.is_active ?? true}
                     onCheckedChange={(checked) => handleToggleVariantActive(variant.id, variant.is_active ?? true)}
                   />
-                  <span className="text-xs">Activa</span>
-                </div>
-<div className="flex items-center gap-2 mt-1">
-                    <Switch
-                      checked={(variant as any).of_active ?? false}
-                      onCheckedChange={async (checked) => {
-                        await adminSetVariantOferta(variant.id, { active: checked })
-                        fetchProducts()
-                      }}
-                    />
-                    <span className="text-xs">En oferta</span>
-                  </div>
-                                </div>
+                   <span className="text-xs">Activa</span>
+                 </div>
+                                 </div>
                               )}
                             </TableCell>
-                           <TableCell className="text-right">
-                             {editingVariantId === variant.id ? (
-                               <div className="flex justify-end gap-1">
-                                 <Button onClick={handleSaveVariant} size="icon" variant="default" className="h-8 w-8"><Check className="h-4 w-4" /></Button>
-                                 <Button onClick={() => { setEditingVariantId(null); setEditVariantForm(null); }} size="icon" variant="ghost" className="h-8 w-8"><X className="h-4 w-4" /></Button>
-                               </div>
-                             ) : (
-<Button onClick={() => {
-                                  setEditingVariantId(variant.id);
-                                  setEditVariantForm({ 
-                                    id: variant.id, 
-                                    price: variant.price, 
-                                    wholesale_price: variant.wholesale_price, 
-                                    stock: variant.stock, 
-                                    badge: variant.badge, 
-                                    badge_color: variant.badge_color, 
-                                    active: variant.is_active ?? true,
-                                    of_active: (variant as any).of_active ?? false,
-                                    of_price: (variant as any).of_price,
-                                    of_wholesale_price: (variant as any).of_wholesale_price,
-                                    of_original_price: (variant as any).of_original_price,
-                                    of_stock: (variant as any).of_stock,
-                                    of_badge: (variant as any).of_badge ?? 'OFERTA',
-                                    of_badge_color: (variant as any).of_badge_color ?? 'bg-red-500'
-                                  });
-                                }} size="icon" variant="ghost" className="h-8 w-8"><Edit2 className="h-4 w-4" /></Button>
-                             )}
-                           </TableCell>
+<TableCell className="text-right">
+                              {editingVariantId === variant.id ? (
+                                <div className="flex justify-end gap-1">
+                                  <Button onClick={handleSaveVariant} size="icon" variant="default" className="h-8 w-8"><Check className="h-4 w-4" /></Button>
+                                  <Button onClick={() => { setEditingVariantId(null); setEditVariantForm(null); }} size="icon" variant="ghost" className="h-8 w-8"><X className="h-4 w-4" /></Button>
+                                </div>
+                              ) : (
+                                <div className="flex justify-end gap-1">
+                                   <Button onClick={() => {
+                                      setEditingVariantId(variant.id);
+                                      setEditVariantForm({ 
+                                        id: variant.id, 
+                                        price: variant.price, 
+                                        wholesale_price: variant.wholesale_price, 
+                                        stock: variant.stock, 
+                                        badge: variant.badge, 
+                                        badge_color: variant.badge_color, 
+                                        active: variant.is_active ?? true,
+                                      });
+                                    }} size="icon" variant="ghost" className="h-8 w-8"><Edit2 className="h-4 w-4" /></Button>
+                                 </div>
+                              )}
+                            </TableCell>
                         </TableRow>
                       );
                     });
@@ -936,6 +995,38 @@ const [editedVariantBadges, setEditedVariantBadges] = useState<Record<number, { 
               <p className="text-sm text-muted-foreground">Mostrando {filteredOrders.length} de {orders.length} ordenes</p>
             )}
           </TabsContent>
+          
+          <Dialog open={showCreateVariantDialog} onOpenChange={setShowCreateVariantDialog}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Crear Variante para {createVariantProduct?.name}</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Talla/Label</label>
+                  <Input value={createVariantForm.label} onChange={(e) => setCreateVariantForm(prev => ({ ...prev, label: e.target.value }))} placeholder="Ej: S, M, L, Adulto, Niño..." />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Precio</label>
+                    <Input type="number" value={createVariantForm.price} onChange={(e) => setCreateVariantForm(prev => ({ ...prev, price: Number(e.target.value) }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Precio Mayorista</label>
+                    <Input type="number" value={createVariantForm.wholesalePrice} onChange={(e) => setCreateVariantForm(prev => ({ ...prev, wholesalePrice: Number(e.target.value) }))} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Stock</label>
+                  <Input type="number" value={createVariantForm.stock} onChange={(e) => setCreateVariantForm(prev => ({ ...prev, stock: Number(e.target.value) }))} />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => { setShowCreateVariantDialog(false); setCreateVariantProduct(null); }}>Cancelar</Button>
+                  <Button onClick={handleCreateVariant} disabled={!createVariantForm.label}>Crear Variante</Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </Tabs>
       </div>
     </div>

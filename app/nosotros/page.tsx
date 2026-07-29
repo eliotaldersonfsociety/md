@@ -13,11 +13,13 @@ export default function NosotrosPage() {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative h-[300px] md:h-[400px] overflow-hidden">
+      <section className="relative h-[200px] sm:h-[250px] md:h-[400px] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary via-[#d946ef] to-primary" />
-        <div className="absolute inset-0 bg-[url('/images/fondo/1.webp')] opacity-10" />
-        <div className="relative z-10 h-full flex items-center justify-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-white font-[var(--font-montserrat)] drop-shadow-lg">
+        <div 
+          className="absolute inset-0 bg-[url('/images/fondo/1.webp')] opacity-10 bg-cover bg-center bg-no-repeat" 
+        />
+        <div className="relative z-10 h-full flex items-center justify-center px-4">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white font-[var(--font-montserrat)] drop-shadow-lg text-center">
             ¿Quiénes Somos?
           </h1>
         </div>
