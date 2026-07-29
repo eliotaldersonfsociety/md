@@ -51,13 +51,13 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
       const isPeluche = (p.category || "").toLowerCase() === "peluches" || /Peluche/.test(p.name || "")
 
       if (isPeluche && v.label.includes("#2")) {
-        baseWholesale = 11
+        baseWholesale = 44000
       }
       if (isPeluche && v.label.includes("#3")) {
-        baseWholesale = 18
+        baseWholesale = 72000
       }
       if (isPeluche && v.label.includes("#4")) {
-        baseWholesale = 30
+        baseWholesale = 120000
       }
 
       return {
