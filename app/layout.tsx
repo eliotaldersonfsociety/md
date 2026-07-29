@@ -3,7 +3,6 @@ import { Poppins, Quicksand } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { CartProvider } from '@/context/cart-context'
 import { RatingProvider } from '@/context/rating-context'
-import { ExchangeRateProvider } from '@/lib/exchange-rate'
 import { Toaster } from 'sonner'
 import './globals.css'
 
@@ -43,13 +42,11 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${poppins.variable} ${quicksand.variable} antialiased`}>
-        <ExchangeRateProvider>
-          <CartProvider>
-            <RatingProvider>
-              {children}
-            </RatingProvider>
-          </CartProvider>
-        </ExchangeRateProvider>
+        <CartProvider>
+          <RatingProvider>
+            {children}
+          </RatingProvider>
+        </CartProvider>
         <Toaster position="top-center" richColors closeButton />
         <Analytics />
       </body>
