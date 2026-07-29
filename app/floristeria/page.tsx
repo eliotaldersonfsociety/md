@@ -652,18 +652,7 @@ const products = [
       { id: "med", label: "Mediano - 30cm", price: 25000, wholesalePrice: 15000, stock: 10 },
     ]
   },
-  {
-    id: 264,
-    name: "Arreglo Lata 47 Copia",
-    price: 18000,
-    image: "/images/arreglos/lata/47 - copia.webp",
-    rating: 4.3,
-    reviews: 9,
-    features: FEATURES,
-    variants: [
-      { id: "med", label: "Mediano - 30cm", price: 25000, wholesalePrice: 15000, stock: 10 },
-    ]
-  }
+
 ]
 
 export default async function FloristeriaPage() {
