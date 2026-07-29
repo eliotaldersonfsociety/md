@@ -25,7 +25,7 @@ import {
   adminUpdateVariant,
   createProduct,
   createVariant,
-  seedProductsFromData,
+  seedProductsAndVariants,
 } from "@/db/actions"
 
 interface Product {
@@ -447,7 +447,7 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
             <Button onClick={async () => {
               if (confirm("¿Importar productos desde datos estáticos?")) {
                 try {
-                  const result: any = await seedProductsFromData()
+                  const result: any = await seedProductsAndVariants()
                   if (result.success) {
                     toast.success("Productos importados")
                     fetchProducts()
@@ -1032,3 +1032,4 @@ const [selectedCategory, setSelectedCategory] = useState<string>("all")
     </div>
   )
 }
+
