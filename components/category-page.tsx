@@ -427,7 +427,7 @@ const handleAddToCart = (product: Product) => {
               })}
             </div>
           )}
-          {filteredProducts.length > 0 && (
+          {category !== "floristeria" && filteredProducts.length > 0 && (
             <div className="text-center mt-12">
               <Button variant="outline" size="lg" className="gap-2">Cargar más productos</Button>
             </div>
