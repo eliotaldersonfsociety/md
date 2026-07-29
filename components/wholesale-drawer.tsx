@@ -5,7 +5,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/cart-context"
-import { formatPrice } from "@/lib/utils"
+import { formatPriceCurrency } from "@/lib/geolocation"
+import { useGeolocation } from "@/lib/geolocation"
 
 interface WholesaleDrawerProps {
   isOpen: boolean
@@ -21,16 +22,17 @@ export function WholesaleDrawer({ isOpen, onClose }: WholesaleDrawerProps) {
     getWholesaleTotal,
     getTotalUnits
   } = useCart()
+  const { isColombia } = useGeolocation()
 
   const generateWhatsAppMessage = () => {
     let message = "Hola! Me interesa hacer un pedido al por mayor:\n\n"
     
     wholesaleItems.forEach((item) => {
-      message += `- ${item.name}: ${item.quantity} unidades x ${formatPrice(item.wholesalePrice)} = ${formatPrice(item.wholesalePrice * item.quantity)}\n`
+      message += `- ${item.name}: ${item.quantity} unidades x ${formatPriceCurrency(item.wholesalePrice, isColombia)} = ${formatPriceCurrency(item.wholesalePrice * item.quantity, isColombia)}\n`
     })
     
     message += `\nTotal unidades: ${getTotalUnits()}`
-    message += `\nTotal estimado: ${formatPrice(getWholesaleTotal())}`
+    message += `\nTotal estimado: ${formatPriceCurrency(getWholesaleTotal(), isColombia)}`
     message += "\n\nQuedo atento a confirmar disponibilidad y coordinar el envio."
     
     return encodeURIComponent(message)
@@ -110,10 +112,10 @@ export function WholesaleDrawer({ isOpen, onClose }: WholesaleDrawerProps) {
                         {item.name}
                       </h4>
                       <p className="text-sm text-green-600 font-semibold">
-                        {formatPrice(item.wholesalePrice)} c/u
+                        {formatPriceCurrency(item.wholesalePrice, isColombia)} c/u
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Subtotal: {formatPrice(item.wholesalePrice * item.quantity)}
+                        Subtotal: {formatPriceCurrency(item.wholesalePrice * item.quantity, isColombia)}
                       </p>
                       
                       {/* Quantity Controls */}
@@ -168,9 +170,9 @@ export function WholesaleDrawer({ isOpen, onClose }: WholesaleDrawerProps) {
                 </div>
                 <div className="flex justify-between text-lg pt-2 border-t border-border">
                   <span className="font-semibold">Total Estimado</span>
-                  <span className="font-bold text-green-600">
-                    {formatPrice(getWholesaleTotal())}
-                  </span>
+<span className="font-bold text-green-600">
+                      {formatPriceCurrency(getWholesaleTotal(), isColombia)}
+                    </span>
                 </div>
               </div>
 
@@ -184,7 +186,7 @@ export function WholesaleDrawer({ isOpen, onClose }: WholesaleDrawerProps) {
               {/* Actions */}
               <div className="space-y-2">
                 <a
-                  href={`https://wa.me/573001234567?text=${generateWhatsAppMessage()}`}
+                  href={`https://wa.me/573112814787?text=${generateWhatsAppMessage()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full"

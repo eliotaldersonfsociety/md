@@ -2,13 +2,29 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { ShoppingCart, Check, Package, Star, Minus, Plus } from "lucide-react"
+import { ShoppingCart, Check, Package, Star, Minus, Plus, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/cart-context"
 import { useState } from "react"
-import { formatPrice } from "@/lib/utils"
 import { allProducts } from "@/lib/products-data"
 import { RatingSection } from "@/components/rating-section"
+import { formatPriceCurrency } from "@/lib/geolocation"
+import { useGeolocation } from "@/lib/geolocation"
+
+const WHATSAPP_NUMBER = "573001234567"
+
+function buildWhatsAppMessage(product: typeof allProducts[0], variant: any, price: number, mode: "retail" | "wholesale", quantity: number, isColombia: boolean) {
+  let message = `Hola, quiero pedir: ${product.name}`
+  if (variant?.label) message += ` - ${variant.label}`
+  message += `\nPrecio: ${formatPriceCurrency(price, isColombia)}`
+  if (mode === "wholesale") {
+    message += `\nModo: Al mayor`
+    message += `\nCantidad: ${quantity}`
+  } else {
+    message += `\nModo: Al detal`
+  }
+  return encodeURIComponent(message)
+}
 
 const categoryProducts = allProducts.reduce((acc, product) => {
   if (!acc.find(p => p.category === product.category)) {
@@ -19,6 +35,7 @@ const categoryProducts = allProducts.reduce((acc, product) => {
 
 function ProductCard({ product }: { product: typeof allProducts[0] }) {
   const { purchaseMode, addToCart, addToWholesale } = useCart()
+  const { isColombia } = useGeolocation()
   const [added, setAdded] = useState(false)
   const [quantity, setQuantity] = useState(3)
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(() => {
@@ -144,47 +161,31 @@ return (
             ? (getCurrentVariants() || []).length > 0 && (
                 <div className="mt-2">
                   <p className="text-xs text-muted-foreground mb-1">Tamaño:</p>
-                  <div className="flex flex-wrap gap-1">
+                  <select
+                    value={selectedVariant?.id || getCurrentVariants()[0]?.id || ""}
+                    onChange={(e) => setSelectedVariantId(e.target.value)}
+                    className="w-full text-xs border border-border rounded bg-white px-2 py-1.5"
+                  >
                     {Array.from(new Map((getCurrentVariants() || []).map(v => [v.label, v])).values()).map((variant) => (
-                     <button
-                       key={variant.id}
-                       onClick={() => setSelectedVariantId(variant.id)}
-                       className={`px-2 py-1 text-xs rounded-md border transition-all ${
-                         selectedVariant?.id === variant.id
-                           ? isWholesale
-                             ? "border-green-500 bg-green-50 text-green-700"
-                             : "border-primary bg-primary/10 text-primary"
-                           : "border-border hover:border-primary/50"
-                       }`}
-                     >
-                       {variant.label}
-                     </button>
-                   ))}
-                 </div>
-               </div>
-             )
-: product.variants && product.variants.length > 0 && (
+                      <option key={variant.id} value={variant.id}>{variant.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )
+          : product.variants && product.variants.length > 0 && (
                 <div className="mt-2">
                   <p className="text-xs text-muted-foreground mb-1">Tamaño:</p>
-                  <div className="flex flex-wrap gap-1">
+                  <select
+                    value={selectedVariant?.id || product.variants![0]?.id || ""}
+                    onChange={(e) => setSelectedVariantId(e.target.value)}
+                    className="w-full text-xs border border-border rounded bg-white px-2 py-1.5"
+                  >
                     {Array.from(new Map(product.variants.map(v => [v.label, v])).values()).map((variant) => (
-                     <button
-                       key={variant.id}
-                       onClick={() => setSelectedVariantId(variant.id)}
-                       className={`px-2 py-1 text-xs rounded-md border transition-all ${
-                         selectedVariant?.id === variant.id
-                           ? isWholesale
-                             ? "border-green-500 bg-green-50 text-green-700"
-                             : "border-primary bg-primary/10 text-primary"
-                           : "border-border hover:border-primary/50"
-                       }`}
-                     >
-                       {variant.label}
-                     </button>
-                   ))}
-                 </div>
-               </div>
-             )}
+                      <option key={variant.id} value={variant.id}>{variant.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
         {/* Quantity selector for wholesale */}
         {isWholesale && (
@@ -231,12 +232,12 @@ return (
         <div className="flex items-center justify-between gap-2 mt-4 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`text-xl font-bold ${isWholesale ? "text-green-600" : "text-primary"}`}>
-              {formatPrice(displayPrice)}
+              {formatPriceCurrency(displayPrice, isColombia)}
             </span>
             {showDiscount && !isWholesale && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground line-through">
-                  {formatPrice(product.originalPrice!)}
+                  {formatPriceCurrency(product.originalPrice!, isColombia)}
                 </span>
                 <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded font-medium">
                   -{discountPercent}%
@@ -255,13 +256,6 @@ return (
             </span>
           )}
         </div>
-
-        <Button 
-          className={`w-full mt-3 transition-all ${added ? 'bg-green-500' : isWholesale ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'} text-white`}
-          onClick={handleAddToCart}
-        >
-          {added ? <><Check className="h-4 w-4 mr-1" /> Agregado</> : isWholesale ? 'Agregar al pedido' : 'Agregar'}
-        </Button>
       </div>
     </div>
   )

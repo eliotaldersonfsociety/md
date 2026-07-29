@@ -8,80 +8,75 @@ const products = [
     id: 101,
     name: "Peluche Milo Gato",
     price: 45000,
-    image: "/images/peluches/1.webp",
+    image: "/images/arreglos/peluches/1.webp",
     rating: 4.8,
     reviews: 128,
     badge: "Nuevo",
     badgeColor: "bg-green-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
     id: 102,
     name: "Peluche Mimi Gata",
     price: 52000,
-    image: "/images/peluches/2.webp",
+    image: "/images/arreglos/peluches/2.webp",
     rating: 4.7,
     reviews: 95,
     badge: "Top Ventas",
     badgeColor: "bg-primary",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
     id: 103,
     name: "Peluche Bubu Mono",
     price: 68000,
-    image: "/images/peluches/3.webp",
+    image: "/images/arreglos/peluches/3.webp",
     rating: 4.6,
     reviews: 82,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
     id: 104,
     name: "Peluche Lala Mona",
     price: 55000,
-    image: "/images/peluches/4.webp",
+    image: "/images/arreglos/peluches/4.webp",
     rating: 4.5,
     reviews: 67,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
     id: 105,
     name: "Peluche Dodo Conejo",
     price: 48000,
-    image: "/images/peluches/5.webp",
+    image: "/images/arreglos/peluches/5.webp",
     rating: 4.6,
     reviews: 73,
     badge: "Nuevo",
     badgeColor: "bg-green-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -89,16 +84,15 @@ const products = [
     name: "Peluche Buny Coneja",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/6.webp",
+    image: "/images/arreglos/peluches/6.webp",
     rating: 4.4,
     reviews: 58,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -106,16 +100,15 @@ const products = [
     name: "Peluche Max Perro",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/7.webp",
+    image: "/images/arreglos/peluches/7.webp",
     rating: 4.5,
     reviews: 61,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -123,16 +116,15 @@ const products = [
     name: "Peluche Kira Perra",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/8.webp",
+    image: "/images/arreglos/peluches/8.webp",
     rating: 4.5,
     reviews: 55,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -140,16 +132,15 @@ const products = [
     name: "Peluche Roco Toro",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/9.webp",
+    image: "/images/arreglos/peluches/9.webp",
     rating: 4.4,
     reviews: 49,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -157,16 +148,15 @@ const products = [
     name: "Peluche Mura Vaca",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/10.webp",
+    image: "/images/arreglos/peluches/10.webp",
     rating: 4.5,
     reviews: 52,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -174,16 +164,15 @@ const products = [
     name: "Peluche Nube Oveja",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/11.webp",
+    image: "/images/arreglos/peluches/11.webp",
     rating: 4.6,
     reviews: 63,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -191,16 +180,15 @@ const products = [
     name: "Peluche Kimi Oveja",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/12.webp",
+    image: "/images/arreglos/peluches/12.webp",
     rating: 4.4,
     reviews: 47,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -208,16 +196,15 @@ const products = [
     name: "Peluche Gino Jirafa",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/13.webp",
+    image: "/images/arreglos/peluches/13.webp",
     rating: 4.5,
     reviews: 56,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -225,16 +212,15 @@ const products = [
     name: "Peluche Jira Jirafa",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/14.webp",
+    image: "/images/arreglos/peluches/14.webp",
     rating: 4.4,
     reviews: 44,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -242,16 +228,15 @@ const products = [
     name: "Peluche Drako Dragon",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/15.webp",
+    image: "/images/arreglos/peluches/15.webp",
     rating: 4.6,
     reviews: 69,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -259,16 +244,16 @@ const products = [
     name: "Peluche Drini Dragon",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/16.webp",
+    image: "/images/arreglos/peluches/16.webp",
     rating: 4.7,
     reviews: 71,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 50000, wholesalePrice: 20000 },
-      { id: "v3", label: "#3 - 60cm", price: 100000, wholesalePrice: 26000 },
-      { id: "v4", label: "#4 - 100cm", price: 150000, wholesalePrice: 40000 },
+      { id: "v2", label: "#2 - 40cm", price: 50000, wholesalePrice: 35000 },
+      { id: "v3", label: "#3 - 60cm", price: 100000, wholesalePrice: 55000 },
+      { id: "v4", label: "#4 - 100cm", price: 150000, wholesalePrice: 85000 },
     ]
   },
   {
@@ -276,16 +261,15 @@ const products = [
     name: "Peluche Orejon Conejo Nino",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/17.webp",
+    image: "/images/arreglos/peluches/17.webp",
     rating: 4.5,
     reviews: 53,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -293,16 +277,15 @@ const products = [
     name: "Peluche Orejon Coneja Nina",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/18.webp",
+    image: "/images/arreglos/peluches/18.webp",
     rating: 4.4,
     reviews: 48,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -310,16 +293,15 @@ const products = [
     name: "Peluche Orejon Perro Nino",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/19.webp",
+    image: "/images/arreglos/peluches/19.webp",
     rating: 4.5,
     reviews: 51,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
     ]
   },
   {
@@ -327,16 +309,47 @@ const products = [
     name: "Peluche Orejon Perra Nina",
     price: 42000,
     originalPrice: 50000,
-    image: "/images/peluches/20.webp",
+    image: "/images/arreglos/peluches/20.webp",
     rating: 4.4,
     reviews: 46,
     badge: "Oferta",
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 50000, stock: 20 },
-      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 98000, stock: 15 },
-      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 120000, stock: 5 },
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 20 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 15 },
+    ]
+  },
+  {
+    id: 121,
+    name: "Peluche Mia la Osa",
+    price: 42000,
+    originalPrice: 50000,
+    image: "/images/arreglos/peluches/21.webp",
+    rating: 4.9,
+    reviews: 46,
+    features: FEATURES,
+    category: "peluches",
+    variants: [
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 0 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 0 },
+      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 85000, stock: 5 },
+    ]
+  },
+  {
+    id: 122,
+    name: "Peluche Sam el Oso",
+    price: 42000,
+    originalPrice: 50000,
+    image: "/images/arreglos/peluches/22.webp",
+    rating: 4.9,
+    reviews: 46,
+    features: FEATURES,
+    category: "peluches",
+    variants: [
+      { id: "v2", label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 0 },
+      { id: "v3", label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 0 },
+      { id: "v4", label: "#4 - 90cm", price: 150000, wholesalePrice: 85000, stock: 5 },
     ]
   },
 ]
@@ -413,3 +426,6 @@ export default async function PeluchesPage() {
     )
   }
 }
+
+
+

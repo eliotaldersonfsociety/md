@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Search, SlidersHorizontal, Grid3X3, LayoutGrid, Heart, ShoppingCart, X, ChevronDown, Store, Building2, Check, Minus, Plus } from "lucide-react"
+import { Search, SlidersHorizontal, Grid3X3, LayoutGrid, Heart, ShoppingCart, X, ChevronDown, Store, Building2, Check, Minus, Plus, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -13,9 +13,10 @@ import { Product as ProductType, ProductVariant } from "@/components/category-pa
 import { RatingSection } from "@/components/rating-section"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { WhatsAppButton } from "@/components/whatsapp-button"
+import { useGeolocation, formatPriceCurrency } from "@/lib/geolocation"
+import { WhatsAppModal } from "@/components/whatsapp-modal"
 
-const categories = ["Todos", "llaveros", "peluches", "cojines", "latas", "cervicales", "ropa"]
+const categories = ["Todos", "llaveros", "peluches", "cojines", "latas", "cervicales", "ropa", "floristeria"]
 
 const sortOptions = [
   { value: "featured", label: "Destacados" },
@@ -27,65 +28,100 @@ const sortOptions = [
 
 const FEATURES_FALLBACK = ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado"]
 
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(price)
-}
-
 function mergeProducts(dbProducts: any[]): ProductType[] {
   const staticMap = new Map(allProducts.map(p => [p.id, p]))
 
   return dbProducts.map(p => {
     const staticP = staticMap.get(p.id)
 
-    // Deduplicate variants by label to prevent duplicates
     const seenLabels = new Set<string>()
+    const staticLabelToVariant = new Map(
+      (staticP?.variants || []).map((v: any) => [v.label, v])
+    )
+
+    const isMiaSam = /Mia la Osa|Sam el Oso/.test(p.name || "")
+
     const variants = (p.variants || [])
       .filter((v: any) => {
+        if (v.label === "#4 - 90cm") return false
+        if (isMiaSam && (v.label === "#2 - 40cm" || v.label === "#3 - 60cm")) return false
         if (seenLabels.has(v.label)) return false
         seenLabels.add(v.label)
         return true
       })
-      .map((v: any) => ({
-        id: String(v.id ?? v.label),
-        label: v.label,
-        price: v.price ?? p.price,
-        wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
-        stock: v.stock ?? 0,
-      }))
+      .map((v: any) => {
+        const staticVariant = staticLabelToVariant.get(v.label)
+        let basePrice = staticVariant?.price ?? v.price ?? p.price
+        let baseWholesale = staticVariant?.wholesalePrice ?? v.wholesale_price ?? p.wholesale_price ?? p.price
+
+        if ((/Mia la Osa|Sam el Oso/.test(p.name || "") || [101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122].includes(Number(p.id))) && v.label.includes("#4")) {
+          basePrice = 150000
+          baseWholesale = 85000
+        }
+
+        return {
+          id: String(v.id ?? v.label),
+          label: v.label,
+          price: basePrice,
+          wholesalePrice: baseWholesale,
+        stock: v.stock ?? staticVariant?.stock ?? 0,
+      }
+      })
+
+      if (/Mia la Osa|Sam el Oso/.test(p.name || "")) {
+        const hasV4 = variants.some((v: any) => v.label.includes("#4"))
+        if (!hasV4) {
+          variants.push({
+            id: "v4-" + p.id,
+            label: "#4 - 100cm",
+            price: 150000,
+            wholesalePrice: 85000,
+            stock: 5,
+          })
+        }
+      }
 
     seenLabels.clear()
     const adultVariants = (p.adult_variants || [])
       .filter((v: any) => {
+        if (v.label === "#4 - 90cm") return false
         if (seenLabels.has(v.label)) return false
         seenLabels.add(v.label)
         return true
       })
-      .map((v: any) => ({
-        id: String(v.id ?? v.label),
-        label: v.label,
-        price: v.price ?? p.price,
-        wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
-        stock: v.stock ?? 0,
-      }))
+      .map((v: any) => {
+        const staticVariant = staticLabelToVariant.get(v.label)
+        const basePrice = staticVariant?.price ?? v.price ?? p.price
+        const baseWholesale = staticVariant?.wholesalePrice ?? v.wholesale_price ?? p.wholesale_price ?? p.price
+        return {
+          id: String(v.id ?? v.label),
+          label: v.label,
+          price: basePrice,
+          wholesalePrice: baseWholesale,
+          stock: v.stock ?? staticVariant?.stock ?? 0,
+        }
+      })
 
     seenLabels.clear()
     const childVariants = (p.child_variants || [])
       .filter((v: any) => {
+        if (v.label === "#4 - 90cm") return false
         if (seenLabels.has(v.label)) return false
         seenLabels.add(v.label)
         return true
       })
-      .map((v: any) => ({
-        id: String(v.id ?? v.label),
-        label: v.label,
-        price: v.price ?? p.price,
-        wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
-        stock: v.stock ?? 0,
-      }))
+      .map((v: any) => {
+        const staticVariant = staticLabelToVariant.get(v.label)
+        const basePrice = staticVariant?.price ?? v.price ?? p.price
+        const baseWholesale = staticVariant?.wholesalePrice ?? v.wholesale_price ?? p.wholesale_price ?? p.price
+        return {
+          id: String(v.id ?? v.label),
+          label: v.label,
+          price: basePrice,
+          wholesalePrice: baseWholesale,
+          stock: v.stock ?? staticVariant?.stock ?? 0,
+        }
+      })
 
     return {
       id: p.id,
@@ -109,7 +145,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
       wholesalePrice: p.wholesale_price ?? p.price,
       isNew: !!p.is_new,
       isSale: !!p.is_sale,
-      minWholesale: p.min_wholesale ?? 12,
+      minWholesale: p.min_wholesale ?? 3,
     }
   })
 }
@@ -117,6 +153,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
 export default function TiendaClient({ initialProducts }: { initialProducts: any[] }) {
   const { addToCart, addToWholesale, purchaseMode, setPurchaseMode } = useCart()
   const products = useMemo(() => mergeProducts(initialProducts), [initialProducts])
+  const { isColombia } = useGeolocation()
 
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("Todos")
@@ -131,6 +168,8 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
   const [quantities, setQuantities] = useState<Record<number, number>>({})
   const [selectedVariants, setSelectedVariants] = useState<Record<number, string>>({})
   const [variantTypes, setVariantTypes] = useState<Record<number, "adult" | "child">>({})
+  const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false)
+  const [whatsAppMessage, setWhatsAppMessage] = useState("")
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products]
@@ -181,12 +220,12 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
     )
   }
 
-  const getQuantity = (productId: number) => quantities[productId] || 12
+  const getQuantity = (productId: number) => quantities[productId] || 3
 
   const updateQuantity = (productId: number, delta: number) => {
     setQuantities(prev => {
-      const current = prev[productId] || 12
-      const next = Math.max(12, current + delta)
+      const current = prev[productId] || 3
+      const next = Math.max(3, current + delta)
       return { ...prev, [productId]: next }
     })
   }
@@ -304,7 +343,7 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
 
             {purchaseMode === "wholesale" && (
               <p className="mt-4 text-sm text-green-200 font-medium">
-                Precios especiales para mayoristas - Minimo 12 unidades por referencia
+                 Precios especiales para mayoristas - Minimo 3 unidades por referencia
               </p>
             )}
           </div>
@@ -552,30 +591,41 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                       </button>
 
                       {/* Quick Add */}
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          className={`w-full text-xs md:text-sm transition-all ${
-                            addedProducts[product.id]
-                              ? 'bg-green-500 hover:bg-green-600'
-                              : purchaseMode === "wholesale"
-                                ? 'bg-green-600 hover:bg-green-700'
-                                : 'bg-primary hover:bg-primary/90'
-                          }`}
-                          size="sm"
-                          onClick={() => handleAddToCart(product)}
-                        >
-                          {addedProducts[product.id] ? (
-                            <>
-                              <Check className="h-4 w-4 mr-1" />
-                              Agregado
-                            </>
-                          ) : (
-                            <>
-                              <ShoppingCart className="h-4 w-4 mr-1" />
+                      <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/70 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1">
+                          <Button
+                            className={cn(
+                              "shrink-0 h-8 w-8 md:h-8 md:w-auto md:px-3 md:text-xs transition-all",
+                              addedProducts[product.id]
+                                ? 'bg-green-500 hover:bg-green-600'
+                                : purchaseMode === "wholesale"
+                                  ? 'bg-green-600 hover:bg-green-700'
+                                  : 'bg-primary hover:bg-primary/90'
+                            )}
+                            size="icon"
+                            onClick={() => handleAddToCart(product)}
+                          >
+                            {addedProducts[product.id] ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <ShoppingCart className="h-4 w-4" />
+                            )}
+                            <span className="hidden md:inline ml-1 text-xs">
                               {purchaseMode === "wholesale" ? "Agregar al pedido" : "Agregar"}
-                            </>
-                          )}
-                        </Button>
+                            </span>
+                           </Button>
+                           <Button
+                             className="h-8 md:h-9 px-3 md:px-4 text-white bg-green-600 hover:bg-green-700 transition-all text-[11px] md:text-sm shrink-0"
+                             size="sm"
+                             onClick={() => {
+                               setWhatsAppMessage(encodeURIComponent(`Hola, quiero pedir: ${product.name}${selectedVariant?.label ? ` - ${selectedVariant.label}` : ""}\nPrecio: ${formatPriceCurrency(getProductPrice(product), isColombia)}\nModo: ${purchaseMode === "wholesale" ? "Al mayor" : "Al detal"}`))
+                               setIsWhatsAppOpen(true)
+                             }}
+                           >
+                             <MessageCircle className="h-4 w-4 md:mr-1.5" />
+                             <span className="truncate">WhatsApp</span>
+                           </Button>
+                         </div>
                       </div>
                     </div>
 
@@ -604,7 +654,7 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                         </div>
                       )}
 
-                      {/* Stock indicator - show variant stock if selected, otherwise product stock */}
+                      {/* Stock indicator */}
                       {selectedVariant?.stock !== undefined && selectedVariant.stock < 10 ? (
                         <div className="text-xs text-orange-600 mt-2">
                           Quedan pocas unidades de esta opción
@@ -623,7 +673,7 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                         </div>
                       ) : null}
 
-                      {/* Variant Type Selector (Adulto/Niño) */}
+                      {/* Variant Type Selector */}
                       {product.adultVariants && product.childVariants && (
                         <div className="mb-3">
                           <p className="text-xs text-muted-foreground mb-1.5">Tipo:</p>
@@ -661,52 +711,39 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                         ? getCurrentVariants(product).length > 0 && (
                             <div className="mb-3">
                               <p className="text-xs text-muted-foreground mb-1.5">Tamaño:</p>
-                              <div className="flex flex-wrap gap-1">
+                              <select
+                                value={selectedVariant?.id || getCurrentVariants(product)[0]?.id || ""}
+                                onChange={(e) => setSelectedVariants(prev => ({ ...prev, [product.id]: e.target.value }))}
+                                className="w-full text-xs border border-border rounded bg-white px-2 py-1.5"
+                              >
                                 {Array.from(new Map(getCurrentVariants(product).map(v => [v.label, v])).values()).map((variant) => (
-                                  <button
-                                    key={variant.id}
-                                    onClick={() => setSelectedVariants(prev => ({ ...prev, [product.id]: variant.id }))}
-                                    className={`px-2 py-1 text-xs rounded-md border transition-all ${
-                                      (selectedVariant?.id === variant.id || (!selectedVariants[product.id] && variant === getCurrentVariants(product)[0]))
-                                        ? purchaseMode === "wholesale"
-                                          ? "border-green-500 bg-green-50 text-green-700"
-                                          : "border-primary bg-primary/10 text-primary"
-                                        : "border-border hover:border-primary/50"
-                                    }`}
-                                  >
-                                    {variant.label}
-                                  </button>
+                                  <option key={variant.id} value={variant.id}>{variant.label}</option>
                                 ))}
-                              </div>
+                              </select>
                             </div>
                           )
                         : product.variants && product.variants.length > 0 && (
                             <div className="mb-3">
                               <p className="text-xs text-muted-foreground mb-1.5">Opción:</p>
-                              <div className="flex flex-wrap gap-1">
+                              <select
+                                value={selectedVariant?.id || product.variants![0]?.id || ""}
+                                onChange={(e) => setSelectedVariants(prev => ({ ...prev, [product.id]: e.target.value }))}
+                                className="w-full text-xs border border-border rounded bg-white px-2 py-1.5"
+                              >
                                 {Array.from(new Map(product.variants.map(v => [v.label, v])).values()).map((variant) => (
-                                  <button
-                                    key={variant.id}
-                                    onClick={() => setSelectedVariants(prev => ({ ...prev, [product.id]: variant.id }))}
-                                    className={`px-2 py-1 text-xs rounded-md border transition-all ${
-                                      (selectedVariant?.id === variant.id || (!selectedVariants[product.id] && variant === product.variants![0]))
-                                        ? purchaseMode === "wholesale"
-                                          ? "border-green-500 bg-green-50 text-green-700"
-                                          : "border-primary bg-primary/10 text-primary"
-                                        : "border-border hover:border-primary/50"
-                                    }`}
-                                  >
-                                    {variant.label}
-                                  </button>
+                                  <option key={variant.id} value={variant.id}>{variant.label}</option>
                                 ))}
-                              </div>
+                              </select>
                             </div>
                           )}
 
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className={`text-xl font-bold ${purchaseMode === "wholesale" ? "text-green-600" : "text-primary"}`}>
-                          {formatPrice(currentPrice)}
-                        </span>
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xl font-bold ${purchaseMode === "wholesale" ? "text-green-600" : "text-primary"}`}>
+                            {formatPriceCurrency(currentPrice, isColombia)}
+                          </span>
+                          <span className="text-sm text-muted-foreground line-through">{formatPriceCurrency(Math.round(currentPrice * 1.4), isColombia)}</span>
+                        </div>
                         {purchaseMode === "wholesale" && (
                           <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
                             Mayorista
@@ -722,7 +759,7 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
                             variant="outline"
                             className="h-7 w-7"
                             onClick={() => updateQuantity(product.id, -6)}
-                            disabled={getQuantity(product.id) <= 12}
+                            disabled={getQuantity(product.id) <= 3}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
@@ -775,7 +812,7 @@ export default function TiendaClient({ initialProducts }: { initialProducts: any
       </section>
 
       <Footer />
-      <WhatsAppButton />
+      <WhatsAppModal isOpen={isWhatsAppOpen} onClose={() => setIsWhatsAppOpen(false)} message={whatsAppMessage} />
     </main>
   )
 }

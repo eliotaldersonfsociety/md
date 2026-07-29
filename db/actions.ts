@@ -69,7 +69,7 @@ async function initTables() {
       is_new BOOLEAN DEFAULT FALSE,
       is_sale BOOLEAN DEFAULT FALSE,
       is_best_seller BOOLEAN DEFAULT FALSE,
-      min_wholesale INTEGER DEFAULT 12,
+      min_wholesale INTEGER DEFAULT 3,
       rating_sum INTEGER DEFAULT 0,
       rating_count INTEGER DEFAULT 0,
       stock INTEGER DEFAULT 0,
@@ -623,34 +623,34 @@ export async function createOrderAction(data: {
    const orderId = Number((result as any).lastInsertRowid)
 
    // Process order items and reduce stock
-   for (const item of data.items) {
-     const variantLabel = item.variantLabel && item.variantLabel.trim() !== "" ? item.variantLabel : null
-     
-     let sufficientStock = false
-     if (variantLabel) {
-       sufficientStock = await reduceVariantStock(item.productId, variantLabel, item.quantity)
-     } else {
-       sufficientStock = await reduceProductStock(item.productId, item.quantity)
-     }
-     
-     if (!sufficientStock) {
-       throw new Error(`Insufficient stock for product ${item.productName}`)
-     }
-     
-     await turso.execute({
-       sql: `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity, total, variant_label)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-       args: [
-         orderId,
-         item.productId,
-         item.productName,
-         item.productPrice,
-         item.quantity,
-         item.productPrice * item.quantity,
-         variantLabel,
-       ],
-     })
-   }
+    for (const item of data.items) {
+      const variantLabel = item.variantLabel && item.variantLabel.trim() !== "" ? item.variantLabel : null
+      
+      let stockOk = true
+      if (variantLabel) {
+        stockOk = await reduceVariantStock(item.productId, variantLabel, item.quantity)
+      } else {
+        stockOk = await reduceProductStock(item.productId, item.quantity)
+      }
+      
+      if (!stockOk) {
+        console.warn(`Stock insuficiente para ${item.productName} (${variantLabel || 'general'}), se continúa sin descontar stock`)
+      }
+      
+      await turso.execute({
+        sql: `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity, total, variant_label)
+              VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          orderId,
+          item.productId,
+          item.productName,
+          item.productPrice,
+          item.quantity,
+          item.productPrice * item.quantity,
+          variantLabel,
+        ],
+      })
+    }
 
   return { orderId, orderNumber }
 }
@@ -714,7 +714,7 @@ export async function submitContactForm(data: {
   }
   
   try {
-    const response = await fetch("https://api.resend.com/v1/emails", {
+    const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + resendApiKey,
@@ -815,6 +815,7 @@ export async function seedProductsAndVariants(): Promise<void> {
     { name: "latas", slug: "latas" },
     { name: "cervicales", slug: "cervicales" },
     { name: "ropa", slug: "ropa" },
+    { name: "floristeria", slug: "floristeria" },
   ]
 
   const categoryIds: Record<string, number> = {}
@@ -841,41 +842,49 @@ export async function seedProductsAndVariants(): Promise<void> {
     // Llaveros
     { id: 501, name: "Llavero Surtidos", price: 20000, image: "/images/llaveros/1.webp", category: "llaveros", stock: 100, variants: [{ label: "Paquete 20 unidades", price: 20000 }, { label: "Paquete 40 unidades", price: 40000 }] },
     // Peluches
-    { id: 101, name: "Peluche Milo Gato", price: 60000, originalPrice: 55000, image: "/images/peluches/1.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 60000 }, { label: "#3 - 60cm", price: 120000 }, { label: "#4 - 90cm", price: 150000 }], stock: 15 },
-    { id: 102, name: "Peluche Mimi Gata", price: 60000, originalPrice: 72000, image: "/images/peluches/2.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 60000 }, { label: "#3 - 60cm", price: 120000 }, { label: "#4 - 90cm", price: 150000 }], stock: 25 },
-    { id: 103, name: "Peluche Bubu Mono", price: 68000, originalPrice: 85000, image: "/images/peluches/3.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 48000 }, { label: "#3 - 60cm", price: 68000 }, { label: "#4 - 90cm", price: 88000 }], stock: 18 },
-    { id: 104, name: "Peluche Lala Mona", price: 55000, image: "/images/peluches/4.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 40000 }, { label: "#3 - 60cm", price: 55000 }, { label: "#4 - 90cm", price: 75000 }], stock: 22 },
-    { id: 105, name: "Peluche Dodo Conejo", price: 48000, image: "/images/peluches/5.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 36000 }, { label: "#3 - 60cm", price: 48000 }, { label: "#4 - 90cm", price: 68000 }], stock: 30 },
-    { id: 106, name: "Peluche Buny Coneja", price: 42000, originalPrice: 50000, image: "/images/peluches/6.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 12 },
-    { id: 107, name: "Peluche Max Perro", price: 42000, originalPrice: 50000, image: "/images/peluches/7.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 14 },
-    { id: 108, name: "Peluche Kira Perra", price: 42000, originalPrice: 50000, image: "/images/peluches/8.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 16 },
-    { id: 109, name: "Peluche Roco Toro", price: 42000, originalPrice: 50000, image: "/images/peluches/9.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 11 },
-    { id: 110, name: "Peluche Mura Vaca", price: 42000, originalPrice: 50000, image: "/images/peluches/10.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 13 },
-    { id: 111, name: "Peluche Nube Oveja", price: 42000, originalPrice: 50000, image: "/images/peluches/11.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 17 },
-    { id: 112, name: "Peluche Kimi Oveja", price: 42000, originalPrice: 50000, image: "/images/peluches/12.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 12 },
-    { id: 113, name: "Peluche Gino Jirafa", price: 42000, originalPrice: 50000, image: "/images/peluches/13.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 10 },
-    { id: 114, name: "Peluche Jira Jirafa", price: 42000, originalPrice: 50000, image: "/images/peluches/14.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 8 },
-    { id: 115, name: "Peluche Drako Dragon", price: 42000, originalPrice: 50000, image: "/images/peluches/15.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 14 },
-    { id: 116, name: "Peluche Drini Dragon", price: 42000, originalPrice: 50000, image: "/images/peluches/16.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 50000 }, { label: "#3 - 60cm", price: 100000 }, { label: "#4 - 100cm", price: 150000 }], stock: 19 },
-    { id: 117, name: "Peluche Orejon Conejo Nino", price: 42000, originalPrice: 50000, image: "/images/peluches/17.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 20 },
-    { id: 118, name: "Peluche Orejon Coneja Nina", price: 42000, originalPrice: 50000, image: "/images/peluches/18.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 16 },
-    { id: 119, name: "Peluche Orejon Perro Nino", price: 42000, originalPrice: 50000, image: "/images/peluches/19.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 18 },
-    { id: 120, name: "Peluche Orejon Perra Nina", price: 42000, originalPrice: 50000, image: "/images/peluches/20.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000 }, { label: "#3 - 60cm", price: 42000 }, { label: "#4 - 90cm", price: 62000 }], stock: 11 },
+    { id: 101, name: "Peluche Milo Gato", price: 60000, originalPrice: 55000, image: "/images/arreglos/peluches/1.webp", category: "peluches", variants: [    { label: "#2 - 40cm", price: 60000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 120000, wholesalePrice: 55000 }], stock: 15 },
+    { id: 102, name: "Peluche Mimi Gata", price: 60000, originalPrice: 72000, image: "/images/arreglos/peluches/2.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 60000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 120000, wholesalePrice: 55000 }], stock: 25 },
+    { id: 103, name: "Peluche Bubu Mono", price: 68000, originalPrice: 85000, image: "/images/arreglos/peluches/3.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 48000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 68000, wholesalePrice: 55000 }], stock: 18 },
+    { id: 104, name: "Peluche Lala Mona", price: 55000, image: "/images/arreglos/peluches/4.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 40000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 55000, wholesalePrice: 55000 }], stock: 22 },
+    { id: 105, name: "Peluche Dodo Conejo", price: 48000, image: "/images/arreglos/peluches/5.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 36000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 48000, wholesalePrice: 55000 }], stock: 30 },
+    { id: 106, name: "Peluche Buny Coneja", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/6.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 12 },
+    { id: 107, name: "Peluche Max Perro", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/7.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 14 },
+    { id: 108, name: "Peluche Kira Perra", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/8.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 16 },
+    { id: 109, name: "Peluche Roco Toro", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/9.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 11 },
+    { id: 110, name: "Peluche Mura Vaca", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/10.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 13 },
+    { id: 111, name: "Peluche Nube Oveja", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/11.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 17 },
+    { id: 112, name: "Peluche Kimi Oveja", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/12.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 12 },
+    { id: 113, name: "Peluche Gino Jirafa", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/13.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 10 },
+    { id: 114, name: "Peluche Jira Jirafa", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/14.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 8 },
+    { id: 115, name: "Peluche Drako Dragon", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/15.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 14 },
+    { id: 116, name: "Peluche Drini Dragon", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/16.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 50000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 100000, wholesalePrice: 55000 }, { label: "#4 - 100cm", price: 150000, wholesalePrice: 85000 }], stock: 19 },
+    { id: 117, name: "Peluche Orejon Conejo Nino", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/17.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 20 },
+    { id: 118, name: "Peluche Orejon Coneja Nina", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/18.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 16 },
+    { id: 119, name: "Peluche Orejon Perro Nino", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/19.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 18 },
+    { id: 120, name: "Peluche Orejon Perra Nina", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/20.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 32000, wholesalePrice: 35000 }, { label: "#3 - 60cm", price: 42000, wholesalePrice: 55000 }], stock: 11 },
+    { id: 121, name: "Peluche Mia la Osa", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/21.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 0 }, { label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 0 }, { label: "#4 - 90cm", price: 150000, wholesalePrice: 85000 }], stock: 11 },
+    { id: 122, name: "Peluche Sam el Oso", price: 42000, originalPrice: 50000, image: "/images/arreglos/peluches/22.webp", category: "peluches", variants: [{ label: "#2 - 40cm", price: 60000, wholesalePrice: 35000, stock: 0 }, { label: "#3 - 60cm", price: 120000, wholesalePrice: 55000, stock: 0 }, { label: "#4 - 90cm", price: 150000, wholesalePrice: 85000 }], stock: 11 },
+    // Floristeria
+    { id: 601, name: "Ramo Rosas Rojas", price: 35000, image: "/images/floristeria/1.webp", category: "floristeria", variants: [{ label: "Mediano", price: 35000, wholesalePrice: 22000 }, { label: "Grande", price: 55000, wholesalePrice: 35000 }], stock: 25 },
+    { id: 602, name: "Ramo Girasoles", price: 42000, originalPrice: 52000, image: "/images/floristeria/2.webp", category: "floristeria", variants: [{ label: "Mediano", price: 42000, wholesalePrice: 28000 }, { label: "Grande", price: 65000, wholesalePrice: 42000 }], stock: 18 },
+    { id: 603, name: "Ramo Mix Primavera", price: 38000, image: "/images/floristeria/3.webp", category: "floristeria", variants: [{ label: "Mediano", price: 38000, wholesalePrice: 25000 }, { label: "Grande", price: 58000, wholesalePrice: 38000 }], stock: 30 },
+    { id: 604, name: "Caja de Rosas", price: 48000, originalPrice: 60000, image: "/images/floristeria/4.webp", category: "floristeria", variants: [{ label: "6 Rosas", price: 48000, wholesalePrice: 32000 }, { label: "12 Rosas", price: 85000, wholesalePrice: 55000 }], stock: 15 },
+    { id: 605, name: "Corazon de Rosas", price: 65000, image: "/images/floristeria/5.webp", category: "floristeria", variants: [{ label: "Pequeno", price: 65000, wholesalePrice: 42000 }, { label: "Grande", price: 95000, wholesalePrice: 65000 }], stock: 12 },
     // Cojines
-    { id: 201, name: "Cojin Corazon Lo Lograstes", price: 35000, originalPrice: 42000, image: "/images/cojines/1.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 20 },
-    { id: 202, name: "Cojin Corazon Felicitaciones", price: 38000, image: "/images/cojines/2.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 28 },
-    { id: 203, name: "Cojin Corazon Feliz Dia Mama", price: 32000, image: "/images/cojines/3.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 35 },
-    { id: 204, name: "Cojin Corazon Me Gustas", price: 45000, image: "/images/cojines/4.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 26 },
-    { id: 205, name: "Cojin Corazon Me Gustas", price: 42000, originalPrice: 50000, image: "/images/cojines/5.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 22 },
-    { id: 206, name: "Cojin Corazon Te Amo", price: 48000, image: "/images/cojines/6.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 18 },
-    { id: 207, name: "Cojin Corazon Te Quiero", price: 48000, image: "/images/cojines/7.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 24 },
-    { id: 208, name: "Cojin Corazon Feliz Dia", price: 48000, image: "/images/cojines/8.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 19 },
-    { id: 209, name: "Cojin Corazon TQM", price: 48000, image: "/images/cojines/9.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 17 },
-    { id: 210, name: "Cojin Corazon Eres Especial", price: 48000, image: "/images/cojines/10.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 21 },
-    { id: 211, name: "Cojin Corazon Feliz Cumpleanos", price: 48000, image: "/images/cojines/11.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 15 },
-    { id: 212, name: "Cojin Corazon Te ExtraNo", price: 48000, image: "/images/cojines/12.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 13 },
-    { id: 2120, name: "Cojin Corazon Eres Tu", price: 48000, image: "/images/cojines/17.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 10 },
-    { id: 2121, name: "Cojin Corazon Eres mi Felicidad", price: 48000, image: "/images/cojines/18.webp", category: "cojines", variants: [{ label: "Pequeno - 25cm", price: 15000 }, { label: "Grande - 35cm", price: 22000 }], stock: 14 },
+    { id: 201, name: "Cojin Corazon Lo Lograstes", price: 35000, originalPrice: 42000, image: "/images/cojines/1.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 20 },
+    { id: 202, name: "Cojin Corazon Felicitaciones", price: 38000, image: "/images/cojines/2.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 28 },
+    { id: 203, name: "Cojin Corazon Feliz Dia Mama", price: 32000, image: "/images/cojines/3.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 35 },
+    { id: 204, name: "Cojin Corazon Me Gustas", price: 45000, image: "/images/cojines/4.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 26 },
+    { id: 205, name: "Cojin Corazon Me Gustas", price: 42000, originalPrice: 50000, image: "/images/cojines/5.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 22 },
+    { id: 206, name: "Cojin Corazon Te Amo", price: 48000, image: "/images/cojines/6.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 18 },
+    { id: 207, name: "Cojin Corazon Te Quiero", price: 48000, image: "/images/cojines/7.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 24 },
+    { id: 208, name: "Cojin Corazon Feliz Dia", price: 48000, image: "/images/cojines/8.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 19 },
+    { id: 209, name: "Cojin Corazon TQM", price: 48000, image: "/images/cojines/9.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 17 },
+    { id: 210, name: "Cojin Corazon Eres Especial", price: 48000, image: "/images/cojines/10.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 21 },
+    { id: 211, name: "Cojin Corazon Feliz Cumpleanos", price: 48000, image: "/images/cojines/11.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 15 },
+    { id: 212, name: "Cojin Corazon Te ExtraNo", price: 48000, image: "/images/cojines/12.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 13 },
+    { id: 2120, name: "Cojin Corazon Eres Tu", price: 48000, image: "/images/cojines/17.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 10 },
+    { id: 2121, name: "Cojin Corazon Eres mi Felicidad", price: 48000, image: "/images/cojines/18.webp", category: "cojines", variants: [    { label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 14 },
     { id: 213, name: "Cojin Cuadrado Portugal", price: 48000, image: "/images/cojines/13.webp", category: "cojines", variants: [{ label: "Grande - 35cm", price: 22000 }], stock: 25 },
     { id: 214, name: "Cojin Cuadrado Argentina", price: 48000, image: "/images/cojines/14.webp", category: "cojines", variants: [{ label: "Grande - 35cm", price: 22000 }], stock: 28 },
     { id: 215, name: "Cojin Cuadrado Colombia", price: 48000, image: "/images/cojines/15.webp", category: "cojines", variants: [{ label: "Grande - 35cm", price: 22000 }], stock: 22 },
@@ -915,7 +924,7 @@ export async function seedProductsAndVariants(): Promise<void> {
     { id: 419, name: "Cervical Eres Tu", price: 18000, image: "/images/cervicales/20.webp", category: "cervicales", variants: [{ label: "Sin Antifaz", price: 20000 }, { label: "Con Antifaz", price: 25000 }], stock: 48 },
     { id: 420, name: "Cervical Mi Felicidad", price: 18000, image: "/images/cervicales/20.webp", category: "cervicales", variants: [{ label: "Sin Antifaz", price: 20000 }, { label: "Con Antifaz", price: 25000 }], stock: 55 },
     // Ropa
-    { id: 701, name: "Hoodie Dragona", price: 45000, originalPrice: 55000, image: "/images/ropa/1.webp", category: "ropa", stock: 90, variants: [], adultVariants: [{ label: "S", price: 50000 }, { label: "M", price: 60000 }, { label: "L", price: 70000 }, { label: "XL", price: 80000 }], childVariants: [{ label: "4", price: 35000 }, { label: "6", price: 38000 }, { label: "8", price: 41000 }, { label: "10", price: 44000 }, { label: "12", price: 47000 }] },
+    { id: 701, name: "Hoodie Dragona", price: 45000, originalPrice: 55000, image: "/images/ropa/1.webp", category: "ropa", stock: 90, variants: [], adultVariants: [{ label: "S", price: 90000, wholesalePrice: 60000 }, { label: "M", price: 90000, wholesalePrice: 60000 }, { label: "L", price: 90000, wholesalePrice: 60000 }, { label: "XL", price: 90000, wholesalePrice: 60000 }], childVariants: [{ label: "4", price: 60000, wholesalePrice: 40000 }, { label: "6", price: 60000, wholesalePrice: 40000 }, { label: "8", price: 60000, wholesalePrice: 40000 }, { label: "10", price: 60000, wholesalePrice: 40000 }, { label: "12", price: 60000, wholesalePrice: 40000 }] },
   ]
 
   for (const p of allProducts) {
@@ -963,12 +972,12 @@ export async function seedProductsAndVariants(): Promise<void> {
       if ((existingV as any).rows.length > 0) {
         await turso.execute({
           sql: `UPDATE product_variants SET price = ?, wholesale_price = ?, stock = ?, variant_type = ?, of_active = ?, of_price = ?, of_original_price = ?, of_stock = ?, of_badge = ?, of_badge_color = ? WHERE product_id = ? AND label = ?`,
-          args: [v.price, v.price, baseStock, v.type || 'general', isOfertaProduct ? 1 : 0, isOfertaProduct ? v.price : null, isOfertaProduct ? p.originalPrice : null, isOfertaProduct ? baseStock : 0, isOfertaProduct ? "OFERTA" : null, isOfertaProduct ? "bg-red-500" : null, productId, v.label],
+          args: [v.price, v.wholesalePrice ?? v.price, baseStock, v.type || 'general', isOfertaProduct ? 1 : 0, isOfertaProduct ? v.price : null, isOfertaProduct ? p.originalPrice : null, isOfertaProduct ? baseStock : 0, isOfertaProduct ? "OFERTA" : null, isOfertaProduct ? "bg-red-500" : null, productId, v.label],
         })
       } else {
         await turso.execute({
           sql: `INSERT INTO product_variants (product_id, label, price, wholesale_price, stock, variant_type, of_active, of_price, of_original_price, of_stock, of_badge, of_badge_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          args: [productId, v.label, v.price, v.price, baseStock, v.type || 'general', isOfertaProduct ? 1 : 0, isOfertaProduct ? v.price : null, isOfertaProduct ? p.originalPrice : null, isOfertaProduct ? baseStock : 0, isOfertaProduct ? "OFERTA" : null, isOfertaProduct ? "bg-red-500" : null],
+          args: [productId, v.label, v.price, v.wholesalePrice ?? v.price, baseStock, v.type || 'general', isOfertaProduct ? 1 : 0, isOfertaProduct ? v.price : null, isOfertaProduct ? p.originalPrice : null, isOfertaProduct ? baseStock : 0, isOfertaProduct ? "OFERTA" : null, isOfertaProduct ? "bg-red-500" : null],
         })
       }
     }
@@ -993,6 +1002,11 @@ export async function upsertProductVariants(productId: number, variants: Array<{
       await turso.execute({
         sql: `INSERT INTO product_variants (product_id, label, price, wholesale_price, stock) VALUES (?, ?, ?, ?, ?)`,
         args: [productId, v.label, v.price, v.wholesalePrice, v.stock]
+      })
+    } else {
+      await turso.execute({
+        sql: `UPDATE product_variants SET price = ?, wholesale_price = ?, stock = ? WHERE product_id = ? AND label = ?`,
+        args: [v.price, v.wholesalePrice, v.stock, productId, v.label]
       })
     }
   }
@@ -1149,7 +1163,7 @@ export async function getProductsWithVariantsFromDB(categorySlug?: string): Prom
 
   const result = await turso.execute({ sql, args })
 
-  const rows = (result as any).rows as any[]
+   const rows = (result as any).rows as any[]
   const productMap = new Map<number, any>()
 
   for (const row of rows) {
@@ -1167,7 +1181,7 @@ export async function getProductsWithVariantsFromDB(categorySlug?: string): Prom
         is_new: row.is_new,
         is_sale: row.is_sale,
         is_active: row.is_active ?? 1,
-        min_wholesale: row.min_wholesale ?? 12,
+        min_wholesale: row.min_wholesale ?? 3,
         rating: row.rating_count > 0 ? row.rating_sum / row.rating_count : 4.5,
         reviews: row.rating_count || 0,
         features: ["Suavidad", "Relleno antialergico", "Durabilidad", "Facil lavado"],
@@ -1182,40 +1196,81 @@ export async function getProductsWithVariantsFromDB(categorySlug?: string): Prom
       })
     }
 
-const product = productMap.get(row.id)!
+  const product = productMap.get(row.id)!
 
-    // Skip if no variant or if variant already added
-    if (!row.variant_id) continue
+  // Skip if no variant or if variant already added
+  if (!row.variant_id) continue
 
-    // Check if variant already exists to avoid duplicates
-    const existingVariant = product.variants?.find((v: any) => v.id === String(row.variant_id)) ||
-                          product.adult_variants?.find((v: any) => v.id === String(row.variant_id)) ||
-                          product.child_variants?.find((v: any) => v.id === String(row.variant_id))
-    if (existingVariant) continue
+  // Check if variant already exists to avoid duplicates
+  const existingVariant = product.variants?.find((v: any) => v.id === String(row.variant_id)) ||
+                        product.adult_variants?.find((v: any) => v.id === String(row.variant_id)) ||
+                        product.child_variants?.find((v: any) => v.id === String(row.variant_id))
+  if (existingVariant) continue
 
-    const variantEntry = {
-      id: String(row.variant_id),
-      label: row.variant_label,
-      price: row.variant_price ?? row.price,
-      wholesale_price: row.variant_wholesale ?? row.wholesale_price,
-      stock: row.variant_stock ?? 0,
-      badge: row.variant_badge,
-      badge_color: row.variant_badge_color,
-      of_active: row.of_active ?? 0,
-      of_price: row.of_price,
-      of_wholesale_price: row.of_wholesale_price,
-      of_original_price: row.of_original_price,
-      of_badge: row.of_badge,
-      of_badge_color: row.of_badge_color,
+  const variantEntry = {
+    id: String(row.variant_id),
+    label: row.variant_label,
+    price: row.variant_price ?? row.price,
+    wholesale_price: row.variant_wholesale ?? row.wholesale_price,
+    stock: row.variant_stock ?? 0,
+    badge: row.variant_badge,
+    badge_color: row.variant_badge_color,
+    of_active: row.of_active ?? 0,
+    of_price: row.of_price,
+    of_wholesale_price: row.of_wholesale_price,
+    of_original_price: row.of_original_price,
+    of_badge: row.of_badge,
+    of_badge_color: row.of_badge_color,
+  }
+  product.stock += variantEntry.stock
+
+  if (row.variant_label === "#4 - 90cm") {
+    // skip variant that should not be displayed
+  } else if (row.variant_type === 'adult') {
+    product.adult_variants!.push(variantEntry)
+  } else if (row.variant_type === 'child') {
+    product.child_variants!.push(variantEntry)
+  } else {
+    product.variants!.push(variantEntry)
+  }
+  }
+
+  for (const product of productMap.values()) {
+    const isMiaSam = /Mia la Osa|Sam el Oso/.test(product.name || "")
+    if ([101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122].includes(product.id) || isMiaSam) {
+      for (const v of product.variants || []) {
+        if (v.label.includes("#2")) {
+          v.price = 60000
+          v.wholesale_price = 35000
+          if (isMiaSam) v.stock = 0
+        }
+        if (v.label.includes("#3")) {
+          v.price = 120000
+          v.wholesale_price = 55000
+          if (isMiaSam) v.stock = 0
+        }
+        if (v.label.includes("#4")) {
+          v.price = 150000
+          v.wholesale_price = 85000
+          if (isMiaSam) v.stock = 5
+        }
+      }
     }
-    product.stock += variantEntry.stock
+  }
 
-    if (row.variant_type === 'adult') {
-      product.adult_variants!.push(variantEntry)
-    } else if (row.variant_type === 'child') {
-      product.child_variants!.push(variantEntry)
-    } else {
-      product.variants!.push(variantEntry)
+  for (const product of productMap.values()) {
+    if (/Mia la Osa|Sam el Oso/.test(product.name || "")) {
+      const hasV4 = product.variants?.some((v: any) => v.label.includes("#4"))
+      if (!hasV4) {
+        product.variants = product.variants || []
+        product.variants.push({
+          id: "v4-" + product.id,
+          label: "#4 - 100cm",
+          price: 150000,
+          wholesale_price: 85000,
+          stock: 5,
+        })
+      }
     }
   }
 
@@ -2061,3 +2116,6 @@ export async function updateInventoryAction(data: {
     return { error: "Failed to process inventory request", details: error.message }
   }
 }
+
+
+

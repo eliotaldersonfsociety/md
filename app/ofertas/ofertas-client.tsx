@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Search, SlidersHorizontal, Grid3X3, LayoutGrid, Heart, ShoppingCart, X, ChevronDown, Store, Building2, Check, Minus, Plus, Flame, Clock, Percent } from "lucide-react"
+import { Search, SlidersHorizontal, Grid3X3, LayoutGrid, Heart, ShoppingCart, X, ChevronDown, Store, Building2, Check, Minus, Plus, Flame, Clock, Percent, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -13,7 +13,24 @@ import { Product as ProductType, ProductVariant } from "@/components/category-pa
 import { RatingSection } from "@/components/rating-section"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { WhatsAppButton } from "@/components/whatsapp-button"
+import { formatPriceCurrency } from "@/lib/geolocation"
+import { useGeolocation } from "@/lib/geolocation"
+import { WhatsAppModal } from "@/components/whatsapp-modal"
+
+const WHATSAPP_NUMBER = "573112814787"
+
+function buildWhatsAppMessage(product: ProductType, variant: ProductVariant | null, price: number, mode: "retail" | "wholesale", quantity: number, isColombia: boolean) {
+  let message = `Hola, quiero pedir: ${product.name}`
+  if (variant?.label) message += ` - ${variant.label}`
+  message += `\nPrecio: ${formatPriceCurrency(price, isColombia)}`
+  if (mode === "wholesale") {
+    message += `\nModo: Al mayor`
+    message += `\nCantidad: ${quantity}`
+  } else {
+    message += `\nModo: Al detal`
+  }
+  return encodeURIComponent(message)
+}
 
 const categories = ["Todos", "cojines", "peluches", "latas", "cervicales"]
 
@@ -26,14 +43,6 @@ const sortOptions = [
 ]
 
 const FEATURES_FALLBACK = ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado"]
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(price)
-}
 
 function getStockTag(product: ProductType, selectedVariant: ProductVariant | null) {
   const variant = selectedVariant
@@ -65,82 +74,86 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
     const staticP = staticMap.get(p.id)
 
     const seenLabels = new Set<string>()
+    const staticLabelToVariant = new Map(
+      (staticP?.variants || []).map((v: any) => [v.label, v])
+    )
+
+    function mapVariant(v: any) {
+      const staticVariant = staticLabelToVariant.get(v.label)
+      let basePrice = staticVariant?.price ?? v.price ?? p.price
+      let baseWholesale = staticVariant?.wholesalePrice ?? v.wholesale_price ?? p.wholesale_price ?? p.price
+
+      if (/Mia la Osa|Sam el Oso/.test(p.name || "") || [101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122].includes(Number(p.id))) {
+        basePrice = 150000
+        baseWholesale = 85000
+      }
+
+      return {
+        id: String(v.id ?? v.label),
+        label: v.label,
+        price: basePrice,
+        wholesalePrice: baseWholesale,
+        stock: v.stock ?? staticVariant?.stock ?? 0,
+        badge: v.badge,
+        badgeColor: v.badge_color,
+        originalPrice: v.original_price,
+        ofActive: v.of_active ?? 0,
+        ofPrice: v.of_price,
+        ofWholesalePrice: v.of_wholesale_price,
+        ofOriginalPrice: v.of_original_price,
+        ofBadge: v.of_badge,
+        ofBadgeColor: v.of_badge_color,
+        ofStock: v.of_stock,
+      }
+    }
+
     const variants = (p.variants || [])
       .filter((v: any) => {
+        if (v.label === "#4 - 90cm") return false
+        const isMiaSam = /Mia la Osa|Sam el Oso/.test(p.name || "")
+
+      if (isMiaSam && (v.label === "#2 - 40cm" || v.label === "#3 - 60cm")) return false
         if (seenLabels.has(v.label)) return false
         seenLabels.add(v.label)
         return true
       })
       .filter((v: any) => v.is_active !== false)
-       .map((v: any) => ({
-         id: String(v.id ?? v.label),
-         label: v.label,
-         price: v.price ?? p.price,
-         wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
-         stock: v.stock ?? 0,
-         badge: v.badge,
-         badgeColor: v.badge_color,
-         originalPrice: v.original_price,
-         ofActive: v.of_active ?? 0,
-         ofPrice: v.of_price,
-         ofWholesalePrice: v.of_wholesale_price,
-         ofOriginalPrice: v.of_original_price,
-         ofBadge: v.of_badge,
-         ofBadgeColor: v.of_badge_color,
-         ofStock: v.of_stock,
-       }))
+      .map((v: any) => mapVariant(v))
+
+      if (/Mia la Osa|Sam el Oso/.test(p.name || "")) {
+        const hasV4 = variants.some((v: any) => v.label.includes("#4"))
+        if (!hasV4) {
+          variants.push({
+            id: "v4-" + p.id,
+            label: "#4 - 100cm",
+            price: 150000,
+            wholesalePrice: 85000,
+            stock: 5,
+          } as any)
+        }
+      }
 
     seenLabels.clear()
     const adultVariants = (p.adult_variants || [])
       .filter((v: any) => {
+        if (v.label === "#4 - 90cm") return false
         if (seenLabels.has(v.label)) return false
         seenLabels.add(v.label)
         return true
       })
       .filter((v: any) => v.is_active !== false)
-      .map((v: any) => ({
-        id: String(v.id ?? v.label),
-        label: v.label,
-        price: v.price ?? p.price,
-        wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
-        stock: v.stock ?? 0,
-        badge: v.badge,
-        badgeColor: v.badge_color,
-        originalPrice: v.original_price,
-        ofActive: v.of_active ?? 0,
-        ofPrice: v.of_price,
-        ofWholesalePrice: v.of_wholesale_price,
-        ofOriginalPrice: v.of_original_price,
-        ofBadge: v.of_badge,
-        ofBadgeColor: v.of_badge_color,
-        ofStock: v.of_stock,
-      }))
+      .map((v: any) => mapVariant(v))
 
     seenLabels.clear()
     const childVariants = (p.child_variants || [])
       .filter((v: any) => {
+        if (v.label === "#4 - 90cm") return false
         if (seenLabels.has(v.label)) return false
         seenLabels.add(v.label)
         return true
       })
       .filter((v: any) => v.is_active !== false)
-      .map((v: any) => ({
-        id: String(v.id ?? v.label),
-        label: v.label,
-        price: v.price ?? p.price,
-        wholesalePrice: v.wholesale_price ?? p.wholesale_price ?? p.price,
-        stock: v.stock ?? 0,
-        badge: v.badge,
-        badgeColor: v.badge_color,
-        originalPrice: v.original_price,
-        ofActive: v.of_active ?? 0,
-        ofPrice: v.of_price,
-        ofWholesalePrice: v.of_wholesale_price,
-        ofOriginalPrice: v.of_original_price,
-        ofBadge: v.of_badge,
-        ofBadgeColor: v.of_badge_color,
-        ofStock: v.of_stock,
-      }))
+      .map((v: any) => mapVariant(v))
 
     return {
       id: p.id,
@@ -164,7 +177,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
       wholesalePrice: p.wholesalePrice,
       isNew: !!p.is_new,
       isSale: !!p.is_sale,
-      minWholesale: p.minWholesale ?? 12,
+      minWholesale: p.minWholesale ?? 3,
     }
   })
 }
@@ -173,6 +186,7 @@ export default function OfertasClient({ initialProducts }: { initialProducts: an
   const { addToCart, addToWholesale, purchaseMode, setPurchaseMode } = useCart()
   const products = useMemo(() => mergeProducts(initialProducts), [initialProducts])
   const allProductsForDisplay = useMemo(() => products, [products])
+  const { isColombia } = useGeolocation()
 
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("Todos")
@@ -192,8 +206,10 @@ export default function OfertasClient({ initialProducts }: { initialProducts: an
   const [editedWholesalePrices, setEditedWholesalePrices] = useState<Record<number, number>>({})
   const [editedStock, setEditedStock] = useState<Record<number, number>>({})
   const [editedBadges, setEditedBadges] = useState<Record<number, { text: string; color: string }>>({})
+  const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false)
+  const [whatsAppMessage, setWhatsAppMessage] = useState("")
 
-const filteredProducts = useMemo(() => {
+  const filteredProducts = useMemo(() => {
     let filtered = [...allProductsForDisplay]
 
     filtered = filtered.map((p) => {
@@ -259,12 +275,12 @@ const filteredProducts = useMemo(() => {
     )
   }
 
-  const getQuantity = (productId: number) => quantities[productId] || 12
+  const getQuantity = (productId: number) => quantities[productId] || 3
 
   const updateQuantity = (productId: number, delta: number) => {
     setQuantities(prev => {
-      const current = prev[productId] || 12
-      const next = Math.max(12, current + delta)
+      const current = prev[productId] || 3
+      const next = Math.max(3, current + delta)
       return { ...prev, [productId]: next }
     })
   }
@@ -427,7 +443,7 @@ const filteredProducts = useMemo(() => {
                 <div className="text-sm opacity-80">De descuento</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4">
-                <div className="text-3xl md:text-4xl font-bold">{formatPrice(totalSavings)}</div>
+                <div className="text-3xl md:text-4xl font-bold">{formatPriceCurrency(totalSavings, isColombia)}</div>
                 <div className="text-sm opacity-80">Ahorro total disponible</div>
               </div>
             </div>
@@ -459,7 +475,7 @@ const filteredProducts = useMemo(() => {
 
             {purchaseMode === "wholesale" && (
               <p className="mt-4 text-sm text-green-200 font-medium">
-                Precios especiales para mayoristas - Minimo 12 unidades por referencia
+                 Precios especiales para mayoristas - Minimo 3 unidades por referencia
               </p>
             )}
           </div>
@@ -776,31 +792,35 @@ onClick={() => {
                       </button>
 
                       {/* Quick Add */}
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          className={`w-full text-xs md:text-sm transition-all ${
-                            addedProducts[product.id]
-                              ? 'bg-green-500 hover:bg-green-600'
-                              : purchaseMode === "wholesale"
-                                ? 'bg-green-600 hover:bg-green-700'
-                                : 'bg-primary hover:bg-primary/90'
-                          }`}
-size="sm"
-                          onClick={() => handleAddToCart(product)}
-                          disabled={getStockDisabled(product)}
-                        >
-                          {addedProducts[product.id] ? (
-                            <>
-                              <Check className="h-4 w-4 mr-1" />
-                              Agregado
-                            </>
-                          ) : (
-                            <>
-                              <ShoppingCart className="h-4 w-4 mr-1" />
+                      <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/70 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1">
+                          <Button
+                            className={`shrink-0 h-8 w-8 md:h-8 md:w-auto md:px-3 md:text-xs transition-all ${addedProducts[product.id] ? 'bg-green-500 hover:bg-green-600' : purchaseMode === "wholesale" ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'}`}
+                            size="icon"
+                            onClick={() => handleAddToCart(product)}
+                            disabled={getStockDisabled(product)}
+                          >
+                            {addedProducts[product.id] ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <ShoppingCart className="h-4 w-4" />
+                            )}
+                            <span className="hidden md:inline ml-1 text-xs">
                               {getButtonText(product)}
-                            </>
-                          )}
-                        </Button>
+                            </span>
+                           </Button>
+                           <Button
+                             className="h-8 md:h-9 px-3 md:px-4 text-white bg-green-600 hover:bg-green-700 transition-all text-[11px] md:text-sm shrink-0"
+                             size="sm"
+                             onClick={() => {
+                               setWhatsAppMessage(buildWhatsAppMessage(product, getSelectedVariant(product), getProductPrice(product), purchaseMode, getQuantity(product.id), isColombia))
+                               setIsWhatsAppOpen(true)
+                             }}
+                           >
+                             <MessageCircle className="h-4 w-4 md:mr-1.5" />
+                             <span className="truncate">WhatsApp</span>
+                           </Button>
+                         </div>
                       </div>
                     </div>
 
@@ -888,84 +908,70 @@ size="sm"
                         ? getCurrentVariants(product).length > 0 && (
                             <div className="mb-3">
                               <p className="text-xs text-muted-foreground mb-1.5">Tamaño:</p>
-                              <div className="flex flex-wrap gap-1">
+                              <select
+                                value={selectedVariant?.id || getCurrentVariants(product)[0]?.id || ""}
+                                onChange={(e) => setSelectedVariants(prev => ({ ...prev, [product.id]: e.target.value }))}
+                                className="w-full text-xs border border-border rounded bg-white px-2 py-1.5"
+                              >
                                 {Array.from(new Map(getCurrentVariants(product).map(v => [v.label, v])).values()).map((variant) => (
-                                  <button
-                                    key={variant.id}
-                                    onClick={() => setSelectedVariants(prev => ({ ...prev, [product.id]: variant.id }))}
-                                    className={`px-2 py-1 text-xs rounded-md border transition-all flex items-center gap-1 ${
-                                      (selectedVariant?.id === variant.id || (!selectedVariants[product.id] && variant === getCurrentVariants(product)[0]))
-                                        ? purchaseMode === "wholesale"
-                                          ? "border-green-500 bg-green-50 text-green-700"
-                                          : "border-primary bg-primary/10 text-primary"
-                                        : "border-border hover:border-primary/50"
-                                    }`}
-                                   >
-                                     <span>{variant.label}</span>
-                                   </button>
+                                  <option key={variant.id} value={variant.id}>{variant.label}</option>
                                 ))}
-                              </div>
+                              </select>
                             </div>
                           )
                         : product.variants && product.variants.length > 0 && (
                             <div className="mb-3">
                               <p className="text-xs text-muted-foreground mb-1.5">Opción:</p>
-                              <div className="flex flex-wrap gap-1">
+                              <select
+                                value={selectedVariant?.id || product.variants![0]?.id || ""}
+                                onChange={(e) => setSelectedVariants(prev => ({ ...prev, [product.id]: e.target.value }))}
+                                className="w-full text-xs border border-border rounded bg-white px-2 py-1.5"
+                              >
                                 {Array.from(new Map(product.variants.map(v => [v.label, v])).values()).map((variant) => (
-                                  <button
-                                    key={variant.id}
-                                    onClick={() => setSelectedVariants(prev => ({ ...prev, [product.id]: variant.id }))}
-                                    className={`px-2 py-1 text-xs rounded-md border transition-all flex items-center gap-1 ${
-                                      (selectedVariant?.id === variant.id || (!selectedVariants[product.id] && variant === product.variants![0]))
-                                        ? purchaseMode === "wholesale"
-                                          ? "border-green-500 bg-green-50 text-green-700"
-                                          : "border-primary bg-primary/10 text-primary"
-                                        : "border-border hover:border-primary/50"
-                                    }`}
-                                   >
-                                     <span>{variant.label}</span>
-                                   </button>
+                                  <option key={variant.id} value={variant.id}>{variant.label}</option>
                                 ))}
-                              </div>
+                              </select>
                             </div>
                           )}
 
-                       <div className="flex items-center gap-2 mb-3">
-                         {editMode ? (
-                           <>
-                             <input
-                               type="number"
-                               placeholder="Precio"
-                               defaultValue={editedPrices[product.id] || product.price}
-                               onChange={(e) => {
-                                 const value = parseFloat(e.target.value) || 0
-                                 setEditedPrices(prev => ({ ...prev, [product.id]: value }))
-                               }}
-                               className="w-32 text-right border rounded px-2 py-1"
-                                
-                             />
-                             <input
-                               type="number"
-                               placeholder="Precio Mayorista"
-                               defaultValue={editedWholesalePrices[product.id] || product.wholesalePrice || Math.round((editedPrices[product.id] || product.price) * 0.7)}
-                               onChange={(e) => {
-                                 const value = parseFloat(e.target.value) || 0
-                                 setEditedWholesalePrices(prev => ({ ...prev, [product.id]: value }))
-                               }}
-                               className="w-32 text-right border rounded px-2 py-1 ml-2"
-                             />
-                           </>
-                         ) : (
-                           <span className={`text-xl font-bold ${purchaseMode === "wholesale" ? "text-green-600" : "text-primary"}`}>
-                             {formatPrice(currentPrice)}
-                           </span>
-                         )}
-                         {purchaseMode === "wholesale" && (
-                           <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                             Mayorista
-                           </span>
-                         )}
-                       </div>
+<div className="flex items-center gap-2 mb-3">
+                          {editMode ? (
+                            <>
+                              <input
+                                type="number"
+                                placeholder="Precio"
+                                defaultValue={editedPrices[product.id] || product.price}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value) || 0
+                                  setEditedPrices(prev => ({ ...prev, [product.id]: value }))
+                                }}
+                                className="w-32 text-right border rounded px-2 py-1"
+                              />
+                              <input
+                                type="number"
+                                placeholder="Precio Mayorista"
+                                defaultValue={editedWholesalePrices[product.id] || product.wholesalePrice || Math.round((editedPrices[product.id] || product.price) * 0.7)}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value) || 0
+                                  setEditedWholesalePrices(prev => ({ ...prev, [product.id]: value }))
+                                }}
+                                className="w-32 text-right border rounded px-2 py-1 ml-2"
+                              />
+                            </>
+                           ) : (
+                             <div className="flex items-center gap-2">
+                               <span className={`text-xl font-bold ${purchaseMode === "wholesale" ? "text-green-600" : "text-primary"}`}>
+                                 {formatPriceCurrency(currentPrice, isColombia)}
+                               </span>
+                               <span className="text-sm text-muted-foreground line-through">{formatPriceCurrency(Math.round(currentPrice * 1.4), isColombia)}</span>
+                             </div>
+                           )}
+                           {purchaseMode === "wholesale" && (
+                             <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                               Mayorista
+                             </span>
+                           )}
+                         </div>
 
                       {/* Quantity selector for wholesale */}
                       {purchaseMode === "wholesale" && (
@@ -975,7 +981,7 @@ size="sm"
                             variant="outline"
                             className="h-7 w-7"
                             onClick={() => updateQuantity(product.id, -6)}
-                            disabled={getQuantity(product.id) <= 12}
+                            disabled={getQuantity(product.id) <= 3}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
@@ -1028,7 +1034,7 @@ size="sm"
       </section>
 
       <Footer />
-      <WhatsAppButton />
+      <WhatsAppModal isOpen={isWhatsAppOpen} onClose={() => setIsWhatsAppOpen(false)} message={whatsAppMessage} />
     </main>
   )
 }

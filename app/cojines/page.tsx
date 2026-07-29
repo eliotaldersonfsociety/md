@@ -16,7 +16,6 @@ const products = [
     badgeColor: "bg-orange-500",
     features: FEATURES,
     variants: [
-      { id: "peq", label: "Pequeno - 25cm", price: 15000, wholesalePrice: 8000, stock: 10 },
       { id: "gra", label: "Grande - 35cm", price: 22000, wholesalePrice: 15000, stock: 10 },
     ]
   },
@@ -32,7 +31,7 @@ const products = [
     features: FEATURES,
     stock: 28,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 19000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 19000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 24000 },
     ]
   },
@@ -48,7 +47,7 @@ const products = [
     features: FEATURES,
     stock: 35,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 16000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 16000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 20000 },
     ]
   },
@@ -62,7 +61,7 @@ const products = [
     features: FEATURES,
     stock: 26,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 22000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 22000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 28000 },
     ]
   },
@@ -79,7 +78,7 @@ const products = [
     features: FEATURES,
     stock: 22,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 21000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 21000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 26000 },
     ]
   },
@@ -95,7 +94,7 @@ const products = [
     features: FEATURES,
     stock: 18,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 24000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 24000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 30000 },
     ]
   },
@@ -111,7 +110,7 @@ const products = [
     features: FEATURES,
     stock: 24,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 24000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 24000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 30000 },
     ]
   },
@@ -127,7 +126,7 @@ const products = [
     features: FEATURES,
     stock: 19,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 24000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 24000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 30000 },
     ]
   },
@@ -143,7 +142,7 @@ const products = [
     features: FEATURES,
     stock: 17,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 24000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 24000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 30000 },
     ]
   },
@@ -159,7 +158,7 @@ const products = [
     features: FEATURES,
     stock: 21,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 24000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 24000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 30000 },
     ]
   },
@@ -175,7 +174,7 @@ const products = [
     features: FEATURES,
     stock: 15,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 24000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 24000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 30000 },
     ]
   },
@@ -191,7 +190,7 @@ const products = [
     features: FEATURES,
     stock: 13,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 24000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 24000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 30000 },
     ]
   },
@@ -207,7 +206,7 @@ const products = [
     features: FEATURES,
     stock: 10,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 24000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 24000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 30000 },
     ]
   },
@@ -223,7 +222,7 @@ const products = [
     features: FEATURES,
     stock: 14,
     variants: [
-      { id: "peq", label: "Pequeño - 25cm", price: 10000, wholesalePrice: 24000 },
+      { id: "peq", label: "Mediano - 25cm", price: 10000, wholesalePrice: 24000 },
       { id: "gra", label: "Grande - 35cm", price: 15000, wholesalePrice: 30000 },
     ]
   },
@@ -310,12 +309,16 @@ export default async function CojinesPage() {
     }
 
     const productsWithStock = products.map(p => {
-      const variants = p.variants ? p.variants.map(v => {
+      const variants = p.variants ? p.variants.map((v) => {
+        let label = v.label
+        if (/^Peque/i.test(label)) label = "Mediano - 25cm"
+
         const storedVariantStock = variantStocksMap.get(p.id)?.get(v.label)
         const productStock = stockMap.get(p.id) ?? 0
         const fallbackStock = p.variants!.length > 0 ? Math.floor(productStock / p.variants!.length) : 0
         return {
           ...v,
+          label,
           stock: (storedVariantStock ?? (v as any).stock ?? fallbackStock)
         } as typeof v & { stock: number }
       }) : p.variants
@@ -350,13 +353,18 @@ export default async function CojinesPage() {
     )
   } catch {
     const productsWithStock = products.map(p => {
-      const variants = p.variants ? p.variants.map(v => ({
-        ...v,
-        stock: (v as any).stock ?? 0
-      } as typeof v & { stock: number })) : p.variants
+      const variants = p.variants ? p.variants.map((v) => {
+        let label = v.label
+        if (/^Peque/i.test(label)) label = "Mediano - 25cm"
+        return {
+          ...v,
+          label,
+          stock: (v as any).stock ?? 0
+        } as typeof v & { stock: number }
+      }) : p.variants
       return {
         ...p,
-        stock: variants ? variants.reduce((sum, v) => sum + ((v as any).stock ?? 0), 0) : (p.stock ?? 0),
+        stock: variants ? variants.reduce((sum, v) => sum + (v.stock ?? 0), 0) : (p.stock ?? 0),
         variants
       }
     })

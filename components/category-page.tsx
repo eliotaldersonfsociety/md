@@ -56,16 +56,17 @@ interface CategoryPageProps {
 import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { Heart, ShoppingCart, ChevronLeft, ChevronRight, Store, Building2, Check, Minus, Plus, Search, SlidersHorizontal, Grid3X3, LayoutGrid, ChevronDown, X } from "lucide-react"
+import { Heart, ShoppingCart, ChevronLeft, ChevronRight, Check, Minus, Plus, Search, SlidersHorizontal, Grid3X3, LayoutGrid, ChevronDown, X, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { useCart } from "@/context/cart-context"
 import { cn } from "@/lib/utils"
+import { formatPriceCurrency, useGeolocation } from "@/lib/geolocation"
 import { RatingSection } from "@/components/rating-section"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { WhatsAppButton } from "@/components/whatsapp-button"
+import { WhatsAppModal } from "@/components/whatsapp-modal"
 
 function ProductImages({ product, variantType }: { product: Product; variantType: "adult" | "child" | null }) {
   const getImages = () => {
@@ -121,7 +122,8 @@ function ProductImages({ product, variantType }: { product: Product; variantType
 }
 
 export default function CategoryPage({ title, description, products, category, variantLabel = "Tamaño", stockPerVariant }: CategoryPageProps) {
-  const { addToCart, addToWholesale, purchaseMode, setPurchaseMode } = useCart()
+  const { addToCart } = useCart()
+  const { isColombia } = useGeolocation()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("Todos")
   const [sortBy, setSortBy] = useState("featured")
@@ -132,7 +134,6 @@ export default function CategoryPage({ title, description, products, category, v
   const [showOnlySale, setShowOnlySale] = useState(false)
   const [favorites, setFavorites] = useState<number[]>([])
   const [addedProducts, setAddedProducts] = useState<Record<number, boolean>>({})
-  const [quantities, setQuantities] = useState<Record<number, number>>({})
   const [selectedVariants, setSelectedVariants] = useState<Record<number, string>>({})
   const [variantTypes, setVariantTypes] = useState<Record<number, "adult" | "child">>(() => {
     const initial: Record<number, "adult" | "child"> = {}
@@ -143,6 +144,8 @@ export default function CategoryPage({ title, description, products, category, v
     })
     return initial
   })
+  const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false)
+  const [whatsAppMessage, setWhatsAppMessage] = useState("")
 
   const categories = ["Todos", ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))]
 
@@ -180,15 +183,6 @@ export default function CategoryPage({ title, description, products, category, v
     setFavorites((prev) => prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id])
   }
 
-  const getQuantity = (productId: number) => quantities[productId] || 12
-  const updateQuantity = (productId: number, delta: number) => {
-    setQuantities(prev => {
-      const current = prev[productId] || 12
-      const next = Math.max(12, current + delta)
-      return { ...prev, [productId]: next }
-    })
-  }
-
   const getSelectedVariant = (product: Product): ProductVariant | null => {
     const variants = getCurrentVariants(product)
     if (!variants || variants.length === 0) return null
@@ -205,63 +199,54 @@ export default function CategoryPage({ title, description, products, category, v
 
   const getProductPrice = (product: Product): number => {
     const variant = getSelectedVariant(product)
-    if (variant) {
-      return purchaseMode === "wholesale" ? variant.wholesalePrice : variant.price
+    if (!variant) {
+      if ((product.category || "").toLowerCase() === "ropa") {
+        if (product.childVariants && product.childVariants.length > 0) {
+          const label = product.childVariants[0].label.toLowerCase()
+          if (/^\d+$/.test(label)) return product.childVariants[0].price
+        }
+        if (product.adultVariants && product.adultVariants.length > 0) {
+          return product.adultVariants[0].price
+        }
+      }
+      return product.price
     }
-    return purchaseMode === "wholesale" ? (product.wholesalePrice || Math.round(product.price * 0.7)) : product.price
+    return variant.price || product.price
   }
 
-   const handleAddToCart = (product: Product) => {
-     const variant = getSelectedVariant(product)
-     const price = getProductPrice(product)
-     const variantLabel = variant ? ` - ${variant.label}` : ""
-     const currentType = variantTypes[product.id] || null
-     const cartImage = currentType === "child"
-       ? (product.childImages?.[0] || product.image)
-       : (product.adultImages?.[0] || product.images?.[0] || product.image)
+const handleAddToCart = (product: Product) => {
+      const variant = getSelectedVariant(product)
+      const price = getProductPrice(product)
+      const variantLabel = variant ? ` - ${variant.label}` : ""
+      const currentType = variantTypes[product.id] || null
+      const cartImage = currentType === "child"
+        ? (product.childImages?.[0] || product.image)
+        : (product.adultImages?.[0] || product.images?.[0] || product.image)
 
-     if (purchaseMode === "wholesale") {
-       const qty = getQuantity(product.id)
-       const maxStock = variant?.stock ?? Infinity
-       const finalQty = maxStock !== Infinity ? Math.min(qty, maxStock) : qty
-       addToWholesale({
-         id: variant ? generateVariantId(product.id, variant.id) : product.id,
-         name: `${product.name}${variantLabel}`,
-         price: price,
-         wholesalePrice: price,
-         image: cartImage,
-         category: product.category!
-       }, finalQty)
-     } else {
-       addToCart({
-         id: variant ? generateVariantId(product.id, variant.id) : product.id,
-         name: `${product.name}${variantLabel}`,
-         price: price,
-         wholesalePrice: price,
-         image: cartImage,
-         category: product.category!
-       })
-     }
+      addToCart({
+        id: variant ? generateVariantId(product.id, variant.id) : product.id,
+        name: `${product.name}${variantLabel}`,
+        price: price,
+        wholesalePrice: price,
+        image: cartImage,
+        category: product.category!
+      })
 
-     setAddedProducts(prev => ({ ...prev, [product.id]: true }))
-     setTimeout(() => {
-       setAddedProducts(prev => ({ ...prev, [product.id]: false }))
-     }, 2000)
-   }
+      setAddedProducts(prev => ({ ...prev, [product.id]: true }))
+      setTimeout(() => {
+        setAddedProducts(prev => ({ ...prev, [product.id]: false }))
+      }, 2000)
+    }
 
-   function formatPrice(price: number) {
-     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(price)
-   }
+    const generateVariantId = (productId: number, variantId: string): number => {
+      let hash = 0
+      for (let i = 0; i < variantId.length; i++) {
+        hash = variantId.charCodeAt(i) + ((hash << 5) - hash)
+      }
+      return Math.abs((productId * 1000) + hash)
+    }
 
-   const generateVariantId = (productId: number, variantId: string): number => {
-     // Simple hash function to convert string to number
-     let hash = 0
-     for (let i = 0; i < variantId.length; i++) {
-       hash = variantId.charCodeAt(i) + ((hash << 5) - hash)
-     }
-     // Combine with productId to ensure uniqueness across products
-     return Math.abs((productId * 1000) + hash)
-   }
+    const formatPrice = (price: number) => formatPriceCurrency(price, isColombia)
 
   return (
     <main className="min-h-screen bg-background">
@@ -276,15 +261,6 @@ export default function CategoryPage({ title, description, products, category, v
           <div className="text-center text-white">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">{title}</h1>
             <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto mb-8">{description}</p>
-            <div className="inline-flex items-center gap-2 p-1.5 bg-white/20 backdrop-blur-sm rounded-full">
-              <button onClick={() => setPurchaseMode("retail")} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${purchaseMode === "retail" ? "bg-white text-primary shadow-md" : "text-white hover:bg-white/20"}`}>
-                <Store className="h-4 w-4" /> Al Detal
-              </button>
-              <button onClick={() => setPurchaseMode("wholesale")} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${purchaseMode === "wholesale" ? "bg-green-500 text-white shadow-md" : "text-white hover:bg-white/20"}`}>
-                <Building2 className="h-4 w-4" /> Al Mayor
-              </button>
-            </div>
-            {purchaseMode === "wholesale" && <p className="mt-4 text-sm text-green-200 font-medium">Precios especiales para mayoristas - Minimo 12 unidades por referencia</p>}
           </div>
         </div>
       </section>
@@ -344,7 +320,7 @@ export default function CategoryPage({ title, description, products, category, v
               <Button onClick={() => { setSearchQuery(""); setSelectedCategory("Todos"); setPriceRange([0, 100000]); setShowOnlyNew(false); setShowOnlySale(false); }}>Ver todos los productos</Button>
             </div>
           ) : (
-            <div className={cn("grid gap-6", gridCols === 3 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4")}>
+            <div className={cn("grid gap-6", gridCols === 3 ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4")}>
               {filteredProducts.map((product) => {
                 const currentPrice = getProductPrice(product)
                 const selectedVariant = getSelectedVariant(product)
@@ -363,16 +339,30 @@ export default function CategoryPage({ title, description, products, category, v
                       <button onClick={() => toggleFavorite(product.id)} className={cn("absolute top-3 right-3 p-2 rounded-full transition-all", favorites.includes(product.id) ? "bg-primary text-white" : "bg-white/80 hover:bg-white text-gray-600")}>
                         <Heart className={cn("h-5 w-5", favorites.includes(product.id) && "fill-current")} />
                       </button>
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button className={`w-full text-xs md:text-sm transition-all ${addedProducts[product.id] ? 'bg-green-500 hover:bg-green-600' : purchaseMode === "wholesale" ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'}`} size="sm" onClick={() => handleAddToCart(product)}>
-                          {addedProducts[product.id] ? <><Check className="h-4 w-4 mr-1" /> Agregado</> : <><ShoppingCart className="h-4 w-4 mr-1" /> {purchaseMode === "wholesale" ? "Agregar al pedido" : "Agregar"}</>}
-                        </Button>
+                      <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/70 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1">
+                           <Button className={`shrink-0 h-8 w-8 md:h-8 md:w-auto md:px-3 md:text-xs transition-all ${addedProducts[product.id] ? 'bg-green-500 hover:bg-green-600' : 'bg-white hover:bg-white/90 text-primary'}`} size="icon" onClick={() => handleAddToCart(product)}>
+                             {addedProducts[product.id] ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                             <span className="hidden md:inline ml-1 text-xs">Agregar</span>
+                            </Button>
+                            <Button
+                              className="h-8 md:h-9 px-3 md:px-4 text-white bg-green-600 hover:bg-green-700 transition-all text-[11px] md:text-sm shrink-0"
+                              size="sm"
+                              onClick={() => {
+                                setWhatsAppMessage(encodeURIComponent(`Hola, quiero pedir: ${product.name}${selectedVariant?.label ? ` - ${selectedVariant.label}` : ""}\nPrecio: ${formatPrice(currentPrice)}`))
+                                setIsWhatsAppOpen(true)
+                              }}
+                           >
+                             <MessageCircle className="h-4 w-4 md:mr-1.5" />
+                             <span className="truncate">WhatsApp</span>
+                           </Button>
+                         </div>
                       </div>
                     </div>
                     <div className="p-4">
                       <span className="text-xs text-primary font-medium uppercase tracking-wide">{product.category}</span>
                       <h3 className="font-semibold text-lg mt-1 group-hover:text-primary transition-colors">{product.name}</h3>
-                      <div className="mt-2"><RatingSection productId={product.id} /></div>
+                      <div className="mt-2"><RatingSection productId={product.id} initialRating={product.rating} initialReviews={product.reviews} /></div>
                       {product.features && <div className="flex flex-wrap gap-1 mt-2">{product.features.map((feature, idx) => <span key={idx} className="text-xs bg-muted/50 text-muted-foreground px-2 py-0.5 rounded">{feature}</span>)}</div>}
                       
                       {/* CORRECCIÓN: Renderizar el stock de la variante activa dinámicamente */}
@@ -386,47 +376,46 @@ export default function CategoryPage({ title, description, products, category, v
                         <div className="mb-3">
                           <p className="text-xs text-muted-foreground mb-1.5">Tipo:</p>
                           <div className="flex gap-1">
-                            <button onClick={() => setVariantTypes(prev => ({ ...prev, [product.id]: "adult" }))} className={`px-3 py-1 text-xs rounded-md border transition-all ${variantTypes[product.id] !== "child" ? (purchaseMode === "wholesale" ? "border-green-500 bg-green-50 text-green-700" : "border-primary bg-primary/10 text-primary") : "border-border hover:border-primary/50"}`}>Adulto</button>
-                            <button onClick={() => setVariantTypes(prev => ({ ...prev, [product.id]: "child" }))} className={`px-3 py-1 text-xs rounded-md border transition-all ${variantTypes[product.id] === "child" ? (purchaseMode === "wholesale" ? "border-green-500 bg-green-50 text-green-700" : "border-primary bg-primary/10 text-primary") : "border-border hover:border-primary/50"}`}>Niño</button>
+                            <button onClick={() => setVariantTypes(prev => ({ ...prev, [product.id]: "adult" }))} className={`px-3 py-1 text-xs rounded-md border transition-all ${variantTypes[product.id] !== "child" ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}>Adulto</button>
+                            <button onClick={() => setVariantTypes(prev => ({ ...prev, [product.id]: "child" }))} className={`px-3 py-1 text-xs rounded-md border transition-all ${variantTypes[product.id] === "child" ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}>Niño</button>
                           </div>
                         </div>
                       )}
                        {product.adultVariants && product.childVariants && variantTypes[product.id]
                          ? getCurrentVariants(product).length > 0 && (
                              <div className="mb-3">
-                               <p className="text-xs text-muted-foreground mb-1.5">{variantLabel} {variantTypes[product.id] === "child" ? "Niño" : "Adulto"}:</p>
-                               <div className="flex flex-wrap gap-1">
+                               <p className="text-xs text-muted-foreground mb-1.5">Tamaño:</p>
+                               <select
+                                 value={selectedVariant?.id || getCurrentVariants(product)[0]?.id || ""}
+                                 onChange={(e) => setSelectedVariants(prev => ({ ...prev, [product.id]: e.target.value }))}
+                                 className="w-full text-xs border border-border rounded bg-white px-2 py-1.5"
+                               >
                                  {Array.from(new Map(getCurrentVariants(product).map(v => [v.label, v])).values()).map((variant) => (
-                                  <button key={variant.id} onClick={() => setSelectedVariants(prev => ({ ...prev, [product.id]: variant.id }))} className={`px-2 py-1 text-xs rounded-md border transition-all ${(selectedVariant?.id === variant.id || (!selectedVariants[product.id] && variant === getCurrentVariants(product)[0])) ? (purchaseMode === "wholesale" ? "border-green-500 bg-green-50 text-green-700" : "border-primary bg-primary/10 text-primary") : "border-border hover:border-primary/50"}`}>
-                                    {variant.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )
-                        : product.variants && product.variants.length > 0 && (
-                            <div className="mb-3">
-                              <p className="text-xs text-muted-foreground mb-1.5">Opción:</p>
-                              <div className="flex flex-wrap gap-1">
-                                {Array.from(new Map(product.variants.map(v => [v.label, v])).values()).map((variant) => (
-                                  <button key={variant.id} onClick={() => setSelectedVariants(prev => ({ ...prev, [product.id]: variant.id }))} className={`px-2 py-1 text-xs rounded-md border transition-all ${(selectedVariant?.id === variant.id || (!selectedVariants[product.id] && variant === product.variants![0])) ? (purchaseMode === "wholesale" ? "border-green-500 bg-green-50 text-green-700" : "border-primary bg-primary/10 text-primary") : "border-border hover:border-primary/50"}`}>
-                                    {variant.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className={`text-xl font-bold ${purchaseMode === "wholesale" ? "text-green-600" : "text-primary"}`}>{formatPrice(currentPrice)}</span>
-                        {purchaseMode === "wholesale" && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Mayorista</span>}
-                      </div>
-                      {purchaseMode === "wholesale" && (
-                        <div className="flex items-center justify-center gap-2 mb-3">
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(product.id, -6)} disabled={getQuantity(product.id) <= 12}><Minus className="h-3 w-3" /></Button>
-                          <span className="w-12 text-center font-medium text-sm">{getQuantity(product.id)} uds</span>
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(product.id, 6)}><Plus className="h-3 w-3" /></Button>
-                        </div>
-                      )}
+                                   <option key={variant.id} value={variant.id}>{variant.label}</option>
+                                 ))}
+                               </select>
+                             </div>
+                           )
+                         : product.variants && product.variants.length > 0 && (
+                             <div className="mb-3">
+                               <p className="text-xs text-muted-foreground mb-1.5">Opción:</p>
+                               <select
+                                 value={selectedVariant?.id || product.variants![0]?.id || ""}
+                                 onChange={(e) => setSelectedVariants(prev => ({ ...prev, [product.id]: e.target.value }))}
+                                 className="w-full text-xs border border-border rounded bg-white px-2 py-1.5"
+                               >
+                                 {Array.from(new Map(product.variants.map(v => [v.label, v])).values()).map((variant) => (
+                                   <option key={variant.id} value={variant.id}>{variant.label}</option>
+                                 ))}
+                               </select>
+                             </div>
+                           )}
+                       <div className="flex items-center gap-2 mb-3 flex-wrap">
+                         <div className="flex items-center gap-2">
+                           <span className="text-xl font-bold text-primary">{formatPrice(currentPrice)}</span>
+                           <span className="text-sm text-muted-foreground line-through">{formatPrice(Math.round(currentPrice * 1.4))}</span>
+                         </div>
+                       </div>
                       
                       {/* CORRECCIÓN: Validar el stock dinámico para el mensaje de urgencia */}
                       {stockPerVariant && activeStock !== undefined && activeStock > 0 && activeStock < 10 && (
@@ -455,7 +444,7 @@ export default function CategoryPage({ title, description, products, category, v
       </section>
 
       <Footer />
-      <WhatsAppButton />
+      <WhatsAppModal isOpen={isWhatsAppOpen} onClose={() => setIsWhatsAppOpen(false)} message={whatsAppMessage} />
     </main>
   )
 }

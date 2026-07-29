@@ -8,7 +8,7 @@ const products = [
     id: 701,
     name: "Hoodie Dragona",
     price: 99000,
-    originalPrice: 55000,
+    originalPrice: 99000,
     image: "/images/ropa/1.webp",
     rating: 4.7,
     reviews: 85,
@@ -30,17 +30,17 @@ const products = [
     features: FEATURES,
     stock: 90,
     adultVariants: [
-      { id: "a-s", label: "S", price: 99000, wholesalePrice: 80000 },
-      { id: "a-m", label: "M", price: 99000, wholesalePrice: 80000 },
-      { id: "a-l", label: "L", price: 99000, wholesalePrice: 80000 },
-      { id: "a-xl", label: "XL", price: 99000, wholesalePrice: 80000 },
+      { id: "a-s", label: "S", price: 90000, wholesalePrice: 60000 },
+      { id: "a-m", label: "M", price: 90000, wholesalePrice: 60000 },
+      { id: "a-l", label: "L", price: 90000, wholesalePrice: 60000 },
+      { id: "a-xl", label: "XL", price: 90000, wholesalePrice: 60000 },
     ],
     childVariants: [
-      { id: "n-4", label: "4", price: 99000, wholesalePrice: 80000 },
-      { id: "n-6", label: "6", price: 99000, wholesalePrice: 80000 },
-      { id: "n-8", label: "8", price: 99000, wholesalePrice: 80000 },
-      { id: "n-10", label: "10", price: 99000, wholesalePrice: 80000 },
-      { id: "n-12", label: "12", price: 99000, wholesalePrice: 80000 },
+      { id: "n-4", label: "4", price: 60000, wholesalePrice: 40000 },
+      { id: "n-6", label: "6", price: 60000, wholesalePrice: 40000 },
+      { id: "n-8", label: "8", price: 60000, wholesalePrice: 40000 },
+      { id: "n-10", label: "10", price: 60000, wholesalePrice: 40000 },
+      { id: "n-12", label: "12", price: 60000, wholesalePrice: 40000 },
     ]
   }
 ]

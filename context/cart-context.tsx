@@ -111,7 +111,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items])
 
   // Funciones lista mayoreo
-  const addToWholesale = useCallback((product: Product, quantity: number = 12) => {
+  const addToWholesale = useCallback((product: Product, quantity: number = 3) => {
     setWholesaleItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id)
       if (existingItem) {

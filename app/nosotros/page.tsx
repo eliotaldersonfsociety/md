@@ -4,7 +4,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { WhatsAppButton } from "@/components/whatsapp-button"
 import { Button } from "@/components/ui/button"
 import { Users, Heart, Star, Truck } from "lucide-react"
 
@@ -211,7 +210,6 @@ nuestros productos 100% exclusivos contando con la renovación de nuestros produ
       </section>
 
       <Footer />
-      <WhatsAppButton />
     </main>
   )
 }

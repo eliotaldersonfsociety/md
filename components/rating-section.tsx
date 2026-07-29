@@ -27,10 +27,13 @@ const getNameFromId = (id: number) => LATIN_NAMES[id % LATIN_NAMES.length]
 interface RatingSectionProps {
   productId: number
   showWriteReview?: boolean
+  isLoading?: boolean
+  initialRating?: number
+  initialReviews?: number
 }
 
-export function RatingSection({ productId, showWriteReview = true }: RatingSectionProps) {
-  const { ratings, reviews } = useRatings()
+export function RatingSection({ productId, showWriteReview = true, initialRating, initialReviews }: RatingSectionProps) {
+  const { ratings, reviews, loading } = useRatings()
   const [avg, setAvg] = useState(0)
   const [count, setCount] = useState(0)
   const [selectedRating, setSelectedRating] = useState(0)
@@ -40,14 +43,17 @@ export function RatingSection({ productId, showWriteReview = true }: RatingSecti
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [mounted, setMounted] = useState(false)
+  const [isLocalLoading, setIsLocalLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
+    const timer = setTimeout(() => setIsLocalLoading(false), 400)
+    return () => clearTimeout(timer)
   }, [])
 
   const productRating = ratings[productId]
-  const displayAvg = productRating ? productRating.avg : avg
-  const displayCount = productRating ? productRating.count : count
+  const displayAvg = productRating ? productRating.avg : (initialRating ?? avg)
+  const displayCount = productRating ? productRating.count : (initialReviews ?? count)
   const productReviews = reviews[productId] || []
 
   const resetForm = () => {
@@ -83,6 +89,17 @@ export function RatingSection({ productId, showWriteReview = true }: RatingSecti
         setOpen(false)
       }
     })
+  }
+
+  if (!mounted || isLocalLoading) {
+    return (
+      <div className="flex flex-col gap-1 animate-pulse">
+        <div className="flex items-center gap-1">
+          <div className="h-4 w-24 bg-gray-200 rounded" />
+        </div>
+        <div className="h-3 w-20 bg-gray-200 rounded" />
+      </div>
+    )
   }
 
   return (

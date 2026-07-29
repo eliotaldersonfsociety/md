@@ -5,7 +5,8 @@ import Link from "next/link"
 import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/cart-context"
-import { formatPrice } from "@/lib/utils"
+import { formatPriceCurrency } from "@/lib/geolocation"
+import { useGeolocation } from "@/lib/geolocation"
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -14,6 +15,7 @@ interface CartDrawerProps {
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const { items, removeFromCart, updateQuantity, getCartTotal, getCartCount } = useCart()
+  const { isColombia } = useGeolocation()
 
   if (!isOpen) return null
 
@@ -88,7 +90,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       {item.category}
                     </p>
                     <p className="text-sm font-bold text-[#e91e8c]">
-                      {formatPrice(item.price)}
+                      {formatPriceCurrency(item.price, isColombia)}
                     </p>
                   </div>
 
@@ -137,7 +139,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             {/* Subtotal */}
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-muted-foreground">Subtotal</span>
-              <span className="text-sm font-medium">{formatPrice(getCartTotal())}</span>
+              <span className="text-sm font-medium">{formatPriceCurrency(getCartTotal(), isColombia)}</span>
             </div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm text-muted-foreground">Envio</span>
@@ -145,7 +147,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </div>
             <div className="flex items-center justify-between mb-4 pt-2 border-t border-border">
               <span className="text-base font-semibold">Total</span>
-              <span className="text-lg font-bold text-[#e91e8c]">{formatPrice(getCartTotal())}</span>
+              <span className="text-lg font-bold text-[#e91e8c]">{formatPriceCurrency(getCartTotal(), isColombia)}</span>
             </div>
 
             {/* Checkout Button */}

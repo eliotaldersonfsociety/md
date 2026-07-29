@@ -41,7 +41,7 @@ export function ProductsComparison() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary font-[var(--font-montserrat)] mb-2">
             Productos Corporativos
           </h2>
-          <p className="text-lg md:text-xl text-orange-500 font-medium">
+          <p className="text-lg md:text-xl text-black font-medium">
             Desarrollamos Tus ideas
           </p>
         </div>

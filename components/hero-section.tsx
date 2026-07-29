@@ -171,7 +171,7 @@ export function HeroSection() {
 
       </div>
       
-      <div className="container mx-auto px-4 py-12 md:py-20 relative z-10 h-full flex items-center">
+      <div className="container mx-auto px-4 py-12 md:py-20 relative z-10 h-full flex items-end">
         <div className="max-w-2xl">
           
           <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight text-balance mb-4 md:mb-6">
@@ -182,7 +182,7 @@ export function HeroSection() {
             {slide.description}
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 mb-8 md:mb-12">
+          <div className="flex flex-row flex-wrap gap-3 mb-8 md:mb-12">
             <Button asChild size="lg" className="bg-white text-black hover:bg-white/90 rounded-full px-4 md:px-8">
               <Link href={slide.primaryButton.href}>
                 {slide.primaryButton.text}
@@ -196,11 +196,11 @@ export function HeroSection() {
             </Button>
           </div>
           
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 md:gap-4">
             {slide.stats.map((stat, index) => (
-              <div key={index} className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                <p className="text-sm md:text-lg font-bold text-white">{stat.value}</p>
-                <p className="text-xs md:text-sm text-white/70">{stat.label}</p>
+              <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl p-2 md:p-4 border border-white/20">
+                <p className="text-xs md:text-lg font-bold text-white">{stat.value}</p>
+                <p className="text-[10px] md:text-sm text-white/70">{stat.label}</p>
               </div>
             ))}
           </div>
