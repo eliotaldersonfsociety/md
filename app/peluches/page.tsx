@@ -1,5 +1,12 @@
+import type { Metadata } from "next"
 import CategoryPage from "@/components/category-page"
 import { getProductsWithStock, getVariantsByProductId, upsertProductVariants } from "@/db/actions"
+
+export const metadata: Metadata = {
+  title: "Peluches | Fábrica de Peluches Mundo Disney",
+  description: "Colección de peluches originales y personalizados. Envíos a todo Colombia y Venezuela. Perfectos para regalar en cumpleaños, aniversarios y fechas especiales.",
+  canonical: "/peluches",
+}
 
 const FEATURES = ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado"]
 

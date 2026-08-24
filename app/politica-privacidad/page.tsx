@@ -1,5 +1,12 @@
+import type { Metadata } from "next"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
+
+export const metadata: Metadata = {
+  title: "Política de Privacidad | Fábrica de Peluches Mundo Disney",
+  description: "Política de privacidad y protección de datos personales de Fábrica de Peluches Mundo Disney.",
+  canonical: "/politica-privacidad",
+}
 
 export default function PoliticaPrivacidadPage() {
   return (

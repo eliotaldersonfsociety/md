@@ -2090,32 +2090,104 @@ export async function getAllProductsWithStockAction() {
   return (result as any).rows
 }
 
-export async function updateInventoryAction(data: {
-  productId: number
-  quantity: number
-  action: "add" | "reduce" | "set"
-}) {
-  requireAdmin()
-  try {
-    if (data.action === "add") {
-      await addProductStock(data.productId, data.quantity)
-      return { success: true, message: `Added ${data.quantity} units to product ${data.productId}` }
-    } else if (data.action === "reduce") {
-      const success = await reduceProductStock(data.productId, data.quantity)
-      if (!success) {
-        return { error: `Insufficient stock to reduce ${data.quantity} units` }
-      }
-      return { success: true, message: `Reduced ${data.quantity} units from product ${data.productId}` }
-    } else if (data.action === "set") {
-      await setProductStock(data.productId, data.quantity)
-      return { success: true, message: `Set stock to ${data.quantity} units for product ${data.productId}` }
+export async function getProductBySlug(categorySlug: string, slug: string) {
+  await initTables()
+
+  const normalizedCategory = categorySlug.toLowerCase()
+  const categoryResult = await turso.execute({
+    sql: `SELECT id FROM categories WHERE slug = ?`,
+    args: [normalizedCategory],
+  })
+
+  const categoryRow = (categoryResult as any).rows[0]
+  if (!categoryRow) {
+    console.log("[getProductBySlug] category not found", { categorySlug, normalizedCategory })
+    return null
+  }
+
+  const productsResult = await turso.execute({
+    sql: `SELECT id, name, price, wholesale_price, original_price, image, category_id, is_new, is_sale, stock, badge, badge_color FROM products WHERE category_id = ? AND is_active != 0`,
+    args: [categoryRow.id],
+  })
+
+  const rows = (productsResult as any).rows as any[]
+  const normalizedSlug = slug.toLowerCase()
+
+  console.log("[getProductBySlug] search", { categorySlug, slug, normalizedCategory, categoryId: categoryRow.id, count: rows.length, names: rows.map((r: any) => r.name) })
+
+  const matched = rows.find((row) => {
+    if (!row.name) return false
+    const nameSlug = row.name
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+    return nameSlug === normalizedSlug
+  })
+
+  if (!matched) {
+    console.log("[getProductBySlug] no match", { normalizedSlug, candidates: rows.map((r: any) => ({ id: r.id, name: r.name, slug: r.name?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") })) })
+    return null
+  }
+
+  const variantsResult = await turso.execute({
+    sql: `SELECT id, label, price, wholesale_price, stock, badge, badge_color, variant_type FROM product_variants WHERE product_id = ?`,
+    args: [matched.id],
+  })
+
+  const variantRows = (variantsResult as any).rows as any[]
+  const variants: any[] = []
+  const adultVariants: any[] = []
+  const childVariants: any[] = []
+
+  for (const v of variantRows) {
+    const entry = {
+      id: String(v.id),
+      label: v.label,
+      price: v.price,
+      wholesalePrice: v.wholesale_price,
+      stock: v.stock ?? 0,
+      badge: v.badge,
+      badgeColor: v.badge_color,
     }
-    return { error: "Invalid action. Use 'add', 'reduce', or 'set'" }
-  } catch (error: any) {
-    console.error("Inventory action error:", error)
-    return { error: "Failed to process inventory request", details: error.message }
+
+    if (v.variant_type === "adult") {
+      adultVariants.push(entry)
+    } else if (v.variant_type === "child") {
+      childVariants.push(entry)
+    } else {
+      variants.push(entry)
+    }
+  }
+
+  return {
+    id: matched.id,
+    name: matched.name,
+    price: matched.price,
+    wholesalePrice: matched.wholesale_price,
+    originalPrice: matched.original_price,
+    image: matched.image,
+    category: normalizedCategory,
+    stock: matched.stock ?? 0,
+    badge: matched.badge,
+    badgeColor: matched.badge_color,
+    isNew: matched.is_new,
+    isSale: matched.is_sale,
+    variants: variants.length > 0 ? variants : undefined,
+    adultVariants: adultVariants.length > 0 ? adultVariants : undefined,
+    childVariants: childVariants.length > 0 ? childVariants : undefined,
   }
 }
 
+export async function getAllCategories() {
+  await initTables()
+
+  const result = await turso.execute({
+    sql: `SELECT id, name, slug FROM categories ORDER BY name`,
+  })
+
+  return (result as any).rows as { id: number; name: string; slug: string }[]
+}
 
 

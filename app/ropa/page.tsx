@@ -1,5 +1,12 @@
+import type { Metadata } from "next"
 import CategoryPage from "@/components/category-page"
 import { getProductsWithStock, getVariantsByProductId } from "@/db/actions"
+
+export const metadata: Metadata = {
+  title: "Ropa | Fábrica de Peluches Mundo Disney",
+  description: "Ropa tierna y cómoda para niños y adultos. Hoodies y prendas con diseños exclusivos. Envíos a Colombia y Venezuela.",
+  canonical: "/ropa",
+}
 
 const FEATURES = ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado"]
 

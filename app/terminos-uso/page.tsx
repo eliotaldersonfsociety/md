@@ -1,5 +1,12 @@
+import type { Metadata } from "next"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
+
+export const metadata: Metadata = {
+  title: "Términos de Uso | Fábrica de Peluches Mundo Disney",
+  description: "Términos y condiciones de uso del sitio web de Fábrica de Peluches Mundo Disney.",
+  canonical: "/terminos-uso",
+}
 
 export default function TerminosUsoPage() {
   return (

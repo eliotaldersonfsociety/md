@@ -1,6 +1,13 @@
+import type { Metadata } from "next"
 import { getProductsWithVariantsFromDB } from "@/db/actions"
 import { allProducts } from "@/lib/products-data"
 import TiendaClient from "./tienda-client"
+
+export const metadata: Metadata = {
+  title: "Tienda | Fábrica de Peluches Mundo Disney",
+  description: "Tienda online de peluches, cojines, cervicales, llaveros y regalos personalizados. Venta al por mayor y menor. Envíos a Colombia y Venezuela.",
+  canonical: "/tienda",
+}
 
 function toDbProductsShape(products: typeof allProducts) {
   return products.map((p: any) => ({

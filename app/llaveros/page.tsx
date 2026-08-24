@@ -1,5 +1,12 @@
+import type { Metadata } from "next"
 import CategoryPage from "@/components/category-page"
 import { getProductsWithStock, getVariantsByProductId, upsertProductVariants } from "@/db/actions"
+
+export const metadata: Metadata = {
+  title: "Llaveros | Fábrica de Peluches Mundo Disney",
+  description: "Llaveros personalizados y decorativos para mochilas y carteras. Detalles únicos para regalar. Envíos a Colombia y Venezuela.",
+  canonical: "/llaveros",
+}
 
 const products = [
   {

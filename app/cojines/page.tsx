@@ -1,5 +1,12 @@
+import type { Metadata } from "next"
 import CategoryPage from "@/components/category-page"
 import { getProductsWithStock, getVariantsByProductId, upsertProductVariants } from "@/db/actions"
+
+export const metadata: Metadata = {
+  title: "Cojines | Fábrica de Peluches Mundo Disney",
+  description: "Cojines decorativos y personalizados para regalar. Diseños únicos para cumpleaños, aniversarios y ocasiones especiales. Envíos a Colombia y Venezuela.",
+  canonical: "/cojines",
+}
 
 const FEATURES = ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado"]
 

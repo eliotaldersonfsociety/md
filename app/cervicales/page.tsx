@@ -1,5 +1,12 @@
+import type { Metadata } from "next"
 import CategoryPage from "@/components/category-page"
 import { getProductsWithStock, getVariantsByProductId, upsertProductVariants } from "@/db/actions"
+
+export const metadata: Metadata = {
+  title: "Almohadas Cervicales | Fábrica de Peluches Mundo Disney",
+  description: "Almohadas cervicales con diseños tiernos para viajes y descanso. Perfectas para niños y adultos. Envíos a todo Colombia y Venezuela.",
+  canonical: "/cervicales",
+}
 
 const FEATURES = ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado", "Arreglo GRATIS"]
 

@@ -1,5 +1,12 @@
+import type { Metadata } from "next"
 import CategoryPage from "@/components/category-page"
 import { getProductsWithStock, getVariantsByProductId, upsertProductVariants } from "@/db/actions"
+
+export const metadata: Metadata = {
+  title: "Latas Decorativas | Fábrica de Peluches Mundo Disney",
+  description: "Latas decorativas con diseños originales para guardar dulces y recuerdos. Perfectas para regalar en cumpleaños y eventos.",
+  canonical: "/latas",
+}
 
 const FEATURES = ["Suavidad", "Relleno antialérgico", "Durabilidad", "Fácil lavado", "Arreglo GRATIS"]
 

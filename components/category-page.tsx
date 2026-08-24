@@ -1,5 +1,29 @@
 "use client"
 
+import Image from "next/image"
+import Link from "next/link"
+import { useState, useEffect } from "react"
+import { Heart, ShoppingCart, ChevronLeft, ChevronRight, Check, Minus, Plus, Search, SlidersHorizontal, Grid3X3, LayoutGrid, ChevronDown, X, MessageCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { useCart } from "@/context/cart-context"
+import { cn } from "@/lib/utils"
+import { formatPriceCurrency, useGeolocation } from "@/lib/geolocation"
+import { RatingSection } from "@/components/rating-section"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { WhatsAppModal } from "@/components/whatsapp-modal"
+import { buildProductSlug } from "@/lib/slugify"
+import { allProducts } from "@/lib/products-data"
+
+const fallbackCategoryById = new Map<number, string>()
+for (const product of allProducts) {
+  if (product.id && product.category) {
+    fallbackCategoryById.set(product.id, product.category.toLowerCase())
+  }
+}
+
 export interface ProductVariant {
   id: string
   label: string
@@ -52,21 +76,6 @@ interface CategoryPageProps {
   variantLabel?: string
   stockPerVariant?: boolean
 }
-
-import Image from "next/image"
-import Link from "next/link"
-import { useState, useEffect } from "react"
-import { Heart, ShoppingCart, ChevronLeft, ChevronRight, Check, Minus, Plus, Search, SlidersHorizontal, Grid3X3, LayoutGrid, ChevronDown, X, MessageCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { useCart } from "@/context/cart-context"
-import { cn } from "@/lib/utils"
-import { formatPriceCurrency, useGeolocation } from "@/lib/geolocation"
-import { RatingSection } from "@/components/rating-section"
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { WhatsAppModal } from "@/components/whatsapp-modal"
 
 function ProductImages({ product, variantType }: { product: Product; variantType: "adult" | "child" | null }) {
   const getImages = () => {
@@ -229,7 +238,7 @@ const handleAddToCart = (product: Product) => {
         price: price,
         wholesalePrice: price,
         image: cartImage,
-        category: product.category!
+        category: (product.category || category).toLowerCase()
       })
 
       setAddedProducts(prev => ({ ...prev, [product.id]: true }))
@@ -324,12 +333,12 @@ const handleAddToCart = (product: Product) => {
               {filteredProducts.map((product) => {
                 const currentPrice = getProductPrice(product)
                 const selectedVariant = getSelectedVariant(product)
-                
-                // CORRECCIÓN: Calcular el stock activo (Variante seleccionada -> Stock Global -> 0)
+                const productSlug = buildProductSlug(product.name)
+
                 const activeStock = selectedVariant?.stock ?? product.stock ?? 0
 
                 return (
-                  <div key={product.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border">
+                  <Link key={product.id} href={`/${(product.category || category).toLowerCase()}/${productSlug}`} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border block">
                     <div className="relative aspect-square overflow-hidden bg-gray-50">
                       <ProductImages product={product} variantType={variantTypes[product.id] || null} />
                       <div className="absolute top-3 left-3 flex flex-col gap-2">
@@ -339,25 +348,26 @@ const handleAddToCart = (product: Product) => {
                       <button onClick={() => toggleFavorite(product.id)} className={cn("absolute top-3 right-3 p-2 rounded-full transition-all", favorites.includes(product.id) ? "bg-primary text-white" : "bg-white/80 hover:bg-white text-gray-600")}>
                         <Heart className={cn("h-5 w-5", favorites.includes(product.id) && "fill-current")} />
                       </button>
-                      <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/70 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                        <div className="flex items-center gap-1">
-                           <Button className={`shrink-0 h-8 w-8 md:h-8 md:w-auto md:px-3 md:text-xs transition-all ${addedProducts[product.id] ? 'bg-green-500 hover:bg-green-600' : 'bg-white hover:bg-white/90 text-primary'}`} size="icon" onClick={() => handleAddToCart(product)}>
-                             {addedProducts[product.id] ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-                             <span className="hidden md:inline ml-1 text-xs">Agregar</span>
+                       <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/70 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                         <div className="flex items-center gap-1">
+                            <Button className={`shrink-0 h-8 w-8 md:h-8 md:w-auto md:px-3 md:text-xs transition-all ${addedProducts[product.id] ? 'bg-green-500 hover:bg-green-600' : 'bg-white hover:bg-white/90 text-primary'}`} size="icon" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}>
+                              {addedProducts[product.id] ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                              <span className="hidden md:inline ml-1 text-xs">Agregar</span>
+                             </Button>
+                             <Button
+                               className="h-8 md:h-9 px-3 md:px-4 text-white bg-green-600 hover:bg-green-700 transition-all text-[11px] md:text-sm shrink-0"
+                               size="sm"
+                               onClick={(e) => {
+                                 e.stopPropagation()
+                                 setWhatsAppMessage(encodeURIComponent(`Hola, quiero pedir: ${product.name}${selectedVariant?.label ? ` - ${selectedVariant.label}` : ""}\nPrecio: ${formatPrice(currentPrice)}`))
+                                 setIsWhatsAppOpen(true)
+                               }}
+                            >
+                              <MessageCircle className="h-4 w-4 md:mr-1.5" />
+                              <span className="truncate">WhatsApp</span>
                             </Button>
-                            <Button
-                              className="h-8 md:h-9 px-3 md:px-4 text-white bg-green-600 hover:bg-green-700 transition-all text-[11px] md:text-sm shrink-0"
-                              size="sm"
-                              onClick={() => {
-                                setWhatsAppMessage(encodeURIComponent(`Hola, quiero pedir: ${product.name}${selectedVariant?.label ? ` - ${selectedVariant.label}` : ""}\nPrecio: ${formatPrice(currentPrice)}`))
-                                setIsWhatsAppOpen(true)
-                              }}
-                           >
-                             <MessageCircle className="h-4 w-4 md:mr-1.5" />
-                             <span className="truncate">WhatsApp</span>
-                           </Button>
-                         </div>
-                      </div>
+                          </div>
+                       </div>
                     </div>
                     <div className="p-4">
                       <span className="text-xs text-primary font-medium uppercase tracking-wide">{product.category}</span>
@@ -417,14 +427,14 @@ const handleAddToCart = (product: Product) => {
                          </div>
                        </div>
                       
-                      {/* CORRECCIÓN: Validar el stock dinámico para el mensaje de urgencia */}
-                      {stockPerVariant && activeStock !== undefined && activeStock > 0 && activeStock < 10 && (
-                        <p className="text-xs text-orange-600 mt-1">Quedan pocas unidades de esta opción</p>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
+                       {/* CORRECCIÓN: Validar el stock dinámico para el mensaje de urgencia */}
+                       {stockPerVariant && activeStock !== undefined && activeStock > 0 && activeStock < 10 && (
+                         <p className="text-xs text-orange-600 mt-1">Quedan pocas unidades de esta opción</p>
+                       )}
+                     </div>
+                   </Link>
+                 )
+               })}
             </div>
           )}
           {category !== "floristeria" && filteredProducts.length > 0 && (
