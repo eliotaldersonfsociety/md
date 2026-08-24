@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     images: ["/images/logo.webp"],
   },
   verification: {
-    google: "viYjLBuSZ7FTB24i91h3Pgeeu7Yw9di1MpgoxV4iids",
+    google: "mOYPT4fAItFAfp7sgZDi7a9n1QxN2FF09bQM3gKcvO0",
   },
   icons: {
     icon: "/images/favicon/1.png",
