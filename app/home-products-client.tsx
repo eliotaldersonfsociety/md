@@ -184,6 +184,7 @@ function mergeProducts(dbProducts: any[]): ProductType[] {
       isNew: !!p.is_new,
       isSale: !!p.is_sale,
       minWholesale: p.minWholesale ?? 3,
+      mercadolibre_url: p.mercadolibre_url ?? staticP?.mercadolibre_url,
     }
   })
 }
@@ -582,6 +583,25 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                             )}
                           </div>
 
+                          <div className="absolute top-2 left-2">
+                            <Button
+                              className={cn(
+                                "shrink-0 h-7 w-7 md:h-8 md:w-8 transition-all",
+                                addedProducts[product.id]
+                                  ? 'bg-green-500 hover:bg-green-600'
+                                  : 'bg-white text-black hover:bg-white/90'
+                              )}
+                              size="icon"
+                              onClick={(e) => { e.stopPropagation(); handleAddToCart(product) }}
+                            >
+                              {addedProducts[product.id] ? (
+                                <Check className="h-3.5 w-3.5" />
+                              ) : (
+                                <ShoppingCart className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </div>
+
                           <button
                             onClick={(e) => { e.stopPropagation(); toggleFavorite(product.id) }}
                             className={cn(
@@ -600,28 +620,9 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                           </button>
 
                           <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/70 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center justify-end gap-1">
                               <Button
-                                className={cn(
-                                  "shrink-0 h-8 w-8 md:h-8 md:w-auto md:px-3 md:text-xs transition-all",
-                                  addedProducts[product.id]
-                                    ? 'bg-green-500 hover:bg-green-600'
-                                    : 'bg-white text-black hover:bg-white/90'
-                                )}
-                                size="icon"
-                                onClick={(e) => { e.stopPropagation(); handleAddToCart(product) }}
-                              >
-                                {addedProducts[product.id] ? (
-                                  <Check className="h-4 w-4" />
-                                ) : (
-                                  <ShoppingCart className="h-4 w-4" />
-                                )}
-                                <span className="hidden md:inline ml-1 text-xs">
-                                  {addedProducts[product.id] ? 'Agregado' : 'Agregar'}
-                                </span>
-                              </Button>
-                              <Button
-                                className="h-8 md:h-9 px-3 md:px-4 text-white bg-green-600 hover:bg-green-700 transition-all text-[11px] md:text-sm shrink-0"
+                                className="h-7 md:h-9 px-2 md:px-4 text-white bg-green-600 hover:bg-green-700 transition-all text-[10px] md:text-sm shrink-0"
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation()
@@ -629,8 +630,18 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                                   setIsWhatsAppOpen(true)
                                 }}
                               >
-                                <MessageCircle className="h-4 w-4 md:mr-1.5" />
                                 <span className="truncate">WhatsApp</span>
+                              </Button>
+                              <Button
+                                className="h-7 md:h-9 px-2 md:px-4 text-black bg-[#FFE600] hover:bg-[#FFE600]/90 transition-all text-[10px] md:text-sm shrink-0"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const url = product.mercadolibre_url || `https://www.mercadolibre.com.co/jm/search?as_word=${encodeURIComponent(product.name)}`
+                                  window.open(url, '_blank')
+                                }}
+                              >
+                                <span className="truncate font-medium">Mercado Libre</span>
                               </Button>
                             </div>
                           </div>
@@ -652,7 +663,7 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                             <div className="mt-1.5">
                               <div className="flex gap-1">
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); setVariantTypes(prev => ({ ...prev, [product.id]: "adult" }))}}
+                                  onClick={(e) => { e.stopPropagation(); setVariantTypes(prev => ({ ...prev, [product.id]: "adult" })) }}
                                   className={cn(
                                     "px-2 py-0.5 text-[10px] rounded border transition-all",
                                     variantTypes[product.id] !== "child"
@@ -665,7 +676,7 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                                   Adulto
                                 </button>
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); setVariantTypes(prev => ({ ...prev, [product.id]: "child" }))}}
+                                  onClick={(e) => { e.stopPropagation(); setVariantTypes(prev => ({ ...prev, [product.id]: "child" })) }}
                                   className={cn(
                                     "px-2 py-0.5 text-[10px] rounded border transition-all",
                                     variantTypes[product.id] === "child"
@@ -679,22 +690,22 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                                 </button>
                               </div>
                             </div>
-                           )}
+                          )}
 
-                           {showVariantSelect && (
-                             <div className="mt-1.5">
-                               <p className="text-[10px] text-muted-foreground mb-0.5">Tamaño:</p>
-                               <select
-                                 value={selectedVariant?.id || variantOptions[0]?.id || ""}
-                                 onChange={(e) => { e.stopPropagation(); setSelectedVariants(prev => ({ ...prev, [product.id]: e.target.value }))}}
-                                 className="w-full text-[10px] border border-border rounded bg-white px-1.5 py-1"
-                               >
-                                 {Array.from(new Map(variantOptions.map(v => [v.label, v])).values()).map((variant) => (
-                                   <option key={variant.id} value={variant.id}>{variant.label}</option>
-                                 ))}
-                               </select>
-                             </div>
-                           )}
+                          {showVariantSelect && (
+                            <div className="mt-1.5">
+                              <p className="text-[10px] text-muted-foreground mb-0.5">Tamaño:</p>
+                              <select
+                                value={selectedVariant?.id || variantOptions[0]?.id || ""}
+                                onChange={(e) => { e.stopPropagation(); setSelectedVariants(prev => ({ ...prev, [product.id]: e.target.value })) }}
+                                className="w-full text-[10px] border border-border rounded bg-white px-1.5 py-1"
+                              >
+                                {Array.from(new Map(variantOptions.map(v => [v.label, v])).values()).map((variant) => (
+                                  <option key={variant.id} value={variant.id}>{variant.label}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
 
                           <div className="flex items-center justify-between gap-1 mt-2 flex-wrap">
                             <div className="flex items-center gap-2">
@@ -721,7 +732,7 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                                 size="icon"
                                 variant="outline"
                                 className="h-6 w-6"
-                                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, -6)}}
+                                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, -6) }}
                                 disabled={getQuantity(product.id) <= 3}
                               >
                                 <span className="text-xs">-</span>
@@ -733,16 +744,16 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                                 size="icon"
                                 variant="outline"
                                 className="h-6 w-6"
-                                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 6)}}
+                                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 6) }}
                               >
                                 <span className="text-xs">+</span>
                               </Button>
                             </div>
                           )}
                         </div>
-                        </div>
-                      )
-                    })}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
 

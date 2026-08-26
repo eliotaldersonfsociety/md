@@ -312,6 +312,16 @@ export default function ProductPageClient({ product, relatedProducts, productSlu
                   <MessageCircle className="h-5 w-5" />
                   WhatsApp
                 </Button>
+                <Button
+                  size="lg"
+                  className="flex-1 gap-1 bg-[#FFE600] text-black hover:bg-[#FFE600]/90"
+                  onClick={() => {
+                    const url = product.mercadolibre_url || `https://www.mercadolibre.com.co/jm/search?as_word=${encodeURIComponent(product.name)}`
+                    window.open(url, '_blank')
+                  }}
+                >
+                  MercadoLibre
+                </Button>
               </div>
 
               <div className="border-t pt-6 space-y-3">

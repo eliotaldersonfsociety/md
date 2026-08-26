@@ -66,6 +66,7 @@ export interface Product {
   isNew?: boolean
   isSale?: boolean
   minWholesale?: number
+  mercadolibre_url?: string
 }
 
 interface CategoryPageProps {
@@ -338,37 +339,50 @@ const handleAddToCart = (product: Product) => {
                 const activeStock = selectedVariant?.stock ?? product.stock ?? 0
 
                 return (
-                  <Link key={product.id} href={`/${(product.category || category).toLowerCase()}/${productSlug}`} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border block">
-                    <div className="relative aspect-square overflow-hidden bg-gray-50">
-                      <ProductImages product={product} variantType={variantTypes[product.id] || null} />
-                      <div className="absolute top-3 left-3 flex flex-col gap-2">
-                        {product.badge && <span className={cn("text-white text-xs font-bold px-3 py-1 rounded-full", product.badgeColor || "bg-accent")}>{product.badge.toUpperCase()}</span>}
-                        {product.originalPrice && <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</span>}
-                      </div>
-                      <button onClick={() => toggleFavorite(product.id)} className={cn("absolute top-3 right-3 p-2 rounded-full transition-all", favorites.includes(product.id) ? "bg-primary text-white" : "bg-white/80 hover:bg-white text-gray-600")}>
-                        <Heart className={cn("h-5 w-5", favorites.includes(product.id) && "fill-current")} />
-                      </button>
-                       <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/70 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                         <div className="flex items-center gap-1">
-                            <Button className={`shrink-0 h-8 w-8 md:h-8 md:w-auto md:px-3 md:text-xs transition-all ${addedProducts[product.id] ? 'bg-green-500 hover:bg-green-600' : 'bg-white hover:bg-white/90 text-primary'}`} size="icon" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}>
-                              {addedProducts[product.id] ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-                              <span className="hidden md:inline ml-1 text-xs">Agregar</span>
-                             </Button>
+                   <Link key={product.id} href={`/${(product.category || category).toLowerCase()}/${productSlug}`} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border block">
+                     <div className="relative aspect-square overflow-hidden bg-gray-50">
+                       <ProductImages product={product} variantType={variantTypes[product.id] || null} />
+                       <div className="absolute top-3 left-3 flex flex-col gap-2">
+                         {product.badge && <span className={cn("text-white text-xs font-bold px-3 py-1 rounded-full", product.badgeColor || "bg-accent")}>{product.badge.toUpperCase()}</span>}
+                         {product.originalPrice && <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</span>}
+                       </div>
+                       <div className="absolute top-3 left-3">
+                           <Button className={`shrink-0 h-8 w-8 md:h-8 md:w-auto md:px-3 md:text-xs transition-all ${addedProducts[product.id] ? 'bg-green-500 hover:bg-green-600' : 'bg-white hover:bg-white/90 text-primary'}`} size="icon" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}>
+                             {addedProducts[product.id] ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                             <span className="hidden md:inline ml-1 text-xs">Agregar</span>
+                            </Button>
+                       </div>
+                       <button onClick={() => toggleFavorite(product.id)} className={cn("absolute top-3 right-3 p-2 rounded-full transition-all", favorites.includes(product.id) ? "bg-primary text-white" : "bg-white/80 hover:bg-white text-gray-600")}>
+                         <Heart className={cn("h-5 w-5", favorites.includes(product.id) && "fill-current")} />
+                       </button>
+                        <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/70 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-end gap-1">
                              <Button
-                               className="h-8 md:h-9 px-3 md:px-4 text-white bg-green-600 hover:bg-green-700 transition-all text-[11px] md:text-sm shrink-0"
+                               className="h-7 md:h-9 px-2 md:px-4 text-white bg-green-600 hover:bg-green-700 transition-all text-[10px] md:text-sm shrink-0"
                                size="sm"
                                onClick={(e) => {
                                  e.stopPropagation()
                                  setWhatsAppMessage(encodeURIComponent(`Hola, quiero pedir: ${product.name}${selectedVariant?.label ? ` - ${selectedVariant.label}` : ""}\nPrecio: ${formatPrice(currentPrice)}`))
                                  setIsWhatsAppOpen(true)
                                }}
-                            >
-                              <MessageCircle className="h-4 w-4 md:mr-1.5" />
-                              <span className="truncate">WhatsApp</span>
-                            </Button>
-                          </div>
-                       </div>
-                    </div>
+                             >
+                               <MessageCircle className="h-4 w-4 md:mr-1.5" />
+                               <span className="truncate">WhatsApp</span>
+                             </Button>
+                             <Button
+                               className="h-7 md:h-9 px-2 md:px-4 text-black bg-[#FFE600] hover:bg-[#FFE600]/90 transition-all text-[10px] md:text-sm shrink-0"
+                               size="sm"
+                               onClick={(e) => {
+                                 e.stopPropagation()
+                                 const url = product.mercadolibre_url || `https://www.mercadolibre.com.co/jm/search?as_word=${encodeURIComponent(product.name)}`
+                                 window.open(url, '_blank')
+                               }}
+                             >
+                               <span className="truncate font-medium">MercadoLibre</span>
+                             </Button>
+                           </div>
+                        </div>
+                     </div>
                     <div className="p-4">
                       <span className="text-xs text-primary font-medium uppercase tracking-wide">{product.category}</span>
                       <h3 className="font-semibold text-lg mt-1 group-hover:text-primary transition-colors">{product.name}</h3>

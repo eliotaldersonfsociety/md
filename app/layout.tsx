@@ -7,13 +7,13 @@ import { Toaster } from 'sonner'
 import { JsonLd, organizationSchema, webSiteSchema } from '@/components/json-ld'
 import './globals.css'
 
-const poppins = Poppins({ 
+const poppins = Poppins({
   subsets: ["latin"],
   weight: ['300', '400', '500', '600', '700'],
   variable: '--font-sans'
 });
 
-const quicksand = Quicksand({ 
+const quicksand = Quicksand({
   subsets: ["latin"],
   weight: ['400', '500', '600', '700'],
   variable: '--font-display'
