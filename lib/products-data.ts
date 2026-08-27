@@ -88,6 +88,13 @@ export const allProducts: Product[] = [
   { id: 214, name: "Cojin Cuadrado Argentina", price: 48000, image: "/images/cojines/14.webp", rating: 4.3, reviews: 38, features: FEATURES, category: "cojines", variants: [{ id: "gra", label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 28 },
   { id: 215, name: "Cojin Cuadrado Colombia", price: 48000, image: "/images/cojines/15.webp", rating: 4.4, reviews: 45, features: FEATURES, category: "cojines", variants: [{ id: "gra", label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 22 },
   { id: 216, name: "Cojin Cuadrado Brasil", price: 48000, image: "/images/cojines/16.webp", rating: 4.5, reviews: 51, features: FEATURES, category: "cojines", variants: [{ id: "gra", label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 30 },
+  { id: 217, name: "Cojin Cuadrado Snoopy", price: 48000, image: "/images/cojines/19.webp", rating: 4.5, reviews: 51, features: FEATURES, category: "cojines", variants: [{ id: "gra", label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 30 },
+  { id: 218, name: "Cojin Cuadrado Stitch", price: 48000, image: "/images/cojines/20.webp", rating: 4.5, reviews: 51, features: FEATURES, category: "cojines", variants: [{ id: "gra", label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 30 },
+  { id: 219, name: "Cojin Cuadrado Meloddy", price: 48000, image: "/images/cojines/21.webp", rating: 4.5, reviews: 51, features: FEATURES, category: "cojines", variants: [{ id: "gra", label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 30 },
+  { id: 220, name: "Cojin Cuadrado Lotso", price: 48000, image: "/images/cojines/22.webp", rating: 4.5, reviews: 51, features: FEATURES, category: "cojines", variants: [{ id: "gra", label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 30 },
+  { id: 221, name: "Cojin Cuadrado Hello Kitty", price: 48000, image: "/images/cojines/23.webp", rating: 4.5, reviews: 51, features: FEATURES, category: "cojines", variants: [{ id: "gra", label: "Grande - 35cm", price: 22000, wholesalePrice: 15000 }], stock: 30 },
+
+
   // Latas
   { id: 301, name: "Lata Te ExtraNo", price: 18000, rating: 4.5, reviews: 63, features: FEATURES, image: "/images/lata/2.webp", category: "latas", variants: [{ id: "med", label: "Mediano - 30cm", price: 18000, wholesalePrice: 18000 }], stock: 45, mercadolibre_url: "https://www.mercadolibre.com.co/lata-te-extrano" },
   { id: 302, name: "Lata Me Gustas", price: 18000, originalPrice: 28000, rating: 4.4, reviews: 51, features: FEATURES, image: "/images/lata/4.webp", category: "latas", variants: [{ id: "med", label: "Mediano - 30cm", price: 18000, wholesalePrice: 18000 }], stock: 38 },
