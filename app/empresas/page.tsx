@@ -6,7 +6,7 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 
 export const metadata: Metadata = {
-  title: "Empresas | Fábrica de Peluches Mundo Disney",
+  title: "Peluches Personalizados para Empresas | Mundo Disney",
   description: "Desarrollos corporativos y regalos empresariales personalizados. Pedidos desde 100 unidades para empresas en Colombia y Venezuela.",
   canonical: "/empresas",
 }

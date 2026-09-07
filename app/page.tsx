@@ -13,7 +13,7 @@ import { FaqSection } from "@/components/faq-section"
 import { ContactSection } from "@/components/contact-section"
 
 export const metadata: Metadata = {
-  title: "Inicio | Fábrica de Peluches Mundo Disney",
+  title: "Fábrica de Peluches en Colombia y Venezuela | Mundo Disney",
   description: "Fábrica de peluches, cojines, cervicales, llaveros y regalos personalizados. Envíos a todo Colombia y Venezuela. Pedidos al por mayor y detal.",
   canonical: "/",
 }
