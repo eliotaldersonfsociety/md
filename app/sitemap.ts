@@ -17,6 +17,9 @@ const STATIC_ROUTES: MetadataRoute.Sitemap[0][] = [
   { url: `${BASE_URL}/floristeria`, changeFrequency: "weekly", priority: 0.7 },
   { url: `${BASE_URL}/arreglos`, changeFrequency: "weekly", priority: 0.7 },
   { url: `${BASE_URL}/arreglos-florales`, changeFrequency: "weekly", priority: 0.7 },
+  { url: `${BASE_URL}/ramos-florales`, changeFrequency: "weekly", priority: 0.7 },
+  { url: `${BASE_URL}/desayunos`, changeFrequency: "weekly", priority: 0.7 },
+  { url: `${BASE_URL}/sorpresas`, changeFrequency: "weekly", priority: 0.7 },
   { url: `${BASE_URL}/nosotros`, changeFrequency: "monthly", priority: 0.6 },
   { url: `${BASE_URL}/empresas`, changeFrequency: "monthly", priority: 0.6 },
   { url: `${BASE_URL}/contacto`, changeFrequency: "monthly", priority: 0.6 },
@@ -60,6 +63,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
       sitemap.push({
         url: `${BASE_URL}/arreglos-florales/${city.slug}`,
+        changeFrequency: "weekly",
+        priority: 0.7,
+      })
+      sitemap.push({
+        url: `${BASE_URL}/ramos-florales/${city.slug}`,
+        changeFrequency: "weekly",
+        priority: 0.7,
+      })
+      sitemap.push({
+        url: `${BASE_URL}/desayunos/${city.slug}`,
+        changeFrequency: "weekly",
+        priority: 0.7,
+      })
+      sitemap.push({
+        url: `${BASE_URL}/sorpresas/${city.slug}`,
         changeFrequency: "weekly",
         priority: 0.7,
       })
