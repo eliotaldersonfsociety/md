@@ -2101,7 +2101,6 @@ export async function getProductBySlug(categorySlug: string, slug: string) {
 
   const categoryRow = (categoryResult as any).rows[0]
   if (!categoryRow) {
-    console.log("[getProductBySlug] category not found", { categorySlug, normalizedCategory })
     return null
   }
 
@@ -2112,8 +2111,6 @@ export async function getProductBySlug(categorySlug: string, slug: string) {
 
   const rows = (productsResult as any).rows as any[]
   const normalizedSlug = slug.toLowerCase()
-
-  console.log("[getProductBySlug] search", { categorySlug, slug, normalizedCategory, categoryId: categoryRow.id, count: rows.length, names: rows.map((r: any) => r.name) })
 
   const matched = rows.find((row) => {
     if (!row.name) return false
@@ -2127,7 +2124,6 @@ export async function getProductBySlug(categorySlug: string, slug: string) {
   })
 
   if (!matched) {
-    console.log("[getProductBySlug] no match", { normalizedSlug, candidates: rows.map((r: any) => ({ id: r.id, name: r.name, slug: r.name?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") })) })
     return null
   }
 
