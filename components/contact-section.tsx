@@ -82,8 +82,7 @@ export function ContactSection() {
                 Contacto
               </span>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 md:mb-4 text-balance">
-                {/* CAMBIO: text-2xl en móvil, escalado progresivo */}
-                ¿Tienes Preguntas?
+                Contáctanos y Cotiza tu Pedido
               </h2>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                 {/* CAMBIO: text-sm en móvil */}

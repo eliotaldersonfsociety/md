@@ -175,8 +175,11 @@ export function HeroSection() {
         <div className="max-w-2xl">
           
           <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight text-balance mb-4 md:mb-6">
-            {slide.title} <span className="text-pink-400">{slide.highlight}</span> {slide.titleEnd}
+            Fábrica de Peluches y Regalos Personalizados en Colombia y Venezuela
           </h1>
+          <span className="text-pink-400 text-lg md:text-xl font-medium">
+            {slide.title} <span className="text-pink-300">{slide.highlight}</span> {slide.titleEnd}
+          </span>
           
           <p className="text-sm md:text-lg text-white/80 max-w-xl leading-relaxed mb-6 md:mb-8">
             {slide.description}

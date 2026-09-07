@@ -5,6 +5,7 @@ import { CartProvider } from '@/context/cart-context'
 import { RatingProvider } from '@/context/rating-context'
 import { Toaster } from 'sonner'
 import { JsonLd, organizationSchema, webSiteSchema } from '@/components/json-ld'
+import { HeadResources } from './head-resources'
 import './globals.css'
 
 const poppins = Poppins({
@@ -22,11 +23,10 @@ const quicksand = Quicksand({
 export const metadata: Metadata = {
   metadataBase: new URL("https://fabricadepeluchesmundodisney.com"),
   title: {
-    default: "Fábrica de Peluches Mundo Disney | Peluches y Regalos Personalizados",
-    template: "%s | Fábrica de Peluches Mundo Disney",
+    default: "Fábrica de Peluches Personalizados en Colombia y Venezuela | Mundo Disney",
+    template: "%s | Mundo Disney",
   },
-  description: "Fábrica de peluches, cojines, cervicales, llaveros y regalos personalizados. Envíos a todo Colombia y Venezuela. Pedidos al por mayor y detal para cumpleaños, eventos y empresas.",
-  keywords: ["peluches", "cojines", "cervicales", "llaveros", "regalos personalizados", "peluches personalizados", "cojines personalizados", "regalos corporativos", "fabrica de peluches", "peluches en Colombia", "peluches en Venezuela"],
+  description: "Fabricamos peluches personalizados en Colombia y Venezuela. Venta al por mayor y detal para empresas, colegios, eventos y regalos. ¡Cotiza tu pedido!",
   authors: [{ name: "Fábrica de Peluches Mundo Disney" }],
   creator: "Fábrica de Peluches Mundo Disney",
   publisher: "Fábrica de Peluches Mundo Disney",
@@ -44,27 +44,33 @@ export const metadata: Metadata = {
   canonical: "/",
   alternates: {
     canonical: "https://fabricadepeluchesmundodisney.com",
+    languages: {
+      "es-co": "https://fabricadepeluchesmundodisney.com",
+      "es-ve": "https://fabricadepeluchesmundodisney.com?country=ve",
+      "x-default": "https://fabricadepeluchesmundodisney.com",
+    },
   },
   openGraph: {
     type: "website",
     locale: "es_CO",
+    alternateLocale: ["es_VE"],
     url: "https://fabricadepeluchesmundodisney.com",
     siteName: "Fábrica de Peluches Mundo Disney",
     title: "Fábrica de Peluches Mundo Disney | Peluches y Regalos Personalizados",
     description: "Fábrica de peluches, cojines, cervicales, llaveros y regalos personalizados. Envíos a todo Colombia y Venezuela.",
     images: [
       {
-        url: "/images/logo.webp",
+        url: "https://fabricadepeluchesmundodisney.com/images/logo.webp",
         width: 1200,
         height: 630,
-        alt: "Fábrica de Peluches Mundo Disney",
+        alt: "Fábrica de Peluches Mundo Disney - Peluches y regalos personalizados",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fábrica de Peluches Mundo Disney | Peluches y Regalos Personalizados",
-    description: "Fábrica de peluches, cojines, cervicales, llaveros y regalos personalizados. Envíos a todo Colombia y Venezuela.",
+    title: "Fábrica de Peluches Personalizados en Colombia y Venezuela | Mundo Disney",
+    description: "Fabricamos peluches personalizados en Colombia y Venezuela. Venta al por mayor y detal para empresas, colegios, eventos y regalos. ¡Cotiza tu pedido!",
     images: ["/images/logo.webp"],
   },
   verification: {
@@ -90,6 +96,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${poppins.variable} ${quicksand.variable} antialiased`}>
+        <HeadResources />
         <CartProvider>
           <RatingProvider>
             {children}

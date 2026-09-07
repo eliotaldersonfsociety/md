@@ -34,13 +34,28 @@ export function CorporateSection() {
             Productos Corporativos
           </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance">
-            Desarrollamos Tus Ideas
+            Llaveros y Regalos Corporativos
           </h2>
           <p className="text-card/70 max-w-2xl mx-auto mb-12 leading-relaxed">
             Creamos tu producto corporativo a partir de 200 unidades con un proceso claro 
             y un gran beneficio de posicionamiento de marca. Tu mascota corporativa cobra vida 
             en nuestras manos expertas.
           </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+            <div className="text-center">
+              <h3 className="text-xl font-bold mb-1">Regalos para Empresas</h3>
+              <p className="text-sm text-card/60">Mascotas y detalles corporativos</p>
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold mb-1">Regalos para Colegios</h3>
+              <p className="text-sm text-card/60">Productos personalizados para estudiantes</p>
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold mb-1">Regalos para Eventos</h3>
+              <p className="text-sm text-card/60">Recuerdos únicos para ocasiones especiales</p>
+            </div>
+          </div>
 
           {/* Features */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">

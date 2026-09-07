@@ -5,6 +5,12 @@ import { HeroSection } from "@/components/hero-section"
 import { Footer } from "@/components/footer"
 import { getProductsWithVariantsFromDB } from "@/db/actions"
 import HomeProductsClient from "./home-products-client"
+import { CojinesCervicalesSection } from "@/components/cojines-cervicales-section"
+import { CorporateSection } from "@/components/corporate-section"
+import { WholesaleSection } from "@/components/wholesale-section"
+import { ShippingSection } from "@/components/shipping-section"
+import { FaqSection } from "@/components/faq-section"
+import { ContactSection } from "@/components/contact-section"
 
 export const metadata: Metadata = {
   title: "Inicio | Fábrica de Peluches Mundo Disney",
@@ -22,6 +28,12 @@ export default async function HomePage() {
       <Header />
       <HeroSection />
       <HomeProductsClient initialProducts={dbProducts} vercelCountry={vercelCountry} />
+      <CojinesCervicalesSection />
+      <CorporateSection />
+      <WholesaleSection />
+      <ShippingSection />
+      <FaqSection />
+      <ContactSection />
       <Footer />
     </main>
   )

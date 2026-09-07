@@ -70,8 +70,8 @@ export function WholesaleSection() {
               <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
                 Emprende Con Nosotros
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 text-balance">
-                Venta al Por Mayor
+               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 text-balance">
+                ¿Por Qué Elegir Fábrica Mundo Disney?
               </h2>
               <p className="text-muted-foreground leading-relaxed">
                 Vender nuestros productos es una manera de emprendimiento rentable. 

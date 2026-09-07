@@ -371,7 +371,7 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                   Nuestra Tienda
                 </span>
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3">
-                  Todos Nuestros Productos
+                  Peluches Personalizados para Cada Ocasión
                 </h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
                   Explora nuestra colección completa de peluches, cojines, cervicales, llaveros y más.
@@ -535,7 +535,11 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 lg:gap-5">
+                <div>
+                  <h3 className="text-xl font-bold text-foreground mb-4">
+                    {purchaseMode === "wholesale" ? "Peluches por Mayor" : "Peluches al Detal"}
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 lg:gap-5">
                   {filteredProducts.map((product) => {
                     const currentPrice = getProductPrice(product)
                     const selectedVariant = getSelectedVariant(product)
@@ -755,13 +759,13 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                     )
                   })}
                 </div>
-              )}
-
-              <div className="text-center mt-10">
-                <span className="text-sm text-muted-foreground">
-                  Mostrando {filteredProducts.length} de {products.length} productos
-                </span>
+                <div className="text-center mt-10">
+                  <span className="text-sm text-muted-foreground">
+                    Mostrando {filteredProducts.length} de {products.length} productos
+                  </span>
+                </div>
               </div>
+            )}
             </>
           )}
         </div>
