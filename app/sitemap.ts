@@ -2,6 +2,7 @@ import { MetadataRoute } from "next"
 import { getProductsWithVariantsFromDB, getAllCategories } from "@/db/actions"
 import { slugify } from "@/lib/slugify"
 import { getAllPosts } from "@/lib/blog-data"
+import { getAllCities } from "@/lib/cities-data"
 
 const BASE_URL = "https://fabricadepeluchesmundodisney.com"
 
@@ -14,6 +15,8 @@ const STATIC_ROUTES: MetadataRoute.Sitemap[0][] = [
   { url: `${BASE_URL}/latas`, changeFrequency: "daily", priority: 0.8 },
   { url: `${BASE_URL}/ropa`, changeFrequency: "weekly", priority: 0.7 },
   { url: `${BASE_URL}/floristeria`, changeFrequency: "weekly", priority: 0.7 },
+  { url: `${BASE_URL}/arreglos`, changeFrequency: "weekly", priority: 0.7 },
+  { url: `${BASE_URL}/arreglos-florales`, changeFrequency: "weekly", priority: 0.7 },
   { url: `${BASE_URL}/nosotros`, changeFrequency: "monthly", priority: 0.6 },
   { url: `${BASE_URL}/empresas`, changeFrequency: "monthly", priority: 0.6 },
   { url: `${BASE_URL}/contacto`, changeFrequency: "monthly", priority: 0.6 },
@@ -29,10 +32,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const sitemap: MetadataRoute.Sitemap = [...STATIC_ROUTES]
 
   try {
-    const [categories, products, posts] = await Promise.all([
+    const [categories, products, posts, cities] = await Promise.all([
       getAllCategories(),
       getProductsWithVariantsFromDB(),
       getAllPosts(),
+      getAllCities(),
     ])
 
     for (const category of categories) {
@@ -40,6 +44,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: `${BASE_URL}/${category.slug}`,
         changeFrequency: "daily",
         priority: 0.9,
+      })
+    }
+
+    for (const city of cities) {
+      sitemap.push({
+        url: `${BASE_URL}/ciudad/${city.slug}`,
+        changeFrequency: "weekly",
+        priority: 0.7,
+      })
+      sitemap.push({
+        url: `${BASE_URL}/arreglos/${city.slug}`,
+        changeFrequency: "weekly",
+        priority: 0.7,
+      })
+      sitemap.push({
+        url: `${BASE_URL}/arreglos-florales/${city.slug}`,
+        changeFrequency: "weekly",
+        priority: 0.7,
       })
     }
 
