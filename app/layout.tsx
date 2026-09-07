@@ -5,6 +5,7 @@ import { CartProvider } from '@/context/cart-context'
 import { RatingProvider } from '@/context/rating-context'
 import { Toaster } from 'sonner'
 import { JsonLd, organizationSchema, webSiteSchema } from '@/components/json-ld'
+import { GoogleTagManager } from '@/components/google-tag-manager'
 import { HeadResources } from './head-resources'
 import './globals.css'
 
@@ -96,6 +97,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${poppins.variable} ${quicksand.variable} antialiased`}>
+        <GoogleTagManager />
         <HeadResources />
         <CartProvider>
           <RatingProvider>
