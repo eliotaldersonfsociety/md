@@ -170,7 +170,7 @@ export function Header() {
 
               {/* Actions */}
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" aria-label="Buscar">
                   <Search className="h-5 w-5" />
                 </Button>
 
@@ -181,6 +181,7 @@ export function Header() {
                     size="icon" 
                     className="relative text-white hover:bg-white/10"
                     onClick={() => setIsWholesaleOpen(true)}
+                    aria-label="Pedido mayorista"
                   >
                     <Package className="h-5 w-5" />
                     {wholesaleCount > 0 && (
@@ -197,6 +198,7 @@ export function Header() {
                   size="icon" 
                   className="relative text-white hover:bg-white/10"
                   onClick={() => setIsCartOpen(true)}
+                  aria-label="Carrito de compras"
                 >
                   <ShoppingCart className="h-5 w-5" />
                   {cartCount > 0 && (

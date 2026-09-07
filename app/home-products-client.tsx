@@ -589,6 +589,7 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
 
                           <div className="absolute top-2 left-2">
                             <Button
+                              aria-label={addedProducts[product.id] ? 'Producto agregado' : 'Agregar al carrito'}
                               className={cn(
                                 "shrink-0 h-7 w-7 md:h-8 md:w-8 transition-all",
                                 addedProducts[product.id]
@@ -607,6 +608,7 @@ export default function HomeProductsClient({ initialProducts, vercelCountry }: {
                           </div>
 
                           <button
+                            aria-label={favorites.includes(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                             onClick={(e) => { e.stopPropagation(); toggleFavorite(product.id) }}
                             className={cn(
                               "absolute top-2 right-2 p-1.5 rounded-full transition-all opacity-80 hover:opacity-100",

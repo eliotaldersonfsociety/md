@@ -346,13 +346,13 @@ const handleAddToCart = (product: Product) => {
                          {product.badge && <span className={cn("text-white text-xs font-bold px-3 py-1 rounded-full", product.badgeColor || "bg-accent")}>{product.badge.toUpperCase()}</span>}
                          {product.originalPrice && <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</span>}
                        </div>
-                       <div className="absolute top-3 left-3">
-                           <Button className={`shrink-0 h-8 w-8 md:h-8 md:w-auto md:px-3 md:text-xs transition-all ${addedProducts[product.id] ? 'bg-green-500 hover:bg-green-600' : 'bg-white hover:bg-white/90 text-primary'}`} size="icon" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}>
-                             {addedProducts[product.id] ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-                             <span className="hidden md:inline ml-1 text-xs">Agregar</span>
-                            </Button>
-                       </div>
-                       <button onClick={() => toggleFavorite(product.id)} className={cn("absolute top-3 right-3 p-2 rounded-full transition-all", favorites.includes(product.id) ? "bg-primary text-white" : "bg-white/80 hover:bg-white text-gray-600")}>
+                        <div className="absolute top-3 left-3">
+                            <Button aria-label={addedProducts[product.id] ? 'Producto agregado' : 'Agregar al carrito'} className={`shrink-0 h-8 w-8 md:h-8 md:w-auto md:px-3 md:text-xs transition-all ${addedProducts[product.id] ? 'bg-green-500 hover:bg-green-600' : 'bg-white hover:bg-white/90 text-primary'}`} size="icon" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}>
+                              {addedProducts[product.id] ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                              <span className="hidden md:inline ml-1 text-xs">Agregar</span>
+                             </Button>
+                        </div>
+                        <button aria-label={favorites.includes(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'} onClick={() => toggleFavorite(product.id)} className={cn("absolute top-3 right-3 p-2 rounded-full transition-all", favorites.includes(product.id) ? "bg-primary text-white" : "bg-white/80 hover:bg-white text-gray-600")}>
                          <Heart className={cn("h-5 w-5", favorites.includes(product.id) && "fill-current")} />
                        </button>
                         <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/70 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
